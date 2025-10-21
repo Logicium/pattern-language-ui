@@ -3,7 +3,7 @@
     <!-- Navigation -->
     <nav class="nav-bar">
       <div class="nav-container">
-        <div class="logo">PatternLanguage.ai</div>
+        <div class="logo">PATTERN_LANGUAGE.AI</div>
         <div class="nav-links">
           <a href="#about">About</a>
           <a href="#patterns">Patterns</a>
@@ -387,16 +387,6 @@ const caseStudies = [
     patterns: ['Anchor Point', 'Mobility Hubs', 'Digital Literacy']
   }
 ]
-
-onMounted(() => {
-  startTypingAnimation()
-})
-
-onUnmounted(() => {
-  if (typingInterval) {
-    clearInterval(typingInterval)
-  }
-})
 </script>
 
 <style scoped>
@@ -437,8 +427,15 @@ onUnmounted(() => {
 .logo {
   font-size: 0.95rem;
   font-weight: 400;
-  letter-spacing: 0.02em;
-  color: #2a2a2a;
+  letter-spacing: 0.2em;
+  color: #e8b4a0;
+  animation: colorShift 8s ease infinite;
+}
+
+@keyframes colorShift {
+  0%, 100% { color: #e8b4a0; }
+  33% { color: #b8d4c8; }
+  66% { color: #c9b8e8; }
 }
 
 .nav-links {
@@ -461,6 +458,7 @@ onUnmounted(() => {
 }
 
 .btn-minimal {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: transparent;
   border: 1px solid #2a2a2a;
   color: #2a2a2a;
@@ -480,29 +478,34 @@ onUnmounted(() => {
 /* Hero Section */
 .hero {
   min-height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 8rem 4rem 4rem;
+  padding: 6rem 4rem 3rem;
   position: relative;
+  background: linear-gradient(135deg,
+  rgba(232, 180, 160, 0.03) 0%,
+  rgba(184, 212, 200, 0.03) 50%,
+  rgba(201, 184, 232, 0.03) 100%);
 }
 
 .hero-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8rem;
-  margin-bottom: 6rem;
+  gap: 6rem;
+  margin-bottom: 3rem;
 }
 
 .hero-title {
-  font-size: 4.5rem;
+  font-size: 3.5rem;
   font-weight: 200;
   line-height: 1.1;
   letter-spacing: -0.03em;
   color: #2a2a2a;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .typing-container {
@@ -511,6 +514,9 @@ onUnmounted(() => {
   font-weight: 300;
   min-height: 40px;
   letter-spacing: -0.01em;
+  padding: 1rem 1.5rem;
+  background: rgba(232, 180, 160, 0.08);
+  border-left: 2px solid #e8b4a0;
 }
 
 .cursor {
@@ -545,9 +551,9 @@ onUnmounted(() => {
 
 /* Interactive Constellation */
 .hero-interactive {
-  height: 400px;
+  height: 280px;
   position: relative;
-  margin-top: 4rem;
+  margin-top: 2rem;
 }
 
 .pattern-constellation {
@@ -557,22 +563,34 @@ onUnmounted(() => {
 }
 
 .floating-cta {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   position: absolute;
-  bottom: 4rem;
+  bottom: 3rem;
   right: 4rem;
   background: transparent;
   border: 1px solid #2a2a2a;
-  padding: 1rem 2rem;
+  color: #2a2a2a;
+  padding: 0.875rem 1.75rem;
   font-size: 0.875rem;
   font-weight: 300;
   letter-spacing: 0.08em;
   cursor: pointer;
   transition: all 0.4s ease;
+  background-size: 200% 100%;
 }
 
 .floating-cta:hover {
-  background: #2a2a2a;
-  color: #fdfbf7;
+  background: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8, #e8b4a0);
+  background-size: 200% 100%;
+  animation: gradientFlow 3s ease infinite;
+  color: #2a2a2a;
+  border-color: transparent;
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Section Headers */
@@ -580,8 +598,12 @@ onUnmounted(() => {
   display: flex;
   align-items: baseline;
   gap: 2rem;
-  margin-bottom: 5rem;
-  padding: 0 4rem;
+  margin-bottom: 4rem;
+  padding: 0 0 1rem 0;
+  position: relative;
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8) 1;
+  max-width: 1400px;
 }
 
 .section-number {
@@ -619,11 +641,33 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: 60px 1fr;
   gap: 2rem;
-  transition: background 0.4s ease;
+  transition: all 0.4s ease;
+  position: relative;
 }
+
+.pattern-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 0;
+  transition: height 0.4s ease;
+}
+
+.pattern-item:nth-child(6n+1)::before { background: #e8b4a0; }
+.pattern-item:nth-child(6n+2)::before { background: #b8d4c8; }
+.pattern-item:nth-child(6n+3)::before { background: #c9b8e8; }
+.pattern-item:nth-child(6n+4)::before { background: #e8b4a0; }
+.pattern-item:nth-child(6n+5)::before { background: #b8d4c8; }
+.pattern-item:nth-child(6n+6)::before { background: #c9b8e8; }
 
 .pattern-item:hover {
   background: #f8f6f2;
+}
+
+.pattern-item:hover::before {
+  height: 100%;
 }
 
 .pattern-number {
@@ -657,11 +701,37 @@ onUnmounted(() => {
 
 .pattern-meta span {
   font-size: 0.75rem;
-  color: #9a9a9a;
+  color: #6a6a6a;
   padding: 0.375rem 0.75rem;
   border: 1px solid rgba(42, 42, 42, 0.1);
   letter-spacing: 0.05em;
   font-weight: 300;
+  transition: all 0.3s ease;
+}
+
+.pattern-item:nth-child(6n+1) .pattern-meta span {
+  background: rgba(232, 180, 160, 0.1);
+  border-color: #e8b4a0;
+}
+.pattern-item:nth-child(6n+2) .pattern-meta span {
+  background: rgba(184, 212, 200, 0.1);
+  border-color: #b8d4c8;
+}
+.pattern-item:nth-child(6n+3) .pattern-meta span {
+  background: rgba(201, 184, 232, 0.1);
+  border-color: #c9b8e8;
+}
+.pattern-item:nth-child(6n+4) .pattern-meta span {
+  background: rgba(232, 180, 160, 0.1);
+  border-color: #e8b4a0;
+}
+.pattern-item:nth-child(6n+5) .pattern-meta span {
+  background: rgba(184, 212, 200, 0.1);
+  border-color: #b8d4c8;
+}
+.pattern-item:nth-child(6n+6) .pattern-meta span {
+  background: rgba(201, 184, 232, 0.1);
+  border-color: #c9b8e8;
 }
 
 /* Case Studies */
@@ -757,11 +827,28 @@ onUnmounted(() => {
 
 /* CTA Section */
 .cta-section {
-  background: #2a2a2a;
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
   padding: 12rem 4rem;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+  transparent 0%,
+  #e8b4a0 25%,
+  #b8d4c8 50%,
+  #c9b8e8 75%,
+  transparent 100%);
 }
 
 .cta-content {
@@ -778,6 +865,7 @@ onUnmounted(() => {
 }
 
 .cta-button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: transparent;
   border: 1px solid #fdfbf7;
   color: #fdfbf7;
@@ -787,17 +875,36 @@ onUnmounted(() => {
   letter-spacing: 0.08em;
   cursor: pointer;
   transition: all 0.4s ease;
+  background-size: 200% 100%;
 }
 
 .cta-button:hover {
-  background: #fdfbf7;
+  background: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8, #e8b4a0);
+  background-size: 200% 100%;
+  animation: gradientFlow 3s ease infinite;
   color: #2a2a2a;
+  border-color: transparent;
+  box-shadow: 0 0 30px rgba(184, 212, 200, 0.3);
 }
 
 /* Footer */
 .footer {
   background: #fdfbf7;
   padding: 6rem 4rem 3rem;
+  position: relative;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 4rem;
+  right: 4rem;
+  height: 1px;
+  background: linear-gradient(90deg,
+  #e8b4a0 0%,
+  #b8d4c8 50%,
+  #c9b8e8 100%);
 }
 
 .footer-grid {
