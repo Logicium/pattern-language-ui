@@ -468,11 +468,38 @@ const caseStudies = [
   letter-spacing: 0.02em;
   cursor: pointer;
   transition: all 0.4s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-minimal::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8, #e8b4a0);
+  background-size: 300% 100%;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+  animation: borderSwirl 3s linear infinite;
+}
+
+.btn-minimal:hover::before {
+  opacity: 1;
 }
 
 .btn-minimal:hover {
-  background: #2a2a2a;
   color: #fdfbf7;
+  border-color: transparent;
+}
+
+@keyframes borderSwirl {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
 }
 
 /* Hero Section */
@@ -576,14 +603,31 @@ const caseStudies = [
   letter-spacing: 0.08em;
   cursor: pointer;
   transition: all 0.4s ease;
-  background-size: 200% 100%;
+  z-index: 1;
+}
+
+.floating-cta::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8, #e8b4a0);
+  background-size: 300% 100%;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+  animation: borderSwirl 3s linear infinite;
+}
+
+.floating-cta:hover::before {
+  opacity: 1;
 }
 
 .floating-cta:hover {
-  background: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8, #e8b4a0);
-  background-size: 200% 100%;
-  animation: gradientFlow 3s ease infinite;
-  color: #2a2a2a;
+  color: #fdfbf7;
   border-color: transparent;
 }
 
@@ -603,7 +647,6 @@ const caseStudies = [
   position: relative;
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8) 1;
-  max-width: 1400px;
 }
 
 .section-number {
@@ -875,14 +918,32 @@ const caseStudies = [
   letter-spacing: 0.08em;
   cursor: pointer;
   transition: all 0.4s ease;
-  background-size: 200% 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.cta-button::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8, #e8b4a0);
+  background-size: 300% 100%;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+  animation: borderSwirl 3s linear infinite;
+}
+
+.cta-button:hover::before {
+  opacity: 1;
 }
 
 .cta-button:hover {
-  background: linear-gradient(90deg, #e8b4a0, #b8d4c8, #c9b8e8, #e8b4a0);
-  background-size: 200% 100%;
-  animation: gradientFlow 3s ease infinite;
-  color: #2a2a2a;
+  color: #fdfbf7;
   border-color: transparent;
   box-shadow: 0 0 30px rgba(184, 212, 200, 0.3);
 }
@@ -969,7 +1030,6 @@ const caseStudies = [
 @media (max-width: 1024px) {
   .nav-container,
   .hero,
-  .section-header,
   .patterns-section {
     padding-left: 2rem;
     padding-right: 2rem;
