@@ -1,12 +1,12 @@
 <template>
   <nav class="navbar">
     <div class="container navbar-container">
-      <div class="logo">PATTERN_LANGUAGE.AI</div>
+      <router-link to="/" class="logo">PATTERN_LANGUAGE.AI</router-link>
       <div class="nav-links">
-        <a href="#about">About</a>
-        <a href="#patterns">Patterns</a>
-        <a href="#case-studies">Stories</a>
-        <button class="btn">Start</button>
+        <router-link to="/about">About</router-link>
+        <router-link to="/patterns">Patterns</router-link>
+        <router-link to="/stories">Stories</router-link>
+        <router-link to="/signup" class="btn">Start</router-link>
       </div>
     </div>
   </nav>
@@ -39,6 +39,8 @@
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.2em;
   animation: colorShift 8s ease infinite;
+  text-decoration: none;
+  color: var(--color-text-primary);
 }
 
 .nav-links {
@@ -55,8 +57,17 @@
   transition: color var(--transition-base);
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.nav-links a.router-link-active {
   color: var(--color-text-primary);
+}
+
+.nav-links a.btn {
+  text-decoration: none;
+}
+
+.nav-links a.btn:hover {
+  color: var(--color-bg-primary);
 }
 
 @media (max-width: 768px) {

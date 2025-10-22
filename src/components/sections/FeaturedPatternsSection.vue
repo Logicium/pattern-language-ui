@@ -1,6 +1,6 @@
 <template>
   <section class="section patterns-section">
-    <div class="patterns-container">
+    <div class="container">
       <div class="section-header">
         <span class="section-number">01</span>
         <h2 class="section-title">Featured Patterns</h2>
@@ -40,11 +40,6 @@ const patterns = highlightedPatterns
 <style scoped>
 .patterns-section {
   background: var(--color-bg-primary);
-}
-
-.patterns-container {
-  max-width: var(--container-max);
-  margin: 0 auto;
 }
 
 .patterns-grid {

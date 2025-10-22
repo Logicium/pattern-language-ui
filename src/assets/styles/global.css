@@ -60,6 +60,13 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0 var(--container-padding);
 }
 
+/* Remove horizontal padding from container when inside a section (section already has padding) */
+.section .container,
+.section-compact .container {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* Section Spacing */
 .section {
   padding: 10rem var(--container-padding);

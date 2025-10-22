@@ -1,6 +1,6 @@
 <template>
   <section class="section case-studies-section">
-    <div class="stories-container">
+    <div class="container">
       <div class="section-header">
         <span class="section-number">02</span>
         <h2 class="section-title">Success Stories</h2>
@@ -33,6 +33,12 @@
           </div>
         </div>
       </div>
+
+      <div class="explore-more">
+        <router-link to="/stories" class="btn btn-lg">
+          Explore All Stories
+        </router-link>
+      </div>
     </div>
   </section>
 </template>
@@ -40,17 +46,12 @@
 <script setup lang="ts">
 import { caseStudies } from '@/utils/data'
 
-const studies = caseStudies
+const studies = caseStudies.slice(0, 3)
 </script>
 
 <style scoped>
 .case-studies-section {
   background: var(--color-bg-secondary);
-}
-
-.stories-container {
-  max-width: var(--container-max);
-  margin: 0 auto;
 }
 
 .studies-grid {
@@ -115,6 +116,15 @@ const studies = caseStudies
   padding: 0.375rem 0.75rem;
   border: 1px solid rgba(42, 42, 42, 0.1);
   letter-spacing: 0.05em;
+}
+
+.explore-more {
+  margin-top: 4rem;
+  text-align: center;
+}
+
+.explore-more a {
+  text-decoration: none;
 }
 
 @media (max-width: 1024px) {

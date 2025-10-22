@@ -3,6 +3,13 @@ export interface Pattern {
   title: string
   description: string
   addresses: string[]
+  problem?: string
+  context?: string
+  solution?: string
+  implementation?: string[]
+  examples?: string[]
+  relatedPatterns?: string[]
+  category?: string
 }
 
 export interface CaseStudy {
