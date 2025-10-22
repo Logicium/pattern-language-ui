@@ -1,0 +1,6 @@
+export { default as Navbar } from './layout/Navbar.vue'
+export { default as Footer } from './layout/Footer.vue'
+export { default as HeroSection } from './sections/HeroSection.vue'
+export { default as FeaturedPatternsSection } from './sections/FeaturedPatternsSection.vue'
+export { default as FeaturedStoriesSection } from './sections/FeaturedStoriesSection.vue'
+export { default as CTASection } from './sections/CTASection.vue'
