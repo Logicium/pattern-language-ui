@@ -259,7 +259,8 @@ The Vermont Front Porch Forum is a great example - it's a moderated neighborhood
 Would you like to explore how to implement this in your community?`
   ]
   
-  return responses[Math.floor(Math.random() * responses.length)]
+  const selectedResponse = responses[Math.floor(Math.random() * responses.length)]
+  return selectedResponse || responses[0] || 'Thanks for your message! Let me think about that and get back to you.'
 }
 
 const formatTime = (date: Date): string => {

@@ -85,9 +85,9 @@
             </div>
             <h3 class="card-title">{{ story.title }}</h3>
             <div class="card-location text-xs text-secondary">{{ story.location }}</div>
-            <p class="card-description text-sm text-secondary">{{ story.excerpt }}</p>
+            <p class="card-description text-sm text-secondary">{{ story.excerpt || story.problem }}</p>
             <div class="card-meta text-xs text-tertiary">
-              {{ story.timeframe }}
+              {{ story.timeframe || 'Success Story' }}
             </div>
             <div class="card-actions">
               <button class="action-btn-primary text-xs" @click="viewStory(story.id)">Read Story</button>
@@ -173,7 +173,8 @@ const filteredStories = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return allStories.filter(s =>
     s.title.toLowerCase().includes(query) ||
-    s.excerpt.toLowerCase().includes(query) ||
+    (s.excerpt && s.excerpt.toLowerCase().includes(query)) ||
+    s.problem.toLowerCase().includes(query) ||
     s.location.toLowerCase().includes(query)
   )
 })

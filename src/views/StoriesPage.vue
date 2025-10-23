@@ -14,7 +14,7 @@
     </section>
 
     <!-- Featured Story -->
-    <section class="section featured-section">
+    <section v-if="featuredStory" class="section featured-section">
       <div class="container">
         <span class="label text-xs text-tertiary">Featured</span>
         <div class="featured-story">

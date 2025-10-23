@@ -20,6 +20,8 @@ export interface CaseStudy {
   problem: string
   solution: string
   patterns: string[]
+  excerpt?: string
+  timeframe?: string
 }
 
 export interface ConstellationNode {
