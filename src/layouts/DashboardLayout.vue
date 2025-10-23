@@ -3,7 +3,7 @@
     <!-- Sidebar Navigation -->
     <aside class="dashboard-sidebar">
       <div class="sidebar-header">
-        <router-link to="/" class="logo">Pattern Language</router-link>
+        <router-link to="/" class="logo">PATTERN LANGUAGE</router-link>
       </div>
 
       <nav class="sidebar-nav">
@@ -82,7 +82,7 @@ const user = computed(() => authStore.currentUser)
 .logo {
   font-size: 0.875rem;
   font-weight: var(--font-weight-normal);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.2em;
   color: var(--color-text-primary);
   text-decoration: none;
   transition: opacity var(--transition-fast);

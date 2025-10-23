@@ -6,13 +6,18 @@
         <router-link to="/about">About</router-link>
         <router-link to="/patterns">Patterns</router-link>
         <router-link to="/stories">Stories</router-link>
-        <router-link to="/signup" class="btn">Start</router-link>
+        <router-link v-if="isAuthenticated" to="/dashboard" class="btn">Dashboard</router-link>
+        <router-link v-else to="/signup" class="btn">Start</router-link>
       </div>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+const isAuthenticated = authStore.isAuthenticated
 </script>
 
 <style scoped>
