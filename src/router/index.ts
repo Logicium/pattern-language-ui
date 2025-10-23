@@ -66,6 +66,11 @@ const router = createRouter({
           component: () => import('@/views/dashboard/PlaybooksPage.vue')
         },
         {
+          path: 'playbooks/:id',
+          name: 'dashboard-playbook-detail',
+          component: () => import('@/views/dashboard/FullPlaybookPage.vue')
+        },
+        {
           path: 'stories',
           name: 'dashboard-stories',
           component: () => import('@/views/dashboard/DashboardStoriesPage.vue')

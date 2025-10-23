@@ -30,3 +30,5 @@ export interface ConstellationNode {
   label: string
   opacity: number
 }
+
+export type AvatarState = 'idle' | 'thinking' | 'chatting'

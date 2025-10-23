@@ -1,18 +1,18 @@
 <template>
   <div class="settings-page">
     <!-- Header -->
-    <div class="page-header">
+    <section class="page-header gradient-bg">
       <div class="container">
         <h1 class="page-title">Settings</h1>
         <p class="text-sm text-secondary">Manage your account and preferences</p>
       </div>
-    </div>
+    </section>
 
     <!-- Content -->
-    <div class="page-content">
+    <section class="page-content">
       <div class="container">
         <!-- User Profile -->
-        <section class="settings-section">
+        <div class="settings-section" data-accent="1">
           <h2 class="section-title">Profile</h2>
           <div class="form-group">
             <label class="form-label text-xs text-tertiary">Name</label>
@@ -27,10 +27,10 @@
             <input v-model="userProfile.location" type="text" class="form-input" />
           </div>
           <button class="btn" @click="saveProfile">Save Profile</button>
-        </section>
+        </div>
 
         <!-- AI Preferences -->
-        <section class="settings-section">
+        <div class="settings-section" data-accent="2">
           <h2 class="section-title">AI Assistant</h2>
           <div class="form-group">
             <label class="form-label text-xs text-tertiary">Conversation Style</label>
@@ -48,61 +48,54 @@
               <option value="high">High</option>
             </select>
           </div>
-          <div class="form-group checkbox-group">
+          <div class="checkbox-list">
             <label class="checkbox-label text-sm">
               <input v-model="aiPreferences.autoSuggestions" type="checkbox" class="checkbox" />
-              Enable automatic pattern suggestions
+              <span>Enable automatic pattern suggestions</span>
             </label>
-          </div>
-          <div class="form-group checkbox-group">
             <label class="checkbox-label text-sm">
               <input v-model="aiPreferences.relatedPatterns" type="checkbox" class="checkbox" />
-              Show related patterns in responses
+              <span>Show related patterns in responses</span>
             </label>
           </div>
           <button class="btn" @click="saveAIPreferences">Save Preferences</button>
-        </section>
+        </div>
 
         <!-- Notifications -->
-        <section class="settings-section">
+        <div class="settings-section" data-accent="3">
           <h2 class="section-title">Notifications</h2>
-          <div class="form-group checkbox-group">
+          <div class="checkbox-list">
             <label class="checkbox-label text-sm">
               <input v-model="notifications.emailUpdates" type="checkbox" class="checkbox" />
-              Email updates about new patterns
+              <span>Email updates about new patterns</span>
             </label>
-          </div>
-          <div class="form-group checkbox-group">
             <label class="checkbox-label text-sm">
               <input v-model="notifications.playbookReminders" type="checkbox" class="checkbox" />
-              Task due date reminders
+              <span>Task due date reminders</span>
             </label>
-          </div>
-          <div class="form-group checkbox-group">
             <label class="checkbox-label text-sm">
               <input v-model="notifications.completionCelebrations" type="checkbox" class="checkbox" />
-              Celebrate completed playbooks
+              <span>Celebrate completed playbooks</span>
             </label>
-          </div>
-          <div class="form-group checkbox-group">
             <label class="checkbox-label text-sm">
               <input v-model="notifications.weeklyDigest" type="checkbox" class="checkbox" />
-              Weekly digest
+              <span>Weekly digest</span>
             </label>
           </div>
           <button class="btn" @click="saveNotifications">Save Notifications</button>
-        </section>
+        </div>
 
         <!-- Account -->
-        <section class="settings-section">
+        <div class="settings-section" data-accent="1">
           <h2 class="section-title">Account</h2>
-          <p class="text-sm text-secondary" style="margin-bottom: var(--spacing-md)">
-            Logged in as <strong>{{ currentUser?.email }}</strong>
-          </p>
+          <div class="account-info">
+            <span class="text-xs text-tertiary">Logged in as</span>
+            <p class="text-sm">{{ currentUser?.email }}</p>
+          </div>
           <button class="btn-danger" @click="handleLogout">Logout</button>
-        </section>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- Toast -->
     <transition name="toast">
@@ -193,7 +186,11 @@ const showSuccessToast = (message: string) => {
 }
 
 .page-header {
-  padding: var(--spacing-md);
+  padding: 3rem var(--container-padding);
+  background: linear-gradient(135deg,
+    rgba(232, 180, 160, 0.05) 0%,
+    rgba(184, 212, 200, 0.05) 50%,
+    rgba(201, 184, 232, 0.05) 100%);
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
@@ -205,71 +202,134 @@ const showSuccessToast = (message: string) => {
 .page-title {
   font-size: 2rem;
   font-weight: var(--font-weight-light);
-  margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
 }
 
 .page-content {
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: var(--spacing-lg) var(--container-padding);
+  background: var(--color-bg-secondary);
 }
 
 .settings-section {
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  margin-bottom: 3rem;
+  padding: 3rem;
+  background: var(--color-bg-primary);
+  border-left: 3px solid transparent;
+  transition: all var(--transition-base);
 }
 
 .settings-section:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.settings-section[data-accent="1"] {
+  border-left-color: var(--color-accent-1);
+}
+
+.settings-section[data-accent="2"] {
+  border-left-color: var(--color-accent-2);
+}
+
+.settings-section[data-accent="3"] {
+  border-left-color: var(--color-accent-3);
+}
+
+.settings-section:hover {
+  box-shadow: 0 4px 16px rgba(42, 42, 42, 0.06);
 }
 
 .section-title {
-  font-size: 1.25rem;
-  font-weight: var(--font-weight-light);
-  margin-bottom: var(--spacing-md);
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-normal);
+  letter-spacing: -0.01em;
+  margin-bottom: 2rem;
 }
 
 .form-group {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 1.5rem;
 }
 
 .form-label {
   display: block;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .form-input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid rgba(42, 42, 42, 0.15);
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(42, 42, 42, 0.08);
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
   font-family: var(--font-family);
   font-size: 0.9375rem;
+  font-weight: var(--font-weight-normal);
+  letter-spacing: -0.01em;
+  transition: all var(--transition-base);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--color-text-primary);
+  border-color: var(--color-accent-2);
+  background: var(--color-bg-primary);
 }
 
-.checkbox-group {
-  padding: var(--spacing-sm) 0;
+.form-input:hover {
+  border-color: rgba(42, 42, 42, 0.15);
+}
+
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--color-bg-secondary);
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   cursor: pointer;
+  padding: 0.75rem;
+  transition: all var(--transition-base);
+  border-left: 2px solid transparent;
+}
+
+.checkbox-label:hover {
+  background: var(--color-bg-primary);
+  border-left-color: var(--color-accent-2);
+  padding-left: 1rem;
 }
 
 .checkbox {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
-  accent-color: var(--color-text-primary);
+  flex-shrink: 0;
+  accent-color: var(--color-accent-2);
+}
+
+.checkbox-label span {
+  line-height: 1.5;
+}
+
+.account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: var(--color-bg-secondary);
+  margin-bottom: 2rem;
+  border-left: 2px solid rgba(42, 42, 42, 0.15);
+}
+
+.account-info .text-xs {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .btn-danger {
@@ -280,33 +340,84 @@ const showSuccessToast = (message: string) => {
   cursor: pointer;
   font-family: var(--font-family);
   font-size: 0.875rem;
-  letter-spacing: 0.02em;
-  transition: opacity var(--transition-fast);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-danger::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left var(--transition-base);
+}
+
+.btn-danger:hover::before {
+  left: 100%;
 }
 
 .btn-danger:hover {
-  opacity: 0.8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(42, 42, 42, 0.2);
 }
 
 .toast {
   position: fixed;
-  bottom: var(--spacing-md);
-  right: var(--spacing-md);
-  background: var(--color-text-primary);
+  bottom: 2rem;
+  right: 2rem;
+  background: linear-gradient(135deg, var(--color-accent-2), var(--color-accent-3));
   color: var(--color-bg-primary);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 1rem 1.5rem;
   font-size: 0.875rem;
-  letter-spacing: 0.02em;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.05em;
+  box-shadow: 0 8px 24px rgba(42, 42, 42, 0.15);
 }
 
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.toast-enter-from,
+.toast-enter-from {
+  opacity: 0;
+  transform: translateY(2rem) scale(0.9);
+}
+
 .toast-leave-to {
   opacity: 0;
-  transform: translateY(1rem);
+  transform: translateY(-1rem) scale(0.95);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 2rem var(--container-padding);
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .settings-section {
+    padding: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .toast {
+    right: 1rem;
+    left: 1rem;
+    bottom: 1rem;
+  }
 }
 </style>

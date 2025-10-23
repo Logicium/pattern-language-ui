@@ -1,25 +1,31 @@
 <template>
   <div class="stories-page">
     <!-- Header -->
-    <div class="page-header">
+    <section class="page-header gradient-bg">
       <div class="container">
         <h1 class="page-title">Stories</h1>
-        <p class="text-sm text-secondary">Your completed pattern implementations</p>
+        <p class="text-sm text-secondary">Your completed pattern implementations and successes</p>
       </div>
-    </div>
+    </section>
 
     <!-- Content -->
-    <div class="page-content">
+    <section class="page-content">
       <div class="container">
         <div v-if="completedPlaybooks.length > 0" class="stories-grid">
           <div
-            v-for="playbook in completedPlaybooks"
+            v-for="(playbook, index) in completedPlaybooks"
             :key="playbook.id"
             class="story-card"
+            :data-accent="(index % 3) + 1"
           >
             <!-- Pattern Number -->
-            <div class="story-number text-xs text-tertiary">
-              Pattern {{ playbook.patternId }}
+            <div class="story-header">
+              <div class="story-number text-xs text-tertiary">
+                Pattern {{ String(playbook.patternId).padStart(2, '0') }}
+              </div>
+              <div class="completion-badge text-xs">
+                ✓ Complete
+              </div>
             </div>
 
             <!-- Title -->
@@ -32,7 +38,7 @@
                 <div class="text-xs text-tertiary">Started</div>
                 <div class="text-sm">{{ formatDate(playbook.startDate) }}</div>
               </div>
-              <div class="timeline-divider"></div>
+              <div class="timeline-arrow">→</div>
               <div class="timeline-item">
                 <div class="text-xs text-tertiary">Completed</div>
                 <div class="text-sm">{{ formatDate(playbook.completedDate!) }}</div>
@@ -57,28 +63,31 @@
 
             <!-- Notes -->
             <div v-if="playbook.notes" class="story-notes">
-              <div class="text-xs text-tertiary">Outcomes</div>
+              <div class="notes-label text-xs text-tertiary">Outcomes & Learnings</div>
               <p class="text-sm">{{ playbook.notes }}</p>
             </div>
 
             <!-- Actions -->
             <div class="story-actions">
-              <button class="action-btn text-xs">View Details</button>
-              <button class="action-btn text-xs">Share</button>
+              <router-link :to="`/dashboard/playbooks/${playbook.id}`" class="action-btn-primary text-xs">
+                View Details
+              </router-link>
+              <button class="action-btn-secondary text-xs">Share Story</button>
             </div>
           </div>
         </div>
 
         <!-- Empty State -->
         <div v-else class="empty-state">
+          <div class="empty-icon">∅</div>
           <h3>No completed stories yet</h3>
-          <p class="text-secondary">Complete a playbook to create your first story</p>
+          <p class="text-secondary">Complete a playbook to create your first success story</p>
           <button class="btn" @click="$router.push('/dashboard/playbooks')">
-            View Playbooks
+            View Active Playbooks
           </button>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -115,8 +124,13 @@ const formatDate = (dateString: string) => {
   background: var(--color-bg-primary);
 }
 
+/* Header */
 .page-header {
-  padding: var(--spacing-md);
+  padding: 3rem var(--container-padding);
+  background: linear-gradient(135deg,
+    rgba(232, 180, 160, 0.05) 0%,
+    rgba(184, 212, 200, 0.05) 50%,
+    rgba(201, 184, 232, 0.05) 100%);
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
@@ -128,147 +142,290 @@ const formatDate = (dateString: string) => {
 .page-title {
   font-size: 2rem;
   font-weight: var(--font-weight-light);
-  margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
 }
 
+/* Content */
 .page-content {
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: var(--spacing-lg) var(--container-padding);
+  background: var(--color-bg-secondary);
 }
 
 .stories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
 }
 
+/* Story Cards */
 .story-card {
-  background: var(--color-bg-secondary);
-  border: 1px solid rgba(42, 42, 42, 0.08);
-  padding: var(--spacing-md);
-  transition: border-color var(--transition-fast);
+  background: var(--color-bg-primary);
+  padding: 2.5rem;
+  border-left: 3px solid transparent;
+  transition: all var(--transition-base);
+}
+
+.story-card[data-accent="1"] {
+  border-left-color: var(--color-accent-1);
+}
+
+.story-card[data-accent="2"] {
+  border-left-color: var(--color-accent-2);
+}
+
+.story-card[data-accent="3"] {
+  border-left-color: var(--color-accent-3);
 }
 
 .story-card:hover {
-  border-color: rgba(42, 42, 42, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(42, 42, 42, 0.08);
+}
+
+.story-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .story-number {
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+}
+
+.completion-badge {
+  padding: 0.375rem 0.75rem;
+  background: rgba(184, 212, 200, 0.15);
+  color: var(--color-accent-2);
+  border: 1px solid var(--color-accent-2);
+  letter-spacing: 0.08em;
+  font-weight: var(--font-weight-medium);
 }
 
 .story-title {
   font-size: 1.5rem;
-  font-weight: var(--font-weight-light);
-  margin-bottom: 0.25rem;
+  font-weight: var(--font-weight-normal);
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
 }
 
 .story-location {
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
+/* Timeline */
 .story-timeline {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--color-bg-secondary);
 }
 
 .timeline-item {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.timeline-item div:first-child {
-  margin-bottom: 0.25rem;
+.timeline-item .text-xs {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.timeline-divider {
-  width: 2rem;
-  height: 1px;
-  background: rgba(42, 42, 42, 0.15);
+.timeline-arrow {
+  color: var(--color-accent-2);
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-light);
 }
 
+/* Stats */
 .story-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
 .stat-item {
   text-align: center;
-  padding: var(--spacing-sm);
-  background: var(--color-bg-primary);
+  padding: 1.25rem 0.75rem;
+  background: var(--color-bg-secondary);
+  transition: all var(--transition-base);
+}
+
+.stat-item:hover {
+  background: rgba(184, 212, 200, 0.08);
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: var(--font-weight-light);
-  margin-bottom: 0.25rem;
-}
-
-.story-notes {
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-sm);
-  background: var(--color-bg-primary);
-  border-left: 2px solid rgba(42, 42, 42, 0.15);
-}
-
-.story-notes div:first-child {
+  letter-spacing: -0.01em;
   margin-bottom: 0.5rem;
+  color: var(--color-accent-2);
+}
+
+.stat-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Notes */
+.story-notes {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--color-bg-secondary);
+  border-left: 3px solid var(--color-accent-3);
+}
+
+.notes-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  display: block;
 }
 
 .story-notes p {
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
+/* Actions */
 .story-actions {
   display: flex;
-  gap: 0.5rem;
-  padding-top: var(--spacing-sm);
-  border-top: 1px solid rgba(42, 42, 42, 0.08);
+  gap: 0.75rem;
 }
 
-.action-btn {
+.action-btn-primary {
   flex: 1;
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: 1px solid var(--color-text-primary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.action-btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-text-primary);
+  transform: translateY(100%);
+  transition: transform var(--transition-base);
+  z-index: -1;
+}
+
+.action-btn-primary:hover::before {
+  transform: translateY(0);
+}
+
+.action-btn-primary:hover {
+  color: var(--color-bg-primary);
+}
+
+.action-btn-secondary {
+  padding: 0.75rem 1rem;
   background: transparent;
   border: 1px solid rgba(42, 42, 42, 0.15);
   color: var(--color-text-secondary);
   cursor: pointer;
-  letter-spacing: 0.05em;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-base);
 }
 
-.action-btn:hover {
-  border-color: var(--color-text-primary);
+.action-btn-secondary:hover {
+  border-color: var(--color-accent-3);
   color: var(--color-text-primary);
+  background: rgba(201, 184, 232, 0.05);
 }
 
+/* Empty State */
 .empty-state {
   text-align: center;
-  padding: var(--spacing-xl) 0;
+  padding: 8rem 0;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: var(--color-text-tertiary);
+  margin-bottom: 2rem;
+  opacity: 0.3;
 }
 
 .empty-state h3 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: var(--font-weight-light);
-  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.75rem;
 }
 
 .empty-state p {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stories-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
+  .page-header {
+    padding: 2rem var(--container-padding);
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
   .stories-grid {
     grid-template-columns: 1fr;
+  }
+
+  .story-card {
+    padding: 2rem;
+  }
+
+  .story-timeline {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .timeline-arrow {
+    transform: rotate(90deg);
+    align-self: center;
+  }
+
+  .story-actions {
+    flex-direction: column;
   }
 }
 </style>
