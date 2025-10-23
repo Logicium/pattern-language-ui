@@ -134,9 +134,11 @@ const formatDate = (dateString: string) => {
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
-.container {
+.page-header .container,
+.page-content .container {
   max-width: var(--container-max);
   margin: 0 auto;
+  padding: 0;
 }
 
 .page-title {
@@ -148,7 +150,7 @@ const formatDate = (dateString: string) => {
 
 /* Content */
 .page-content {
-  padding: var(--spacing-lg) var(--container-padding);
+  padding: 3rem var(--container-padding);
   background: var(--color-bg-secondary);
 }
 

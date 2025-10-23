@@ -297,17 +297,17 @@ const formatTime = (date: Date): string => {
   margin-bottom: 0.25rem;
 }
 
-.container {
+.page-header .container,
+.messages-section .container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0;
 }
 
 /* Avatar Section - Fixed */
 .avatar-section {
   flex-shrink: 0;
-  padding: var(--spacing-md) 0;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  padding: var(--spacing-sm) 0;
   background: var(--color-bg-primary);
 }
 
@@ -356,12 +356,8 @@ const formatTime = (date: Date): string => {
 .messages-section {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-lg) 0;
-  background: var(--color-bg-secondary);
-}
-
-.messages-section .container {
-  min-height: 100%;
+  padding: 3rem var(--container-padding);
+  background: var(--color-bg-primary);
 }
 
 /* Welcome State */
@@ -507,6 +503,7 @@ const formatTime = (date: Date): string => {
 
 .message.assistant .message-content {
   border-left-color: var(--color-accent-2);
+  background: rgba(184, 212, 200, 0.08);
 }
 
 .loading-message .message-content {
@@ -543,7 +540,7 @@ const formatTime = (date: Date): string => {
 .input-section {
   flex-shrink: 0;
   border-top: 1px solid rgba(42, 42, 42, 0.08);
-  background: var(--color-bg-primary);
+  background: var(--color-bg-secondary);
   padding: var(--spacing-md) 0;
 }
 
@@ -557,7 +554,7 @@ const formatTime = (date: Date): string => {
   flex: 1;
   padding: 1rem;
   border: 1px solid rgba(42, 42, 42, 0.08);
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-primary);
   color: var(--color-text-primary);
   font-family: var(--font-family);
   font-size: 0.9375rem;

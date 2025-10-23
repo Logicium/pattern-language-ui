@@ -182,9 +182,11 @@ const formatDate = (dateString: string) => {
     rgba(201, 184, 232, 0.05) 100%);
 }
 
-.container {
+.page-header .container,
+.page-content .container {
   max-width: var(--container-max);
   margin: 0 auto;
+  padding: 0;
 }
 
 .header-content {
@@ -206,6 +208,10 @@ const formatDate = (dateString: string) => {
   background: var(--color-bg-primary);
   padding: 0 var(--container-padding);
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+}
+
+.tabs-section .container {
+  padding: 0;
 }
 
 .tabs {
@@ -240,6 +246,7 @@ const formatDate = (dateString: string) => {
 
 /* Content */
 .page-content {
+  padding: 3rem var(--container-padding);
   background: var(--color-bg-secondary);
 }
 

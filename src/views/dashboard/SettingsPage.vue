@@ -194,9 +194,11 @@ const showSuccessToast = (message: string) => {
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
-.container {
+.page-header .container,
+.page-content .container {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 0 !important;
+  padding: 0;
 }
 
 .page-title {
@@ -207,7 +209,7 @@ const showSuccessToast = (message: string) => {
 }
 
 .page-content {
-  padding: var(--spacing-lg) var(--container-padding);
+  padding: 3rem var(--container-padding);
   background: var(--color-bg-secondary);
 }
 
