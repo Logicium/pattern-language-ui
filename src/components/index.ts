@@ -5,3 +5,4 @@ export { default as FeaturedPatternsSection } from './sections/FeaturedPatternsS
 export { default as FeaturedStoriesSection } from './sections/FeaturedStoriesSection.vue'
 export { default as CTASection } from './sections/CTASection.vue'
 export { default as AiAvatar } from './AiAvatar.vue'
+export { default as RibbonCanvas } from './RibbonCanvas.vue'
