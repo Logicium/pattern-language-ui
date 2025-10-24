@@ -41,7 +41,7 @@ const initThreeJS = () => {
 
   // Setup scene
   scene = new THREE.Scene()
-  
+
   // Setup camera - positioned to view from above at an angle
   camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000)
   camera.position.set(0, 8, 13)
@@ -60,14 +60,14 @@ const initThreeJS = () => {
   // Create flowing ribbon geometry
   const segX = 100 // Horizontal segments
   const segY = 30  // Vertical segments (number of lines) - reduced from 50 for fewer, more visible lines
-  
+
   // Make geometry wider to extend to container edges
   const aspectRatio = width / height
   const planeWidth = 20 * aspectRatio // Scale width based on aspect ratio
   const planeHeight = 10
-  
+
   geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, segX, segY)
-  
+
   // Create line indices for horizontal lines only
   const idx: number[] = []
   let startIdx = 0
@@ -83,36 +83,39 @@ const initThreeJS = () => {
   // Adjust vertex positions to compensate for perspective
   // Lines further away need to extend wider to disappear off-screen
   const positions = geometry.attributes.position
+
+  if (!positions) return
+
   const colors_array = new Float32Array(positions.count * 3)
-  
+
   const halfWidth = planeWidth / 2
   const halfHeight = planeHeight / 2
-  
+
   for (let i = 0; i < positions.count; i++) {
     const x = positions.getX(i)
     const z = positions.getZ(i)
-    
+
     // Calculate distance from camera (further back = larger z value)
     const depthFactor = (z + halfHeight) / planeHeight // 0 at near, 1 at far
-    
+
     // Scale x position based on depth - further lines extend wider
     // Using exponential scaling for even more extension at far distances
     const perspectiveScale = 1 + (depthFactor * depthFactor * 2.5) // Up to 250% wider for far lines
     const scaledX = x * perspectiveScale
     positions.setX(i, scaledX)
-    
+
     // Recalculate for colors
     const scaledWidth = planeWidth * perspectiveScale
     const normalizedX = (scaledX + scaledWidth / 2) / scaledWidth // Normalize to 0-1
-    
+
     // Pick color based on vertical position (line index)
     const verticalIndex = Math.floor(i / (segX + 1))
     const color = new THREE.Color(colors[verticalIndex % colors.length])
-    
+
     // Apply gradient blur fade at edges (more aggressive fade)
     let alpha = 1
     const fadeWidth = 0.15 // 15% fade zone on each side
-    
+
     if (normalizedX < fadeWidth) {
       // Smooth fade from left edge
       alpha = normalizedX / fadeWidth
@@ -120,15 +123,15 @@ const initThreeJS = () => {
       // Smooth fade to right edge
       alpha = (1 - normalizedX) / fadeWidth
     }
-    
+
     // Apply cubic easing for smoother fade
     alpha = alpha * alpha * (3 - 2 * alpha)
-    
+
     colors_array[i * 3] = color.r * alpha
     colors_array[i * 3 + 1] = color.g * alpha
     colors_array[i * 3 + 2] = color.b * alpha
   }
-  
+
   geometry.setAttribute('color', new THREE.BufferAttribute(colors_array, 3))
 
   // Create material with vertex colors and increased line width
@@ -146,13 +149,13 @@ const initThreeJS = () => {
   const handleResize = () => {
     const width = container.clientWidth
     const height = container.clientHeight
-    
+
     camera.aspect = width / height
     camera.updateProjectionMatrix()
-    
+
     renderer.setSize(width, height)
   }
-  
+
   window.addEventListener('resize', handleResize)
 
   isReady.value = true
@@ -172,9 +175,11 @@ const animate = () => {
   time += 0.008
 
   const positions = geometry.attributes.position
+  if (!positions) return
+
   const colors_attr = geometry.attributes.color
   const segX = 100
-  
+
   // Get plane dimensions
   const bounds = geometry.boundingBox
   if (!bounds) {
@@ -182,29 +187,29 @@ const animate = () => {
   }
   const planeWidth = bounds ? (bounds.max.x - bounds.min.x) : 20
   const halfWidth = planeWidth / 2
-  
+
   // Animate the wave motion
   for (let i = 0; i < positions.count; i++) {
     const x = positions.getX(i)
     const z = positions.getZ(i)
-    
+
     // Create flowing wave motion
     const normalizedX = (x + halfWidth) / planeWidth
     const normalizedZ = (z + 5) / 10
-    
+
     // Multiple sine waves for complex motion
     const wave1 = Math.sin(normalizedX * Math.PI * 2 + time * 1.5) * 0.8
     const wave2 = Math.sin(normalizedX * Math.PI * 3 + normalizedZ * Math.PI * 2 + time * 1.2) * 0.4
     const wave3 = Math.sin(normalizedZ * Math.PI * 4 + time * 0.8) * 0.3
-    
+
     // Combine waves for natural flowing motion
     const y = wave1 + wave2 + wave3
-    
+
     positions.setY(i, y)
   }
-  
+
   positions.needsUpdate = true
-  
+
   // Gentle camera rotation for added depth
   camera.position.x = Math.sin(time * 0.1) * 2
   camera.lookAt(0, 0, 0)
@@ -215,13 +220,13 @@ const animate = () => {
 
 onMounted(() => {
   const cleanup = initThreeJS()
-  
+
   onUnmounted(() => {
     if (animationFrameId !== null) {
       cancelAnimationFrame(animationFrameId)
     }
     if (cleanup) cleanup()
-    
+
     // Cleanup Three.js resources
     if (geometry) geometry.dispose()
     if (lineSegments) {
