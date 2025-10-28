@@ -167,12 +167,11 @@ const pattern = computed(() =>
 const relatedStories = computed(() => {
   if (!pattern.value) return []
   
-  const firstWord = pattern.value.title.toLowerCase().split(' ')[0]
-  if (!firstWord) return []
+  const patternTitle = pattern.value.title.toLowerCase()
   
   return allStories.filter(story => 
     story.patterns.some(p => 
-      p.toLowerCase().includes(firstWord)
+      p.toLowerCase() === patternTitle
     )
   ).slice(0, 3)
 })

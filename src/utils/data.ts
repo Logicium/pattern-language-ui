@@ -1015,7 +1015,7 @@ export const caseStudies: CaseStudy[] = [
     title: 'From Ghost Town to Creative Hub',
     problem: 'Downtown vacancy, youth flight, and declining population left the historic main street empty.',
     solution: 'Emergent Campus created a mixed-use community anchor with coworking, youth programs, and cultural activation.',
-    patterns: ['Community Anchor', 'Creative Workyards', 'Main Street']
+    patterns: ['Community Anchor Point', 'Creative Workyards', 'Main Street Reawakening']
   },
   {
     id: 2,
@@ -1024,7 +1024,7 @@ export const caseStudies: CaseStudy[] = [
     title: 'School Building Becomes Community Center',
     problem: 'Closed school left a gap in community gathering space and youth programming.',
     solution: 'Multi-use resource center with workforce training, library services, and civic hub.',
-    patterns: ['Anchor Point', 'Learning Hub', 'Micro-Credential']
+    patterns: ['Community Anchor Point', 'Village Learning Hub', 'Micro-Credential Academy']
   },
   {
     id: 3,
@@ -1033,7 +1033,7 @@ export const caseStudies: CaseStudy[] = [
     title: 'Mobile Anchor Reaches Remote Residents',
     problem: 'Distance and transportation barriers prevented residents from accessing services.',
     solution: 'Converted bus as mobile community center bringing programs to isolated areas.',
-    patterns: ['Anchor Point', 'Mobility Hubs', 'Digital Literacy']
+    patterns: ['Community Anchor Point', 'Multipurpose Mobility Hubs', 'Digital Literacy for All']
   },
   {
     id: 4,
@@ -1042,7 +1042,7 @@ export const caseStudies: CaseStudy[] = [
     title: 'Heritage Crafts Build New Economy',
     problem: 'Coal industry decline left few job options and eroded community identity.',
     solution: 'Heritage-to-market program connects traditional crafters with regional buyers and online sales.',
-    patterns: ['Heritage-to-Market', 'Elder Mentorship', 'Creative Workyards']
+    patterns: ['Heritage-to-Market Program', 'Elder Mentorship Circles', 'Creative Workyards']
   },
   {
     id: 5,
@@ -1051,7 +1051,7 @@ export const caseStudies: CaseStudy[] = [
     title: 'Timebank Rebuilds Trust',
     problem: 'Isolated residents struggled with basic needs and deep social divisions.',
     solution: 'Social timebank created reciprocal exchange network spanning political and economic lines.',
-    patterns: ['Social Timebank', 'Trust Infrastructure', 'Village Broadcast']
+    patterns: ['Social Timebank', 'Trust Infrastructure', 'Village Broadcast Loop']
   },
   {
     id: 6,
@@ -1060,7 +1060,241 @@ export const caseStudies: CaseStudy[] = [
     title: 'Food Sovereignty Through Infrastructure',
     problem: 'Food deserts and broken traditional food systems threatened health and culture.',
     solution: 'Community-owned food hub connecting farms, processors, and distribution for food sovereignty.',
-    patterns: ['Food Infrastructure', 'Commons Stewardship', 'Cultural Story']
+    patterns: ['Food Infrastructure Spine', 'Commons Stewardship', 'Shared Cultural Story']
+  },
+  {
+    id: 7,
+    location: 'Idaho',
+    color: '#b8d4e8',
+    title: 'Regional STEM Hubs Bridge Education and Innovation',
+    problem: 'Rural schools and communities lacked access to hands-on STEM resources and tech training.',
+    solution: 'Regional STEM/innovation hubs blending tech training, civic engagement, and full-service community school models.',
+    patterns: ['Community Anchor Point', 'Village Learning Hub', 'Village Learning Hub']
+  },
+  {
+    id: 8,
+    location: 'New Mexico Tribal Communities',
+    color: '#e8c4b0',
+    title: 'Community Learning Centers Preserve Culture',
+    problem: 'Tribal and Hispanic towns struggled to maintain cultural identity while accessing modern education.',
+    solution: 'Public-private community learning centers offering Montessori, library services, and cultural preservation programs in tribal contexts.',
+    patterns: ['Community Anchor Point', 'Shared Cultural Story', 'Village Learning Hub']
+  },
+  {
+    id: 9,
+    location: 'Thomasville, Georgia',
+    color: '#c8e8b4',
+    title: 'Closed School Becomes Multi-Service Resilience Hub',
+    problem: 'Aging population needed health services, entrepreneurship support, and elder care in underserved area.',
+    solution: 'Former high school transformed into multi-use hub offering entrepreneurship programs, health services, and elder care.',
+    patterns: ['Community Anchor Point', 'Elder Mentorship Circles', 'Commons Stewardship']
+  },
+  {
+    id: 10,
+    location: 'Nebraska',
+    color: '#d4b8c8',
+    title: 'Storytelling Projects Build Rural Inclusion',
+    problem: 'Communities struggled with division between long-time residents and recent immigrants.',
+    solution: 'Center for Rural Affairs facilitates statewide storytelling projects focusing on welcoming, inclusion, and immigrant narratives.',
+    patterns: ['Shared Cultural Story', 'Trust Infrastructure', 'Listening Infrastructure']
+  },
+  {
+    id: 11,
+    location: 'North Carolina',
+    color: '#a0d4c8',
+    title: 'Story Circles Bridge Immigrant and Legacy Communities',
+    problem: 'New immigrants and long-time residents lived in parallel without connection or understanding.',
+    solution: 'Public storytelling and dialogue formats bringing together diverse community voices through Story Circles and community conversations.',
+    patterns: ['Shared Cultural Story', 'Trust Infrastructure', 'Intergenerational Wisdom Exchange']
+  },
+  {
+    id: 12,
+    location: 'Alaska Native Communities',
+    color: '#e8d4a0',
+    title: 'Elder Stories Become Classroom Curriculum',
+    problem: 'Traditional knowledge and language were being lost as elders passed away.',
+    solution: 'Tribal storytelling sessions documented and transformed into illustrated classroom booklets and culturally-grounded curricula.',
+    patterns: ['Shared Cultural Story', 'Elder Mentorship Circles', 'Intergenerational Wisdom Exchange']
+  },
+  {
+    id: 13,
+    location: 'Appalachian Region',
+    color: '#c8b8d4',
+    title: 'Community Memory Project Archives Regional History',
+    problem: 'Oral histories and regional heritage were disappearing without documentation.',
+    solution: 'Appalachian Memory Project creating community-archived oral histories, images, and regional storytelling model.',
+    patterns: ['Shared Cultural Story', 'Heritage-to-Market Program', 'Elder Mentorship Circles']
+  },
+  {
+    id: 14,
+    location: 'Rural Oregon',
+    color: '#b8e8c8',
+    title: 'Heritage Podcasts Drive Tourism',
+    problem: 'Town history and local stories were unknown to residents and visitors alike.',
+    solution: 'Town-wide oral-history podcasts and heritage content leveraged for local heritage tourism and community pride.',
+    patterns: ['Shared Cultural Story', 'Local Pride Rituals', 'Culture-as-Economy']
+  },
+  {
+    id: 15,
+    location: 'Arizona Border Communities',
+    color: '#e8b4c8',
+    title: 'Story Quilts Facilitate Difficult Dialogues',
+    problem: 'Immigration tensions created division and prevented honest community conversations.',
+    solution: 'Immigrant family story quilts used at town-hall dialogues as storytelling and public dialogue catalysts.',
+    patterns: ['Shared Cultural Story', 'Trust Infrastructure', 'Local Pride Rituals']
+  },
+  {
+    id: 16,
+    location: 'Vermont',
+    color: '#a0c8e8',
+    title: 'Hyper-Local Network Builds Daily Trust',
+    problem: 'Neighbors didn\'t know each other or have trusted ways to communicate and coordinate.',
+    solution: 'Front Porch Forum provides statewide hyper-local civic network with moderated neighborhood boards.',
+    patterns: ['Trust Infrastructure', 'Village Broadcast Loop', 'Civic Intermediary Table']
+  },
+  {
+    id: 17,
+    location: 'Rural Oregon Fire District',
+    color: '#d4e8b8',
+    title: 'Transparent Operations Build Community Trust',
+    problem: 'Residents distrusted local government and felt excluded from decision-making.',
+    solution: 'Fire department holds quarterly open forums and publishes detailed action logs and transparency reports.',
+    patterns: ['Trust Infrastructure', 'Listening Infrastructure', 'Nested Governance Tables']
+  },
+  {
+    id: 18,
+    location: 'South Dakota Tribal Lands',
+    color: '#c8d4e8',
+    title: 'Peacemaking Circles Restore Justice',
+    problem: 'Criminal justice system and inter-family conflicts eroded community cohesion.',
+    solution: 'Tribal-led mediation and peacemaking circles using restorative justice for community trust building.',
+    patterns: ['Trust Infrastructure', 'Shared Cultural Story', 'Commons Stewardship']
+  },
+  {
+    id: 19,
+    location: 'Vancouver, Canada',
+    color: '#e8c8b8',
+    title: 'Citizens\' Assembly Shapes Neighborhood Future',
+    problem: 'Top-down planning excluded residents from decisions about their own neighborhoods.',
+    solution: 'Citizens\' assemblies for participatory budgeting and neighborhood design in Grandview-Woodland.',
+    patterns: ['Trust Infrastructure', 'Nested Governance Tables', 'Listening Infrastructure']
+  },
+  {
+    id: 20,
+    location: 'California School Districts',
+    color: '#b8c8e8',
+    title: 'Open Dashboards Create Accountability',
+    problem: 'School performance data was opaque, reducing trust between parents and institutions.',
+    solution: 'Public open data dashboards tracking school and civic performance as transparent accountability tools.',
+    patterns: ['Trust Infrastructure', 'Public Data Commons', 'Listening Infrastructure']
+  },
+  {
+    id: 21,
+    location: 'Montana',
+    color: '#d4c8b8',
+    title: 'Health Coalition Rebuilds Regional Trust',
+    problem: 'Fragmented health services and institutional distrust limited public health effectiveness.',
+    solution: 'Rural public-health coalition with shared-trust pledge and statewide investments in local partnership infrastructure.',
+    patterns: ['Trust Infrastructure', 'Institutional Partnership Liaisons', 'Regional Mutual Aid Protocols']
+  },
+  {
+    id: 22,
+    location: 'Appalachian Communities',
+    color: '#c8e8d4',
+    title: 'Regional Timebank Network Builds Reciprocity',
+    problem: 'High unemployment and isolation left skills untapped and needs unmet.',
+    solution: 'Mountain Time Exchange creating regional timebank for swapping services like tutoring, yard work, and elder support.',
+    patterns: ['Social Timebank', 'Trust Infrastructure', 'Civic Gig Platform']
+  },
+  {
+    id: 23,
+    location: 'Santa Fe, New Mexico',
+    color: '#e8d4c8',
+    title: 'Local Timebank Connects Skills and Needs',
+    problem: 'Residents with skills couldn\'t find work; others couldn\'t afford needed services.',
+    solution: 'Santa Fe Time Bank enabling volunteers to earn credits for car repairs, massage therapy, and reciprocal exchanges.',
+    patterns: ['Social Timebank', 'Civic Gig Platform', 'Community Anchor Point']
+  },
+  {
+    id: 24,
+    location: 'Port Townsend, Washington',
+    color: '#b8d4d4',
+    title: 'Timebank Links Nonprofits and Residents',
+    problem: 'Civic organizations and individuals worked in silos without mutual support.',
+    solution: 'Port Townsend Time Bank serving Jefferson/Clallam counties with local nonprofits participating.',
+    patterns: ['Social Timebank', 'Trust Infrastructure', 'Civic Intermediary Table']
+  },
+  {
+    id: 25,
+    location: 'London, UK',
+    color: '#d4b8e8',
+    title: 'Large-Scale Timebank Engages Institutions',
+    problem: 'Urban isolation and service gaps despite proximity to major institutions.',
+    solution: 'Echo (Economy of Hours) creating large-scale timebank with institutional partners and evolving model.',
+    patterns: ['Social Timebank', 'Institutional Partnership Liaisons', 'Co-Governed Platforms']
+  },
+  {
+    id: 26,
+    location: 'Portland, Maine',
+    color: '#c8b8e8',
+    title: 'Long-Running Timebank Proves Model',
+    problem: 'Economic inequality limited access to essential services and skills.',
+    solution: 'Hour Exchange Portland operating as long-running U.S. timebank model for reciprocal exchange.',
+    patterns: ['Social Timebank', 'Trust Infrastructure', 'Community Anchor Point']
+  },
+  {
+    id: 27,
+    location: 'Huerfano County, Colorado',
+    color: '#e8c8d4',
+    title: 'Indigenous Place Names Build Pride',
+    problem: 'Colonial place names erased Indigenous heritage and cultural identity.',
+    solution: '"Huajatolla" place-name pride campaign with tees, cultural festivals, and heritage events honoring Indigenous names.',
+    patterns: ['Local Pride Rituals', 'Shared Cultural Story', 'Heritage-to-Market Program']
+  },
+  {
+    id: 28,
+    location: 'Hazelwood, Pennsylvania',
+    color: '#b8e8d4',
+    title: 'Monthly Story Nights Activate Neighborhood',
+    problem: 'Neighborhood felt disconnected with no regular gathering traditions.',
+    solution: 'Monthly neighborhood storytelling and "light-up" nights with regular, hyperlocal arts and story activations.',
+    patterns: ['Local Pride Rituals', 'Shared Cultural Story', 'Village Broadcast Loop']
+  },
+  {
+    id: 29,
+    location: 'Raton, New Mexico',
+    color: '#d4e8c8',
+    title: 'Youth-Designed Posters Foster Civic Pride',
+    problem: 'Youth felt invisible and disconnected from community identity.',
+    solution: 'Youth-designed pride posters displayed downtown as youth/artist poster-led pride campaigns.',
+    patterns: ['Local Pride Rituals', 'Youth Return Pathway', 'Creative Apprenticeships']
+  },
+  {
+    id: 30,
+    location: 'Trinidad, Colorado',
+    color: '#e8b4a0',
+    title: 'Creative District Drives Cultural Revival',
+    problem: 'Declining downtown lacked cultural programming and unified identity.',
+    solution: 'Corazón de Trinidad Creative District with certified status, Get Lit Literary Festival, and seasonal story campaigns.',
+    patterns: ['Local Pride Rituals', 'Culture-as-Economy', 'Main Street Reawakening']
+  },
+  {
+    id: 31,
+    location: 'Winters, California',
+    color: '#c8d4b8',
+    title: 'Downtown Branding Creates Pride Rituals',
+    problem: 'Small town struggled with identity and attracting visitors or investment.',
+    solution: 'Branded neighborhood banners and seasonal story campaigns with recurring events as pride rituals.',
+    patterns: ['Local Pride Rituals', 'Culture-as-Economy', 'Main Street Reawakening']
+  },
+  {
+    id: 32,
+    location: 'Boone, North Carolina',
+    color: '#b8c8d4',
+    title: 'Community-Driven Brand Refresh',
+    problem: 'Town identity was unclear and failed to reflect current community values.',
+    solution: '"My Boone" branding effort with community-driven town identity refresh and downtown roll-out.',
+    patterns: ['Local Pride Rituals', 'Shared Cultural Story', 'Main Street Reawakening']
   }
 ]
 
