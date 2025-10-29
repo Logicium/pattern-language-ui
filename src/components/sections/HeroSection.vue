@@ -54,7 +54,6 @@ onMounted(() => {
 }
 
 .hero-container {
-  padding-top: 3rem;
   padding-bottom: 3rem;
   position: relative;
   z-index: 1;
