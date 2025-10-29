@@ -25,6 +25,24 @@ export interface CaseStudy {
   timeframe?: string
 }
 
+export interface Challenge {
+  id: number
+  title: string
+  description: string
+  context: string
+  manifestations: string[]
+  relatedPatterns: string[]
+}
+
+export interface Link {
+  id: number
+  location: string
+  name: string
+  url: string
+  description: string
+  category?: string
+}
+
 export interface ConstellationNode {
   x: number
   y: number

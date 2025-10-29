@@ -34,6 +34,18 @@
           >
             Stories ({{ filteredStories.length }})
           </button>
+          <button
+            :class="['tab text-xs', { active: activeTab === 'challenges' }]"
+            @click="activeTab = 'challenges'"
+          >
+            Challenges ({{ filteredChallenges.length }})
+          </button>
+          <button
+            :class="['tab text-xs', { active: activeTab === 'links' }]"
+            @click="activeTab = 'links'"
+          >
+            Links ({{ filteredLinks.length }})
+          </button>
         </div>
       </div>
     </section>
@@ -73,7 +85,7 @@
         </div>
 
         <!-- Stories Tab -->
-        <div v-else class="resources-grid">
+        <div v-else-if="activeTab === 'stories'" class="resources-grid">
           <div
             v-for="(story, index) in filteredStories"
             :key="story.id"
@@ -97,6 +109,66 @@
             </div>
           </div>
         </div>
+
+        <!-- Challenges Tab -->
+        <div v-else-if="activeTab === 'challenges'" class="resources-grid">
+          <div
+            v-for="(challenge, index) in filteredChallenges"
+            :key="challenge.id"
+            class="resource-card"
+            :data-accent="(index % 3) + 1"
+          >
+            <div class="card-header">
+              <div class="card-number text-xs text-tertiary">WP{{ String(challenge.id).padStart(2, '0') }}</div>
+            </div>
+            <h3 class="card-title">{{ challenge.title }}</h3>
+            <p class="card-description text-sm text-secondary">{{ challenge.description }}</p>
+            <div v-if="challenge.relatedPatterns.length > 0" class="card-tags">
+              <span
+                v-for="pattern in challenge.relatedPatterns.slice(0, 2)"
+                :key="pattern"
+                class="tag text-xs"
+              >
+                {{ pattern }}
+              </span>
+            </div>
+            <div class="card-actions">
+              <button class="action-btn-primary text-xs" @click="viewChallenge(challenge.id)">View Challenge</button>
+              <button class="action-btn-secondary text-xs" @click="addToPlaybook(challenge, 'challenge')">
+                <span class="btn-icon">+</span> Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Links Tab -->
+        <div v-else class="resources-grid">
+          <div
+            v-for="(link, index) in filteredLinks"
+            :key="link.id"
+            class="resource-card link-card"
+            :data-accent="(index % 3) + 1"
+          >
+            <div class="card-header">
+              <div class="card-number text-xs text-tertiary">{{ link.category || 'Resource' }}</div>
+            </div>
+            <h3 class="card-title">{{ link.name }}</h3>
+            <div class="card-location text-xs text-secondary">{{ link.location }}</div>
+            <p class="card-description text-sm text-secondary">{{ link.description }}</p>
+            <div class="link-url text-xs text-tertiary">
+              <span class="link-icon">↗</span>
+              {{ getHostname(link.url) }}
+            </div>
+            <div class="card-actions">
+              <button class="action-btn-primary text-xs" @click="openLink(link.url)">
+                Visit Site
+              </button>
+              <button class="action-btn-secondary text-xs" @click="addToPlaybook(link, 'link')">
+                <span class="btn-icon">+</span> Add
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -110,7 +182,7 @@
           </div>
           <div class="modal-content">
             <p class="text-sm text-secondary modal-subtitle">
-              Select a playbook for <strong>{{ selectedResource?.title }}</strong>
+              Select a playbook for <strong>{{ selectedResourceType === 'link' ? selectedResource?.name : selectedResource?.title }}</strong>
             </p>
             <div v-if="activePlaybooks.length > 0" class="playbook-list">
               <button
@@ -145,16 +217,16 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlaybooksStore } from '@/stores/playbooks'
-import { allPatterns, allStories } from '@/utils/data'
+import { allPatterns, allStories, allChallenges, allLinks } from '@/utils/data'
 
 const router = useRouter()
 const playbooksStore = usePlaybooksStore()
 
-const activeTab = ref<'patterns' | 'stories'>('patterns')
+const activeTab = ref<'patterns' | 'stories' | 'challenges' | 'links'>('patterns')
 const searchQuery = ref('')
 const showAddModal = ref(false)
 const selectedResource = ref<any>(null)
-const selectedResourceType = ref<'pattern' | 'story'>('pattern')
+const selectedResourceType = ref<'pattern' | 'story' | 'challenge' | 'link'>('pattern')
 
 const activePlaybooks = computed(() => playbooksStore.activePlaybooks)
 
@@ -179,6 +251,26 @@ const filteredStories = computed(() => {
   )
 })
 
+const filteredChallenges = computed(() => {
+  if (!searchQuery.value) return allChallenges
+  const query = searchQuery.value.toLowerCase()
+  return allChallenges.filter(c =>
+    c.title.toLowerCase().includes(query) ||
+    c.description.toLowerCase().includes(query) ||
+    c.context.toLowerCase().includes(query)
+  )
+})
+
+const filteredLinks = computed(() => {
+  if (!searchQuery.value) return allLinks
+  const query = searchQuery.value.toLowerCase()
+  return allLinks.filter(l =>
+    l.name.toLowerCase().includes(query) ||
+    l.location.toLowerCase().includes(query) ||
+    l.description.toLowerCase().includes(query)
+  )
+})
+
 const viewPattern = (id: number) => {
   router.push(`/patterns/${id}`)
 }
@@ -187,7 +279,23 @@ const viewStory = (id: number) => {
   router.push(`/stories#story-${id}`)
 }
 
-const addToPlaybook = (resource: any, type: 'pattern' | 'story') => {
+const viewChallenge = (id: number) => {
+  router.push(`/challenges/${id}`)
+}
+
+const openLink = (url: string) => {
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+const getHostname = (url: string): string => {
+  try {
+    return new URL(url).hostname.replace('www.', '')
+  } catch {
+    return url
+  }
+}
+
+const addToPlaybook = (resource: any, type: 'pattern' | 'story' | 'challenge' | 'link') => {
   selectedResource.value = resource
   selectedResourceType.value = type
   showAddModal.value = true
@@ -195,11 +303,18 @@ const addToPlaybook = (resource: any, type: 'pattern' | 'story') => {
 
 const selectPlaybook = (playbookId: string) => {
   if (selectedResource.value) {
-    playbooksStore.addResourceToPlaybook(playbookId, {
+    const resource: any = {
       type: selectedResourceType.value,
       id: selectedResource.value.id,
-      title: selectedResource.value.title
-    })
+      title: selectedResourceType.value === 'link' ? selectedResource.value.name : selectedResource.value.title
+    }
+    
+    // Add URL for link resources
+    if (selectedResourceType.value === 'link') {
+      resource.url = selectedResource.value.url
+    }
+    
+    playbooksStore.addResourceToPlaybook(playbookId, resource)
     closeModal()
   }
 }
@@ -606,6 +721,28 @@ const closeModal = () => {
 
 .empty-message p {
   margin-bottom: 1.5rem;
+}
+
+/* Link Card Specific Styles */
+.link-card .link-url {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(42, 42, 42, 0.03);
+  border-left: 2px solid rgba(42, 42, 42, 0.1);
+  letter-spacing: 0.02em;
+  font-family: 'Courier New', monospace;
+}
+
+.link-icon {
+  font-size: 1rem;
+  color: var(--color-text-tertiary);
+}
+
+.link-card:hover .link-icon {
+  color: var(--color-text-primary);
 }
 
 /* Modal Transition */

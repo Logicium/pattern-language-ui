@@ -1,4 +1,580 @@
-import type { Pattern, CaseStudy } from '@/types'
+import type { Pattern, CaseStudy, Challenge, Link } from '@/types'
+
+export const allLinks: Link[] = [
+  {
+    id: 1,
+    location: 'Ada, Oklahoma',
+    name: 'Ada Jobs Foundation',
+    url: 'https://growada.com/',
+    description: 'Ada Jobs Foundation (AJF) leads entrepreneurship and small-business development and was an EDA Build to Scale grantee.',
+    category: 'Economic Development'
+  },
+  {
+    id: 2,
+    location: 'Ada, Oklahoma',
+    name: 'EDA Build to Scale – AJF 2021',
+    url: 'https://www.eda.gov/funding/programs/build-to-scale/past-grantees/2021-venture-challenge/Ada-Jobs-Foundation',
+    description: 'EDA Build to Scale grantee profile for Ada Jobs Foundation 2021.',
+    category: 'Economic Development'
+  },
+  {
+    id: 3,
+    location: 'Ada, Oklahoma',
+    name: 'AJF – Business Improvement Grants',
+    url: 'https://growada.com/ada-jobs-foundation-looks-ahead-a-vision-for-growth-and-collaboration-in-2025/',
+    description: 'Ada Jobs Foundation\'s 2025 vision for growth and collaboration.',
+    category: 'Economic Development'
+  },
+  {
+    id: 4,
+    location: 'Pine Bluff, Arkansas',
+    name: 'The Generator',
+    url: 'https://thegeneratorpinebluff.org/',
+    description: 'Downtown innovation hub coordinating revitalization pillars, entrepreneurship, and digital skills.',
+    category: 'Economic Development'
+  },
+  {
+    id: 5,
+    location: 'Pine Bluff, Arkansas',
+    name: 'Go Forward Pine Bluff',
+    url: 'https://goforwardpinebluff.org/initiatives',
+    description: 'Go Forward Pine Bluff initiatives coordinating community revitalization.',
+    category: 'Economic Development'
+  },
+  {
+    id: 6,
+    location: 'Pine Bluff, Arkansas',
+    name: 'Pine Bluff Comprehensive Plan',
+    url: 'https://searpc.com/plans/page/266/pine-bluff-comprehensive-plan-2022',
+    description: 'Comprehensive Plan (2022) overview for Pine Bluff.',
+    category: 'Economic Development'
+  },
+  {
+    id: 7,
+    location: 'Traverse City, Michigan',
+    name: 'Traverse Connect',
+    url: 'https://traverseconnect.com/economic-development/',
+    description: 'Regional EDO driving economic development in Traverse City.',
+    category: 'Economic Development'
+  },
+  {
+    id: 8,
+    location: 'Traverse City, Michigan',
+    name: '20Fathoms',
+    url: 'https://20fathoms.org/',
+    description: 'Startup pipeline builder and tech hub in Traverse City.',
+    category: 'Economic Development'
+  },
+  {
+    id: 9,
+    location: 'Traverse City, Michigan',
+    name: 'Master Plan & Mobility Action Plan',
+    url: 'https://www.traversecitymi.gov/projects/master-plan-rewrite.html',
+    description: 'City Master Plan and Mobility Action Plan (2024) setting investment rules.',
+    category: 'Economic Development'
+  },
+  {
+    id: 10,
+    location: 'Independence, Oregon',
+    name: 'MINET',
+    url: 'https://minetfiber.com/',
+    description: 'Municipal fiber network underpinning ag-tech development.',
+    category: 'Economic Development'
+  },
+  {
+    id: 11,
+    location: 'Independence, Oregon',
+    name: 'SEDCOR – Northwest Ag Innovation Hub',
+    url: 'https://www.sedcor.com/northwest-ag-innovation-hub/',
+    description: 'Regional Ag Innovation Hub running farmer-led pilots.',
+    category: 'Economic Development'
+  },
+  {
+    id: 12,
+    location: 'Independence, Oregon',
+    name: 'Indy Commons',
+    url: 'https://www.indycommons.com/',
+    description: 'Community hub supporting local founders and entrepreneurs.',
+    category: 'Economic Development'
+  },
+  {
+    id: 13,
+    location: 'Waterville, Maine',
+    name: 'Central Maine Growth Council',
+    url: 'https://www.centralmaine.org/',
+    description: 'CMGC runs Dirigo Labs and coordinates regional growth.',
+    category: 'Economic Development'
+  },
+  {
+    id: 14,
+    location: 'Waterville, Maine',
+    name: 'Dirigo Labs',
+    url: 'https://www.dirigolabs.org/',
+    description: 'Accelerator program capitalized by EDA Build to Scale.',
+    category: 'Economic Development'
+  },
+  {
+    id: 15,
+    location: 'Waterville, Maine',
+    name: 'EDA Build to Scale – CMGC 2020',
+    url: 'https://www.eda.gov/funding/programs/build-to-scale/past-grantees/2020-venture-challenge/Central-Maine-Growth-Council',
+    description: 'EDA Build to Scale grantee profile for Central Maine Growth Council 2020.',
+    category: 'Economic Development'
+  },
+  {
+    id: 16,
+    location: 'Seward, Nebraska',
+    name: 'Seward County Chamber & Development',
+    url: 'https://www.cultivatesewardcounty.com/',
+    description: 'SCCDP markets the Rail Campus and drives county development.',
+    category: 'Economic Development'
+  },
+  {
+    id: 17,
+    location: 'Seward, Nebraska',
+    name: 'Seward Rail Campus',
+    url: 'https://sewardregional.org/seward-rail-campus/',
+    description: 'Regional rail campus driving industrial development.',
+    category: 'Economic Development'
+  },
+  {
+    id: 18,
+    location: 'Seward, Nebraska',
+    name: 'City Funding Programs',
+    url: 'https://cityofsewardne.gov/funding-programs/',
+    description: 'City runs CDBG Downtown Revitalization and LB840 incentives.',
+    category: 'Economic Development'
+  },
+  {
+    id: 19,
+    location: 'Helena–West Helena, Arkansas',
+    name: 'Helena Harbor EDO',
+    url: 'https://helenaharbor.com/',
+    description: 'Helena Harbor/Phillips County EDO anchors port-industrial development.',
+    category: 'Economic Development'
+  },
+  {
+    id: 20,
+    location: 'Helena–West Helena, Arkansas',
+    name: 'Main Street Helena',
+    url: 'https://www.deltamagic.org/resourcehub/mainstreethelena',
+    description: 'Main Street program driving downtown revitalization.',
+    category: 'Economic Development'
+  },
+  {
+    id: 21,
+    location: 'Helena–West Helena, Arkansas',
+    name: 'Southern Bancorp Community Partners',
+    url: 'https://southernpartners.org/',
+    description: 'Community finance organization supporting local development.',
+    category: 'Economic Development'
+  },
+  {
+    id: 22,
+    location: 'Newport, Arkansas',
+    name: 'Newport Economic Development',
+    url: 'https://www.newportarcity.org/economic-development',
+    description: 'Newport EDC (NEDC) offers incentives and coordinates development.',
+    category: 'Economic Development'
+  },
+  {
+    id: 23,
+    location: 'Newport, Arkansas',
+    name: 'Airbase Industrial Park',
+    url: 'https://arkansassiteselection.com/Property/Detail/1001/Newport-Airbase-Industrial-Park-Site-1',
+    description: 'Airbase Industrial Park expanding logistics options.',
+    category: 'Economic Development'
+  },
+  {
+    id: 24,
+    location: 'Newport, Arkansas',
+    name: 'Arkansas Waterways – White River',
+    url: 'https://waterways.arkansas.gov/ports-terminals/white-river/',
+    description: 'White River port authority providing logistics infrastructure.',
+    category: 'Economic Development'
+  },
+  {
+    id: 25,
+    location: 'Aberdeen, South Dakota',
+    name: 'Aberdeen Development Corporation',
+    url: 'https://adcsd.com/',
+    description: 'Aberdeen Development Corporation leads sites and business retention.',
+    category: 'Economic Development'
+  },
+  {
+    id: 26,
+    location: 'Aberdeen, South Dakota',
+    name: 'NSU Northern Innovation & Startup Center',
+    url: 'https://northern.edu/startupcenter',
+    description: 'NSU\'s Northern Innovation & Startup Center strengthens the startup pipeline.',
+    category: 'Economic Development'
+  },
+  {
+    id: 27,
+    location: 'Aberdeen, South Dakota',
+    name: 'Aberdeen Downtown Association',
+    url: 'https://aberdeendowntown.org/',
+    description: 'Downtown association coordinating main street revitalization.',
+    category: 'Economic Development'
+  },
+  {
+    id: 28,
+    location: 'Paducah, Kentucky',
+    name: 'Greater Paducah Economic Development',
+    url: 'https://gpaducah.com/',
+    description: 'GPED and the Riverport drive industry development.',
+    category: 'Economic Development'
+  },
+  {
+    id: 29,
+    location: 'Paducah, Kentucky',
+    name: 'Paducah-McCracken County Riverport',
+    url: 'https://www.paducahriverport.org/',
+    description: 'Regional riverport providing industrial logistics.',
+    category: 'Economic Development'
+  },
+  {
+    id: 30,
+    location: 'Paducah, Kentucky',
+    name: 'Paducah Main Street',
+    url: 'https://www.paducahky.gov/paducah-main-street',
+    description: 'Strong Main Street/UNESCO creative district anchoring downtown.',
+    category: 'Economic Development'
+  },
+  {
+    id: 31,
+    location: 'Pryor Creek, Oklahoma',
+    name: 'MidAmerica Industrial Park',
+    url: 'https://maip.com/',
+    description: 'MAIP is the anchor EDO with a Center of Excellence.',
+    category: 'Economic Development'
+  },
+  {
+    id: 32,
+    location: 'Pryor Creek, Oklahoma',
+    name: 'MAIP Workforce Development',
+    url: 'https://maip.com/workforce/development/',
+    description: 'MAIP Center of Excellence driving workforce development.',
+    category: 'Economic Development'
+  },
+  {
+    id: 33,
+    location: 'Pryor Creek, Oklahoma',
+    name: 'Northeast Tech Business & Industry',
+    url: 'https://www.netech.edu/page/business-industry-services-at-midamerica',
+    description: 'Northeast Tech providing business and industry training at MAIP.',
+    category: 'Economic Development'
+  },
+  {
+    id: 34,
+    location: 'Nacogdoches, Texas',
+    name: 'City of Nacogdoches – NEDCO',
+    url: 'https://www.nactx.us/628/Departments',
+    description: 'NEDCO leads economic development efforts.',
+    category: 'Economic Development'
+  },
+  {
+    id: 35,
+    location: 'Nacogdoches, Texas',
+    name: 'SFA – CARRI',
+    url: 'https://www.sfasu.edu/carri',
+    description: 'SFA/CARRI supporting entrepreneurship and innovation.',
+    category: 'Economic Development'
+  },
+  {
+    id: 36,
+    location: 'Nacogdoches, Texas',
+    name: 'Nacogdoches Main Street',
+    url: 'https://www.nactx.us/729/Main-Street',
+    description: 'Main Street program coordinating downtown revitalization.',
+    category: 'Economic Development'
+  },
+  {
+    id: 37,
+    location: 'Liberal, Kansas',
+    name: 'City of Liberal Business Resources',
+    url: 'https://www.cityofliberal.org/249/Business-Resources',
+    description: 'City + Chamber + Kansas SBDC supporting entrepreneurship.',
+    category: 'Economic Development'
+  },
+  {
+    id: 38,
+    location: 'Liberal, Kansas',
+    name: 'Kansas SBDC – Liberal',
+    url: 'https://www.wichita.edu/research/ksbdc/ServiceArea.php',
+    description: 'Kansas SBDC providing business development support.',
+    category: 'Economic Development'
+  },
+  {
+    id: 39,
+    location: 'Liberal, Kansas',
+    name: 'SCCC Business & Industry',
+    url: 'https://sccc.edu/academics/continuing-education/business-and-industry/',
+    description: 'SCCC provides workforce upskilling programs.',
+    category: 'Economic Development'
+  },
+  {
+    id: 40,
+    location: 'Cochise County, Arizona',
+    name: 'Cochise College SBDC',
+    url: 'https://www.cochise.edu/community/sbdc/index.html',
+    description: 'Cochise College SBDC forming the tech-talent spine.',
+    category: 'Economic Development'
+  },
+  {
+    id: 41,
+    location: 'Cochise County, Arizona',
+    name: 'UArizona CAST – Cyber Operations',
+    url: 'https://infosci.arizona.edu/cyber-operations',
+    description: 'UArizona CAST (NSA CAE-CO) providing cyber operations training.',
+    category: 'Economic Development'
+  },
+  {
+    id: 42,
+    location: 'Cochise County, Arizona',
+    name: 'USAICoE / Fort Huachuca',
+    url: 'https://home.army.mil/huachuca/units-tenants/usaicoe',
+    description: 'Fort Huachuca anchoring defense/MI contracting.',
+    category: 'Economic Development'
+  },
+  {
+    id: 43,
+    location: 'Taos, New Mexico',
+    name: 'City of Taos Economic Development',
+    url: 'https://www.taosnm.gov/309/Economic-Development',
+    description: 'City/County EDOs forming the local development stack.',
+    category: 'Economic Development'
+  },
+  {
+    id: 44,
+    location: 'Taos, New Mexico',
+    name: 'Taos MainStreet',
+    url: 'https://www.taosmainstreet.org/',
+    description: 'Taos MainStreet coordinating downtown revitalization.',
+    category: 'Economic Development'
+  },
+  {
+    id: 45,
+    location: 'Taos, New Mexico',
+    name: 'UNM-Taos HIVE',
+    url: 'https://www.taoshive.com/',
+    description: 'UNM-Taos HIVE + SBDC supporting local entrepreneurship.',
+    category: 'Economic Development'
+  }
+]
+
+export const allChallenges: Challenge[] = [
+  {
+    id: 1,
+    title: 'Youth Flight & Talent Drain',
+    description: 'Young people leave for education or work and don\'t return.',
+    context: 'Youth leave rural areas for perceived opportunities elsewhere, often never returning even when they want to. This creates a self-reinforcing cycle where fewer young people means fewer services, which drives more youth away.',
+    manifestations: [
+      'Declining school enrollment and eventual school closures',
+      'Aging workforce with no succession planning',
+      'Loss of community vitality and innovative thinking',
+      'Decreased tax base and public service capacity',
+      'Difficulty attracting new businesses due to labor shortages'
+    ],
+    relatedPatterns: ['Youth Return Pathway', 'Creative Apprenticeships', 'Local Pride Rituals', 'Village Learning Hub']
+  },
+  {
+    id: 2,
+    title: 'Aging Population Without Succession',
+    description: 'Businesses, farms, and leadership face a cliff with no handoff plan.',
+    context: 'As baby boomers retire, many rural businesses, farms, and civic organizations face closure because no succession plan exists. Knowledge, relationships, and enterprises disappear overnight.',
+    manifestations: [
+      'Main street businesses closing permanently when owners retire',
+      'Agricultural land sold to corporate buyers or developers',
+      'Loss of institutional memory and local expertise',
+      'Leadership gaps in civic organizations and government',
+      'Disruption of essential services and supply chains'
+    ],
+    relatedPatterns: ['Generational Transition Planning', 'Elder Mentorship Circles', 'Creative Apprenticeships', 'Community Land Trust']
+  },
+  {
+    id: 3,
+    title: 'Low Civic Trust',
+    description: 'Division and broken promises make it hard to believe people and institutions will act fairly.',
+    context: 'Years of broken promises, political polarization, and institutional failures erode the foundational trust needed for collective action. Without trust, communities can\'t organize effectively.',
+    manifestations: [
+      'Low participation in civic meetings and elections',
+      'Suspicion of new initiatives and outside help',
+      'Difficulty forming coalitions across different groups',
+      'Rumors and misinformation spread quickly',
+      'Projects stall due to lack of buy-in and cooperation'
+    ],
+    relatedPatterns: ['Trust Infrastructure', 'Community Anchor Point', 'Listening Infrastructure', 'Nested Governance Tables']
+  },
+  {
+    id: 4,
+    title: 'Isolation & Disconnection',
+    description: 'Distance, weak infrastructure, and social fragmentation limit collaboration and belonging.',
+    context: 'Physical distance is compounded by digital divides, transportation barriers, and social fragmentation. People feel alone even in communities with shared challenges.',
+    manifestations: [
+      'Mental health challenges and increased substance abuse',
+      'Difficulty coordinating collective action',
+      'Lack of knowledge about available resources and opportunities',
+      'Social divisions along economic, political, or cultural lines',
+      'Elders, disabled, and low-income residents especially isolated'
+    ],
+    relatedPatterns: ['Community Anchor Point', 'Village Broadcast Loop', 'Digital Root System', 'Multipurpose Mobility Hubs']
+  },
+  {
+    id: 5,
+    title: 'Economic Stagnation',
+    description: 'Few ways to build local wealth; dependence on declining or extractive industries.',
+    context: 'Traditional rural industries decline while new economic opportunities don\'t emerge. Wealth flows out to distant corporations and urban centers, leaving communities poorer.',
+    manifestations: [
+      'Declining wages and incomes compared to urban areas',
+      'Loss of local businesses to chain stores or closures',
+      'Young people forced to leave for economic opportunity',
+      'Tax base erosion affecting public services',
+      'Dependence on boom-bust extractive industries'
+    ],
+    relatedPatterns: ['Regenerative Micro-Enterprise', 'Creative Workyards', 'Culture-as-Economy', 'Main Street Reawakening']
+  },
+  {
+    id: 6,
+    title: 'Lack of Shared Vision',
+    description: 'Competing priorities stall collective action.',
+    context: 'Without a unifying vision, communities fragment into competing factions. Energy gets spent on conflicts rather than building shared futures.',
+    manifestations: [
+      'Endless debates without decisions or action',
+      'Multiple groups working on similar issues in parallel',
+      'Inability to prioritize limited resources effectively',
+      'New leaders encounter resistance and burnout',
+      'Community plans sit on shelves unused'
+    ],
+    relatedPatterns: ['Shared Cultural Story', 'Nested Governance Tables', 'Civic Intermediary Table', 'Listening Infrastructure']
+  },
+  {
+    id: 7,
+    title: 'Generational Poverty',
+    description: 'Limited mobility and opportunity passed down over decades.',
+    context: 'Systemic barriers create cycles of poverty that span generations. Lack of access to education, capital, and networks makes upward mobility nearly impossible.',
+    manifestations: [
+      'Limited educational attainment and skill development',
+      'Poor health outcomes and reduced life expectancy',
+      'Housing insecurity and substandard living conditions',
+      'Difficulty accessing credit and capital for entrepreneurship',
+      'Children inheriting economic disadvantages of parents'
+    ],
+    relatedPatterns: ['Village Learning Hub', 'Micro-Credential Academy', 'Commons Finance Toolkit', 'Community Land Trust']
+  },
+  {
+    id: 8,
+    title: 'Polarization',
+    description: 'Social and political divides block dialogue and cooperation.',
+    context: 'National political polarization manifests locally, fracturing communities along partisan, cultural, and economic lines. Common ground becomes difficult to find.',
+    manifestations: [
+      'Social groups segregate along political or cultural identities',
+      'Productive dialogue becomes impossible on contentious issues',
+      'Win-lose thinking dominates over problem-solving',
+      'Community events and spaces become politicized',
+      'Leaders face attacks regardless of the merits of their proposals'
+    ],
+    relatedPatterns: ['Trust Infrastructure', 'Shared Cultural Story', 'Listening Infrastructure', 'Intergenerational Wisdom Exchange']
+  },
+  {
+    id: 9,
+    title: 'Institutional Distrust',
+    description: 'Wariness toward outside funders or agencies after past harms.',
+    context: 'Extractive relationships with outside institutions—universities, agencies, corporations—leave communities wary of new partnerships. Past harms create legitimate skepticism.',
+    manifestations: [
+      'Resistance to university research and data collection',
+      'Suspicion of government programs and regulations',
+      'Difficulty recruiting for new initiatives with outside partners',
+      'Community knowledge and assets not leveraged for fear of exploitation',
+      'Grant funding sits unused due to distrust of strings attached'
+    ],
+    relatedPatterns: ['Institutional Partnership Liaisons', 'Community-Based Research', 'Trust Infrastructure', 'Public Data Commons']
+  },
+  {
+    id: 10,
+    title: 'Underused Local Assets',
+    description: 'Skills, land, and spaces sit idle for lack of connection or coordination.',
+    context: 'Communities have untapped resources—empty buildings, skilled retirees, available land—but lack systems to match assets with needs effectively.',
+    manifestations: [
+      'Vacant buildings deteriorate on main streets',
+      'Retired professionals with valuable skills don\'t mentor or teach',
+      'Agricultural land sits fallow or is underutilized',
+      'Equipment and tools owned but not shared',
+      'Cultural and heritage assets not leveraged for economic benefit'
+    ],
+    relatedPatterns: ['Community Anchor Point', 'Elder Mentorship Circles', 'Social Timebank', 'Heritage-to-Market Program']
+  },
+  {
+    id: 11,
+    title: 'Food Insecurity & Fragile Supply Chains',
+    description: 'Weak local food systems leave residents vulnerable.',
+    context: 'Despite growing food, many rural areas are food deserts. Long supply chains, lack of processing infrastructure, and limited retail options create vulnerability.',
+    manifestations: [
+      'Limited access to fresh, healthy, affordable food',
+      'Small farms struggle without processing and distribution',
+      'Reliance on distant supply chains vulnerable to disruption',
+      'Dollar stores replace grocery stores',
+      'Diet-related health problems increase'
+    ],
+    relatedPatterns: ['Food Infrastructure Spine', 'Regenerative Micro-Enterprise', 'Commons Stewardship', 'Circular Water Systems']
+  },
+  {
+    id: 12,
+    title: 'Infrastructure Decay',
+    description: 'Broadband, roads, water, and public spaces lag or fail.',
+    context: 'Aging infrastructure deteriorates faster than it\'s maintained or replaced. Limited tax bases and deferred maintenance create cascading failures.',
+    manifestations: [
+      'Inadequate or nonexistent broadband internet',
+      'Crumbling roads and bridges',
+      'Aging water and sewer systems failing',
+      'Deteriorating public buildings and spaces',
+      'Lack of modern energy infrastructure'
+    ],
+    relatedPatterns: ['Digital Root System', 'Circular Water Systems', 'Resilient Energy Microgrids', 'Main Street Reawakening']
+  },
+  {
+    id: 13,
+    title: 'Civic Apathy',
+    description: 'Low participation in decisions and leadership.',
+    context: 'When people feel powerless to change conditions, they stop participating. This creates a vicious cycle where fewer voices lead to worse decisions.',
+    manifestations: [
+      'Low voter turnout and civic meeting attendance',
+      'Difficulty recruiting volunteers and board members',
+      'Same few people doing all the work and burning out',
+      'Young people especially disengaged from local governance',
+      'Important decisions made by small, unrepresentative groups'
+    ],
+    relatedPatterns: ['Nested Governance Tables', 'Local Pride Rituals', 'Youth Return Pathway', 'Listening Infrastructure']
+  },
+  {
+    id: 14,
+    title: 'Environmental Degradation',
+    description: 'Land, water, and ecosystems damaged by neglect or extraction.',
+    context: 'Extractive industries, industrial agriculture, and climate change degrade the natural systems that rural communities depend on.',
+    manifestations: [
+      'Soil erosion and declining agricultural productivity',
+      'Water pollution and aquifer depletion',
+      'Loss of biodiversity and ecosystem services',
+      'Increased vulnerability to floods, droughts, and fires',
+      'Health impacts from environmental contamination'
+    ],
+    relatedPatterns: ['Regenerative Micro-Enterprise', 'Circular Water Systems', 'Commons Stewardship', 'Eco-Adaptive Building Codes']
+  },
+  {
+    id: 15,
+    title: 'Institutional Breakdown',
+    description: 'Local or regional institutions lose capacity, leaving gaps in essential services.',
+    context: 'Schools, hospitals, government offices, and nonprofits close or dramatically reduce services. Communities lose the institutional capacity to address challenges.',
+    manifestations: [
+      'School consolidations and closures',
+      'Hospital and clinic closures creating healthcare deserts',
+      'Post offices and government services relocate or close',
+      'Nonprofit capacity erodes due to funding and staffing challenges',
+      'Essential services become inaccessible or unaffordable'
+    ],
+    relatedPatterns: ['Community Anchor Point', 'Local Capacity Backbone', 'Regional Mutual Aid Protocols', 'Shared Grant Navigator Network']
+  }
+]
 
 export const allPatterns: Pattern[] = [
   // Part I: Foundations (8 patterns)

@@ -316,10 +316,25 @@
               
               <!-- Display Mode -->
               <div v-if="!isEditingResources" class="resources-grid">
-                <router-link
-                  v-for="resource in playbook.resources"
+                <!-- Link Resources (external) -->
+                <a
+                  v-for="resource in playbook.resources.filter(r => r.type === 'link')"
                   :key="`${resource.type}-${resource.id}`"
-                  :to="resource.type === 'pattern' ? `/patterns/${resource.id}` : `/stories`"
+                  :href="resource.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="resource-card resource-card-link text-sm"
+                >
+                  <span class="resource-type text-xs text-tertiary">{{ resource.type }}</span>
+                  <span>{{ resource.title }}</span>
+                  <span class="link-indicator">↗</span>
+                </a>
+                
+                <!-- Internal Resources (patterns, challenges, stories) -->
+                <router-link
+                  v-for="resource in playbook.resources.filter(r => r.type !== 'link')"
+                  :key="`${resource.type}-${resource.id}`"
+                  :to="getResourceLink(resource)"
                   class="resource-card text-sm"
                 >
                   <span class="resource-type text-xs text-tertiary">{{ resource.type }}</span>
@@ -681,6 +696,18 @@ const formatDate = (dateString: string) => {
     day: 'numeric',
     year: 'numeric'
   }).format(date)
+}
+
+const getResourceLink = (resource: any) => {
+  if (resource.type === 'pattern') {
+    return `/patterns/${resource.id}`
+  } else if (resource.type === 'challenge') {
+    return `/challenges/${resource.id}`
+  } else if (resource.type === 'story') {
+    return `/stories#story-${resource.id}`
+  }
+  // For links, we handle them with href directly
+  return '#'
 }
 </script>
 
@@ -1301,6 +1328,24 @@ const formatDate = (dateString: string) => {
 .resource-card:hover {
   background: var(--color-bg-secondary);
   border-color: var(--color-accent-2);
+}
+
+.resource-card-link {
+  position: relative;
+}
+
+.link-indicator {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  font-size: 1rem;
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-base);
+}
+
+.resource-card-link:hover .link-indicator {
+  color: var(--color-text-primary);
+  transform: translateX(2px) translateY(-2px);
 }
 
 .resource-card-editable {

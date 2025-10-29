@@ -4,6 +4,7 @@ import HomePage from '@/views/HomePage.vue'
 import AboutPage from '@/views/AboutPage.vue'
 import PatternsPage from '@/views/PatternsPage.vue'
 import FullPatternPage from '@/views/FullPatternPage.vue'
+import FullChallengePage from '@/views/FullChallengePage.vue'
 import StoriesPage from '@/views/StoriesPage.vue'
 import SignupPage from '@/views/SignupPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/patterns/:id',
       name: 'pattern-detail',
       component: FullPatternPage
+    },
+    {
+      path: '/challenges/:id',
+      name: 'challenge-detail',
+      component: FullChallengePage
     },
     {
       path: '/stories',

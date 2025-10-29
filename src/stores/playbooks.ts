@@ -24,7 +24,7 @@ export interface Playbook {
   targetCompletionDate: string
   completedDate: string | null
   tasks: PlaybookTask[]
-  resources: Array<{ type: 'pattern' | 'story'; id: number; title: string }>
+  resources: Array<{ type: 'pattern' | 'story' | 'challenge' | 'link'; id: number; title: string; url?: string }>
   notes: string
 }
 
@@ -304,7 +304,7 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     }
   }
 
-  function addResourceToPlaybook(playbookId: string, resource: { type: 'pattern' | 'story'; id: number; title: string }) {
+  function addResourceToPlaybook(playbookId: string, resource: { type: 'pattern' | 'story' | 'challenge' | 'link'; id: number; title: string; url?: string }) {
     const playbook = playbooks.value.find((p) => p.id === playbookId)
     if (playbook) {
       // Check if resource already exists
