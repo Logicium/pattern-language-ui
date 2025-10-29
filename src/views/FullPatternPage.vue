@@ -128,6 +128,13 @@
               class="story-card"
             >
               <div class="story-visual" :style="{ backgroundColor: story.color }">
+                <img 
+                  v-if="story.image" 
+                  :src="story.image" 
+                  :alt="story.location"
+                  class="story-image"
+                />
+                <div class="color-overlay" :style="{ backgroundColor: story.color }"></div>
                 <div class="story-location text-xs">{{ story.location }}</div>
               </div>
               <div class="story-content">

@@ -20,6 +20,13 @@
         <span class="label text-xs text-tertiary">Featured</span>
         <div class="featured-story">
           <div class="featured-visual" :style="{ backgroundColor: featuredStory.color }">
+            <img 
+              v-if="featuredStory.image" 
+              :src="featuredStory.image" 
+              :alt="featuredStory.location"
+              class="featured-image"
+            />
+            <div class="color-overlay" :style="{ backgroundColor: featuredStory.color }"></div>
             <div class="featured-location text-sm">{{ featuredStory.location }}</div>
           </div>
           <div class="featured-content">
@@ -60,6 +67,13 @@
             class="story-card card"
           >
             <div class="story-visual" :style="{ backgroundColor: story.color }">
+              <img 
+                v-if="story.image" 
+                :src="story.image" 
+                :alt="story.location"
+                class="story-image"
+              />
+              <div class="color-overlay" :style="{ backgroundColor: story.color }"></div>
               <div class="story-location text-xs">{{ story.location }}</div>
             </div>
             <div class="story-content">
@@ -167,6 +181,8 @@ const otherStories = computed(() => allStories.slice(1))
   display: flex;
   align-items: flex-end;
   padding: 3rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .featured-location {
@@ -230,6 +246,11 @@ const otherStories = computed(() => allStories.slice(1))
 
 .story-card {
   overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.story-card:hover {
+  transform: translateY(-4px);
 }
 
 .story-visual {
@@ -238,6 +259,7 @@ const otherStories = computed(() => allStories.slice(1))
   display: flex;
   align-items: flex-end;
   padding: 2rem;
+  overflow: hidden;
 }
 
 .story-location {

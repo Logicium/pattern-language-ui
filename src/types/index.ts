@@ -16,6 +16,7 @@ export interface CaseStudy {
   id: number
   location: string
   color: string
+  image?: string
   title: string
   problem: string
   solution: string

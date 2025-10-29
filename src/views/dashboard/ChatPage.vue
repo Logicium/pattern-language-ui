@@ -1,12 +1,12 @@
 <template>
   <div class="chat-page">
     <!-- Header -->
-    <div class="page-header">
+    <section class="page-header gradient-bg">
       <div class="container">
         <h1 class="page-title">Chat</h1>
         <p class="text-sm text-secondary">AI Pattern Assistant</p>
       </div>
-    </div>
+    </section>
 
     <!-- AI Avatar - Fixed at top -->
     <div class="avatar-section">
@@ -284,10 +284,6 @@ const formatTime = (date: Date): string => {
   flex-shrink: 0;
   padding: 3rem var(--container-padding);
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
-  background: linear-gradient(135deg,
-    rgba(232, 180, 160, 0.03) 0%,
-    rgba(184, 212, 200, 0.03) 50%,
-    rgba(201, 184, 232, 0.03) 100%);
 }
 
 .page-title {

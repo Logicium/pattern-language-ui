@@ -219,10 +219,6 @@ const closeModal = () => {
 /* Header */
 .page-header {
   padding: 3rem var(--container-padding);
-  background: linear-gradient(135deg,
-    rgba(232, 180, 160, 0.05) 0%,
-    rgba(184, 212, 200, 0.05) 50%,
-    rgba(201, 184, 232, 0.05) 100%);
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
