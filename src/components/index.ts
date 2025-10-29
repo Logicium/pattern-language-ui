@@ -6,3 +6,4 @@ export { default as FeaturedStoriesSection } from './sections/FeaturedStoriesSec
 export { default as CTASection } from './sections/CTASection.vue'
 export { default as AiAvatar } from './AiAvatar.vue'
 export { default as RibbonCanvas } from './RibbonCanvas.vue'
+export { default as Pagination } from './Pagination.vue'

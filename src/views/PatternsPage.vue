@@ -61,7 +61,7 @@
     <!-- Results -->
     <section class="section results-section">
       <div class="container">
-        <div class="results-header">
+        <div id="results-header" class="results-header">
           <span class="text-sm text-secondary">
             {{ filteredPatterns.length }} {{ filteredPatterns.length === 1 ? 'pattern' : 'patterns' }} found
           </span>
@@ -69,7 +69,7 @@
 
         <div v-if="filteredPatterns.length > 0" class="patterns-grid">
           <div
-            v-for="(pattern, index) in filteredPatterns"
+            v-for="(pattern, index) in paginatedPatterns"
             :key="pattern.id"
             class="pattern-card"
             :data-accent="(index % 3) + 1"
@@ -97,7 +97,16 @@
           </div>
         </div>
 
-        <div v-else class="empty-state">
+        <Pagination
+          v-if="filteredPatterns.length > itemsPerPage"
+          v-model:current-page="currentPage"
+          v-model:items-per-page="itemsPerPage"
+          :total-items="filteredPatterns.length"
+          :per-page-options="perPageOptions"
+          scroll-target-id="results-header"
+        />
+
+        <div v-if="filteredPatterns.length === 0" class="empty-state">
           <p class="text-secondary">No patterns match your search. Try different terms or clear filters.</p>
         </div>
       </div>
@@ -109,12 +118,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Navbar, Footer, CTASection, RibbonCanvas } from '@/components'
+import { ref, computed, watch } from 'vue'
+import { Navbar, Footer, CTASection, RibbonCanvas, Pagination } from '@/components'
 import { allPatterns } from '@/utils/data'
 
 const searchQuery = ref('')
 const activeFilters = ref<string[]>([])
+const currentPage = ref(1)
+const itemsPerPage = ref(12)
+const perPageOptions = [9, 12, 15, 24]
 
 // Extract unique challenges
 const commonChallenges = computed(() => {
@@ -148,6 +160,18 @@ const filteredPatterns = computed(() => {
 
   return results
 })
+
+// Paginated patterns
+const paginatedPatterns = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredPatterns.value.slice(start, end)
+})
+
+// Watch for search/filter changes and reset to first page
+watch([searchQuery, activeFilters], () => {
+  currentPage.value = 1
+}, { deep: true })
 
 const toggleFilter = (filter: string) => {
   const index = activeFilters.value.indexOf(filter)

@@ -55,14 +55,14 @@
     <!-- All Stories -->
     <section class="section all-stories-section">
       <div class="container">
-        <div class="section-header">
-          <span class="section-number">{{ allStories.length - 1 }}</span>
+        <div id="stories-header" class="section-header">
+          <span class="section-number">{{ allOtherStories.length }}</span>
           <h2 class="section-title">More Stories</h2>
         </div>
 
         <div class="stories-grid">
           <div
-            v-for="story in otherStories"
+            v-for="story in paginatedStories"
             :key="story.id"
             class="story-card card"
           >
@@ -94,6 +94,14 @@
             </div>
           </div>
         </div>
+
+        <Pagination
+          v-model:current-page="currentPage"
+          v-model:items-per-page="itemsPerPage"
+          :total-items="allOtherStories.length"
+          :per-page-options="perPageOptions"
+          scroll-target-id="stories-header"
+        />
       </div>
     </section>
 
@@ -122,12 +130,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Navbar, Footer, CTASection, RibbonCanvas } from '@/components'
+import { ref, computed } from 'vue'
+import { Navbar, Footer, CTASection, RibbonCanvas, Pagination } from '@/components'
 import { allStories } from '@/utils/data'
 
 const featuredStory = allStories[0]
-const otherStories = computed(() => allStories.slice(1))
+const currentPage = ref(1)
+const itemsPerPage = ref(9)
+const perPageOptions = [6, 9, 12, 18]
+
+// Get stories excluding the featured one
+const allOtherStories = computed(() => allStories.slice(1))
+
+// Paginated stories
+const paginatedStories = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return allOtherStories.value.slice(start, end)
+})
 </script>
 
 <style scoped>
