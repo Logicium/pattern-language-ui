@@ -13,6 +13,13 @@
           class="study-card card"
         >
           <div class="study-visual" :style="{ backgroundColor: study.color }">
+            <img 
+              v-if="study.image" 
+              :src="study.image" 
+              :alt="study.location"
+              class="study-image"
+            />
+            <div class="color-overlay" :style="{ backgroundColor: study.color }"></div>
             <div class="study-location text-xs">{{ study.location }}</div>
           </div>
           <div class="study-content">
@@ -70,6 +77,28 @@ const studies = caseStudies.slice(0, 3)
   display: flex;
   align-items: flex-end;
   padding: 2rem;
+  overflow: hidden;
+}
+
+.study-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%);
+}
+
+.color-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: multiply;
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .study-location {
@@ -78,6 +107,8 @@ const studies = caseStudies.slice(0, 3)
   padding: 0.5rem 1rem;
   backdrop-filter: blur(10px);
   color: var(--color-text-primary);
+  position: relative;
+  z-index: 1;
 }
 
 .study-content {

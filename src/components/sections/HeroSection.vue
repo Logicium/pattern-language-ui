@@ -1,5 +1,9 @@
 <template>
   <section class="hero gradient-bg">
+    <div class="hero-interactive">
+      <PatternConstellation />
+    </div>
+    
     <div class="container hero-container">
       <div class="hero-content">
         <div class="hero-text">
@@ -21,34 +25,20 @@
         </div>
       </div>
 
-      <div class="hero-interactive">
-        <canvas ref="constellationCanvas" class="pattern-constellation"></canvas>
-      </div>
-
-      <button class="floating-cta btn">Explore</button>
+      <router-link to="/patterns" class="floating-cta btn">Explore</router-link>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted } from 'vue'
 import { useTypingAnimation } from '@/composables/useTypingAnimation'
-import { useConstellation } from '@/composables/useConstellation'
-
-const constellationCanvas = ref<HTMLCanvasElement | null>(null)
+import { PatternConstellation } from '@/components'
 
 const { currentTypedText, isTyping, startTypingAnimation } = useTypingAnimation()
-const { initCanvas, cleanup } = useConstellation(constellationCanvas)
 
 onMounted(() => {
   startTypingAnimation()
-  initCanvas()
-  window.addEventListener('resize', initCanvas)
-})
-
-onUnmounted(() => {
-  cleanup()
-  window.removeEventListener('resize', initCanvas)
 })
 </script>
 
@@ -60,11 +50,19 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   position: relative;
+  overflow: hidden;
 }
 
 .hero-container {
-  padding-top: 6rem;
+  padding-top: 3rem;
   padding-bottom: 3rem;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
 }
 
 .hero-content {
@@ -114,15 +112,13 @@ onUnmounted(() => {
 }
 
 .hero-interactive {
-  height: 280px;
-  position: relative;
-  margin-top: 2rem;
-}
-
-.pattern-constellation {
-  width: 100%;
-  height: 100%;
-  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 45%;
+  z-index: 0;
 }
 
 .floating-cta {
@@ -131,6 +127,8 @@ onUnmounted(() => {
   right: var(--container-padding);
   padding: 0.875rem 1.75rem;
   letter-spacing: 0.08em;
+  z-index: 2;
+  text-decoration: none;
 }
 
 @media (max-width: 1024px) {
@@ -150,7 +148,7 @@ onUnmounted(() => {
   }
   
   .hero-interactive {
-    height: 200px;
+    height: 100%;
   }
 }
 </style>

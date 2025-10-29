@@ -1,8 +1,8 @@
 <template>
   <div
-    ref="containerRef"
-    class="ribbon-canvas"
-    :style="{ opacity: isReady ? 1 : 0 }"
+      ref="containerRef"
+      class="ribbon-canvas"
+      :style="{ opacity: isReady ? 1 : 0 }"
   >
     <div class="blur-overlay"></div>
   </div>
@@ -24,51 +24,45 @@ let animationFrameId: number | null = null
 let time = 0
 
 const colors = [
-  '#e8b4a0', // accent-1
-  '#b8d4c8', // accent-2
-  '#c9b8e8', // accent-3
-  '#d8d8d8', // light gray
-  '#c0c0c0', // medium gray
-  '#e0e0e0', // lighter gray
+  '#e8b4a0',
+  '#b8d4c8',
+  '#c9b8e8',
+  '#d8d8d8',
+  '#c0c0c0',
+  '#e0e0e0',
 ]
 
 const initThreeJS = () => {
   if (!containerRef.value) return
-
   const container = containerRef.value
   const width = container.clientWidth
   const height = container.clientHeight
 
-  // Setup scene
+  // Scene
   scene = new THREE.Scene()
 
-  // Setup camera - positioned to view from above at an angle
+  // Camera
   camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000)
   camera.position.set(0, 8, 13)
   camera.lookAt(0, 0, 0)
 
-  // Setup renderer with transparency
-  renderer = new THREE.WebGLRenderer({ 
-    antialias: true, 
-    alpha: true 
-  })
+  // Renderer
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
   renderer.setSize(width, height)
   renderer.setPixelRatio(window.devicePixelRatio)
-  renderer.setClearColor(0x000000, 0) // Transparent background
+  renderer.setClearColor(0x000000, 0)
   container.appendChild(renderer.domElement)
 
-  // Create flowing ribbon geometry
-  const segX = 100 // Horizontal segments
-  const segY = 30  // Vertical segments (number of lines) - reduced from 50 for fewer, more visible lines
-
-  // Make geometry wider to extend to container edges
+  // Geometry
+  const segX = 100
+  const segY = 30
   const aspectRatio = width / height
-  const planeWidth = 20 * aspectRatio // Scale width based on aspect ratio
+  const planeWidth = 20 * aspectRatio * 1.35 // extended width for infinite effect
   const planeHeight = 10
 
   geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, segX, segY)
 
-  // Create line indices for horizontal lines only
+  // Horizontal line indices
   const idx: number[] = []
   let startIdx = 0
   for (let y = 0; y < segY + 1; y++) {
@@ -80,11 +74,8 @@ const initThreeJS = () => {
   geometry.setIndex(idx)
   geometry.rotateX(Math.PI * -0.5)
 
-  // Adjust vertex positions to compensate for perspective
-  // Lines further away need to extend wider to disappear off-screen
   const positions = geometry.attributes.position
-
-  if (!positions) return
+  if (!positions) return // ✅ added back check
 
   const colors_array = new Float32Array(positions.count * 3)
 
@@ -94,39 +85,24 @@ const initThreeJS = () => {
   for (let i = 0; i < positions.count; i++) {
     const x = positions.getX(i)
     const z = positions.getZ(i)
-
-    // Calculate distance from camera (further back = larger z value)
-    const depthFactor = (z + halfHeight) / planeHeight // 0 at near, 1 at far
-
-    // Scale x position based on depth - further lines extend wider
-    // Using exponential scaling for even more extension at far distances
-    const perspectiveScale = 1 + (depthFactor * depthFactor * 2.5) // Up to 250% wider for far lines
+    const depthFactor = (z + halfHeight) / planeHeight
+    const perspectiveScale = 1 + (depthFactor * depthFactor * 2.5)
     const scaledX = x * perspectiveScale
     positions.setX(i, scaledX)
 
-    // Recalculate for colors
     const scaledWidth = planeWidth * perspectiveScale
-    const normalizedX = (scaledX + scaledWidth / 2) / scaledWidth // Normalize to 0-1
-
-    // Pick color based on vertical position (line index)
+    const normalizedX = (scaledX + scaledWidth / 2) / scaledWidth
     const verticalIndex = Math.floor(i / (segX + 1))
     const color = new THREE.Color(colors[verticalIndex % colors.length])
 
-    // Apply gradient blur fade at edges (more aggressive fade)
     let alpha = 1
-    const fadeWidth = 0.15 // 15% fade zone on each side
-
+    const fadeWidth = 0.15
     if (normalizedX < fadeWidth) {
-      // Smooth fade from left edge
       alpha = normalizedX / fadeWidth
     } else if (normalizedX > (1 - fadeWidth)) {
-      // Smooth fade to right edge
       alpha = (1 - normalizedX) / fadeWidth
     }
-
-    // Apply cubic easing for smoother fade
     alpha = alpha * alpha * (3 - 2 * alpha)
-
     colors_array[i * 3] = color.r * alpha
     colors_array[i * 3 + 1] = color.g * alpha
     colors_array[i * 3 + 2] = color.b * alpha
@@ -134,25 +110,21 @@ const initThreeJS = () => {
 
   geometry.setAttribute('color', new THREE.BufferAttribute(colors_array, 3))
 
-  // Create material with vertex colors and increased line width
-  const material = new THREE.LineBasicMaterial({ 
+  const material = new THREE.LineBasicMaterial({
     vertexColors: true,
-    opacity: 0.95, // Slightly increased for better visibility with blur
+    opacity: 0.95,
     transparent: true,
-    linewidth: 4 // Increased from 2 for thicker lines
+    linewidth: 4,
   })
 
   lineSegments = new THREE.LineSegments(geometry, material)
   scene.add(lineSegments)
 
-  // Handle window resize
   const handleResize = () => {
     const width = container.clientWidth
     const height = container.clientHeight
-
     camera.aspect = width / height
     camera.updateProjectionMatrix()
-
     renderer.setSize(width, height)
   }
 
@@ -171,46 +143,32 @@ const initThreeJS = () => {
 
 const animate = () => {
   if (!geometry) return
-
   time += 0.008
 
   const positions = geometry.attributes.position
-  if (!positions) return
+  if (!positions) return // ✅ added back check
 
-  const colors_attr = geometry.attributes.color
-  const segX = 100
-
-  // Get plane dimensions
+  geometry.computeBoundingBox()
   const bounds = geometry.boundingBox
-  if (!bounds) {
-    geometry.computeBoundingBox()
-  }
-  const planeWidth = bounds ? (bounds.max.x - bounds.min.x) : 20
+  if (!bounds) return // ✅ added check for bounding box
+  const planeWidth = bounds.max.x - bounds.min.x
   const halfWidth = planeWidth / 2
 
-  // Animate the wave motion
   for (let i = 0; i < positions.count; i++) {
     const x = positions.getX(i)
     const z = positions.getZ(i)
-
-    // Create flowing wave motion
     const normalizedX = (x + halfWidth) / planeWidth
     const normalizedZ = (z + 5) / 10
 
-    // Multiple sine waves for complex motion
-    const wave1 = Math.sin(normalizedX * Math.PI * 2 + time * 1.5) * 0.8
-    const wave2 = Math.sin(normalizedX * Math.PI * 3 + normalizedZ * Math.PI * 2 + time * 1.2) * 0.4
-    const wave3 = Math.sin(normalizedZ * Math.PI * 4 + time * 0.8) * 0.3
+    const wave1 = Math.sin(normalizedX * Math.PI * 2 + time * 1.5) * 0.76
+    const wave2 = Math.sin(normalizedX * Math.PI * 3 + normalizedZ * Math.PI * 2 + time * 1.2) * 0.38
+    const wave3 = Math.sin(normalizedZ * Math.PI * 4 + time * 0.8) * 0.285
 
-    // Combine waves for natural flowing motion
-    const y = wave1 + wave2 + wave3
-
-    positions.setY(i, y)
+    positions.setY(i, wave1 + wave2 + wave3)
   }
 
   positions.needsUpdate = true
 
-  // Gentle camera rotation for added depth
   camera.position.x = Math.sin(time * 0.1) * 2
   camera.lookAt(0, 0, 0)
 
@@ -222,12 +180,8 @@ onMounted(() => {
   const cleanup = initThreeJS()
 
   onUnmounted(() => {
-    if (animationFrameId !== null) {
-      cancelAnimationFrame(animationFrameId)
-    }
+    if (animationFrameId !== null) cancelAnimationFrame(animationFrameId)
     if (cleanup) cleanup()
-
-    // Cleanup Three.js resources
     if (geometry) geometry.dispose()
     if (lineSegments) {
       const material = lineSegments.material as THREE.Material
@@ -252,10 +206,10 @@ onMounted(() => {
 
 .ribbon-canvas :deep(canvas) {
   display: block;
-  filter: none; /* Remove global blur */
+  filter: none;
 }
 
-/* Radial gradient blur overlay - blurs center where text is */
+/* Smoother, wider radial blur overlay */
 .blur-overlay {
   position: absolute;
   top: 0;
@@ -263,10 +217,9 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
-  /* Mask reveals blur in center, crisp at edges */
-  mask-image: radial-gradient(ellipse at center, black 25%, transparent 65%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black 25%, transparent 65%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 80%);
 }
 </style>
