@@ -98,9 +98,11 @@
     </section>
 
     <!-- Toast -->
-    <transition name="toast">
-      <div v-if="showToast" class="toast">{{ toastMessage }}</div>
-    </transition>
+    <Toast
+      :show="showToast"
+      :message="toastMessage"
+      @update:show="showToast = $event"
+    />
   </div>
 </template>
 
@@ -108,6 +110,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { Toast } from '@/components'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -366,34 +369,6 @@ const showSuccessToast = (message: string) => {
   box-shadow: 0 4px 12px rgba(42, 42, 42, 0.2);
 }
 
-.toast {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: linear-gradient(135deg, var(--color-accent-2), var(--color-accent-3));
-  color: var(--color-bg-primary);
-  padding: 1rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.05em;
-  box-shadow: 0 8px 24px rgba(42, 42, 42, 0.15);
-}
-
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.toast-enter-from {
-  opacity: 0;
-  transform: translateY(2rem) scale(0.9);
-}
-
-.toast-leave-to {
-  opacity: 0;
-  transform: translateY(-1rem) scale(0.95);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .page-header {
@@ -410,12 +385,6 @@ const showSuccessToast = (message: string) => {
 
   .section-title {
     font-size: 1.25rem;
-  }
-
-  .toast {
-    right: 1rem;
-    left: 1rem;
-    bottom: 1rem;
   }
 }
 </style>
