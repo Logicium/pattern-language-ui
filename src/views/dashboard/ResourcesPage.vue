@@ -67,16 +67,19 @@
             <h3 class="card-title">{{ pattern.title }}</h3>
             <p class="card-description text-sm text-secondary">{{ pattern.description }}</p>
             <div v-if="pattern.addresses.length > 0" class="card-tags">
-              <span
-                v-for="addr in pattern.addresses.slice(0, 2)"
-                :key="addr"
-                class="tag text-xs"
-              >
-                {{ addr }}
-              </span>
+              <div class="tags-label text-xs text-tertiary">Addresses</div>
+              <div class="tags-list">
+                <span
+                  v-for="addr in pattern.addresses.slice(0, 2)"
+                  :key="addr"
+                  class="tag text-xs"
+                >
+                  {{ addr }}
+                </span>
+              </div>
             </div>
             <div class="card-actions">
-              <button class="action-btn-primary text-xs" @click="viewPattern(pattern.id)">View Pattern</button>
+              <router-link :to="`/patterns/${pattern.id}`" class="action-btn-primary text-xs">View Pattern</router-link>
               <button class="action-btn-secondary text-xs" @click="addToPlaybook(pattern, 'pattern')">
                 <span class="btn-icon">+</span> Add
               </button>
@@ -97,12 +100,12 @@
             </div>
             <h3 class="card-title">{{ story.title }}</h3>
             <div class="card-location text-xs text-secondary">{{ story.location }}</div>
-            <p class="card-description text-sm text-secondary">{{ story.excerpt || story.problem }}</p>
+            <p class="card-description text-sm text-secondary">{{ story.solution || story.excerpt || story.problem }}</p>
             <div class="card-meta text-xs text-tertiary">
-              {{ story.timeframe || 'Success Story' }}
+              {{ formatDate(story.publishedDate) }}
             </div>
             <div class="card-actions">
-              <button class="action-btn-primary text-xs" @click="viewStory(story.id)">Read Story</button>
+              <router-link :to="`/stories/${story.id}`" class="action-btn-primary text-xs">Read Story</router-link>
               <button class="action-btn-secondary text-xs" @click="addToPlaybook(story, 'story')">
                 <span class="btn-icon">+</span> Add
               </button>
@@ -124,16 +127,19 @@
             <h3 class="card-title">{{ challenge.title }}</h3>
             <p class="card-description text-sm text-secondary">{{ challenge.description }}</p>
             <div v-if="challenge.relatedPatterns.length > 0" class="card-tags">
-              <span
-                v-for="pattern in challenge.relatedPatterns.slice(0, 2)"
-                :key="pattern"
-                class="tag text-xs"
-              >
-                {{ pattern }}
-              </span>
+              <div class="tags-label text-xs text-tertiary">Related Patterns</div>
+              <div class="tags-list">
+                <span
+                  v-for="pattern in challenge.relatedPatterns.slice(0, 2)"
+                  :key="pattern"
+                  class="tag text-xs"
+                >
+                  {{ pattern }}
+                </span>
+              </div>
             </div>
             <div class="card-actions">
-              <button class="action-btn-primary text-xs" @click="viewChallenge(challenge.id)">View Challenge</button>
+              <router-link :to="`/challenges/${challenge.id}`" class="action-btn-primary action-btn-challenge text-xs">View Challenge</router-link>
               <button class="action-btn-secondary text-xs" @click="addToPlaybook(challenge, 'challenge')">
                 <span class="btn-icon">+</span> Add
               </button>
@@ -156,13 +162,12 @@
             <div class="card-location text-xs text-secondary">{{ link.location }}</div>
             <p class="card-description text-sm text-secondary">{{ link.description }}</p>
             <div class="link-url text-xs text-tertiary">
-              <span class="link-icon">↗</span>
               {{ getHostname(link.url) }}
             </div>
             <div class="card-actions">
-              <button class="action-btn-primary text-xs" @click="openLink(link.url)">
+              <a :href="link.url" target="_blank" rel="noopener noreferrer" class="action-btn-primary action-btn-link text-xs">
                 Visit Site
-              </button>
+              </a>
               <button class="action-btn-secondary text-xs" @click="addToPlaybook(link, 'link')">
                 <span class="btn-icon">+</span> Add
               </button>
@@ -339,6 +344,15 @@ const getHostname = (url: string): string => {
   }
 }
 
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(date)
+}
+
 const addToPlaybook = (resource: any, type: 'pattern' | 'story' | 'challenge' | 'link') => {
   selectedResource.value = resource
   selectedResourceType.value = type
@@ -498,7 +512,6 @@ const closeModal = () => {
 }
 
 .resource-card:hover {
-  transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(42, 42, 42, 0.08);
 }
 
@@ -531,9 +544,21 @@ const closeModal = () => {
 
 .card-tags {
   display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tags-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.tags-list {
+  display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
 }
 
 .tag {
@@ -547,16 +572,12 @@ const closeModal = () => {
 
 .card-meta {
   margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
   letter-spacing: 0.05em;
 }
 
 .card-actions {
   display: flex;
   gap: 0.75rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(42, 42, 42, 0.08);
 }
 
 .action-btn-primary {
@@ -572,28 +593,56 @@ const closeModal = () => {
   text-transform: uppercase;
   transition: all var(--transition-base);
   position: relative;
-  overflow: hidden;
+  z-index: 1;
+  text-decoration: none;
+  text-align: center;
+  display: inline-block;
 }
 
+/* Default border swirl effect (inherited from global .btn) */
 .action-btn-primary::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--color-text-primary);
-  transform: translateY(100%);
-  transition: transform var(--transition-base);
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2), var(--color-accent-3), var(--color-accent-1));
+  background-size: 300% 100%;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--transition-base);
   z-index: -1;
+  animation: borderSwirl 3s linear infinite;
 }
 
 .action-btn-primary:hover::before {
-  transform: translateY(0);
+  opacity: 1;
 }
 
 .action-btn-primary:hover {
   color: var(--color-bg-primary);
+  border-color: transparent;
+}
+
+/* Override for Challenges and Links - simple fade to black */
+.action-btn-challenge::before,
+.action-btn-link::before {
+  background: var(--color-text-primary);
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.action-btn-challenge:hover::before,
+.action-btn-link:hover::before {
+  opacity: 1;
+}
+
+.action-btn-challenge:hover,
+.action-btn-link:hover {
+  color: var(--color-bg-primary);
+  border-color: var(--color-text-primary);
 }
 
 .action-btn-secondary {

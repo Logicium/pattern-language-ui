@@ -16,13 +16,14 @@
           </p>
           <div class="addresses-tags">
             <span class="text-xs text-tertiary">Addresses:</span>
-            <span
+            <router-link
               v-for="challenge in pattern.addresses"
               :key="challenge"
+              :to="getChallengeRoute(challenge)"
               class="address-tag text-xs"
             >
               {{ challenge }}
-            </span>
+            </router-link>
           </div>
         </div>
       </section>
@@ -163,7 +164,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Navbar, Footer } from '@/components'
-import { allPatterns, allStories } from '@/utils/data'
+import { allPatterns, allStories, allChallenges } from '@/utils/data'
 
 const route = useRoute()
 const patternId = computed(() => Number(route.params.id))
@@ -190,6 +191,14 @@ const getPatternRoute = (title: string) => {
     title.toLowerCase().includes(p.title.toLowerCase())
   )
   return relatedPattern ? `/patterns/${relatedPattern.id}` : '/patterns'
+}
+
+const getChallengeRoute = (title: string) => {
+  const challenge = allChallenges.find(c => 
+    c.title.toLowerCase().includes(title.toLowerCase()) ||
+    title.toLowerCase().includes(c.title.toLowerCase())
+  )
+  return challenge ? `/challenges/${challenge.id}` : '/patterns'
 }
 </script>
 
@@ -237,6 +246,15 @@ const getPatternRoute = (title: string) => {
   background: rgba(232, 180, 160, 0.1);
   border: 1px solid var(--color-accent-1);
   letter-spacing: 0.05em;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  transition: all var(--transition-base);
+}
+
+.address-tag:hover {
+  background: var(--color-accent-1);
+  color: var(--color-bg-primary);
+  transform: translateY(-2px);
 }
 
 .pattern-content {

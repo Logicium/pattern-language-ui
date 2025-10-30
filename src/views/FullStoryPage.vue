@@ -26,6 +26,17 @@
           <p class="hero-problem text-secondary">
             {{ story.problem }}
           </p>
+          <div v-if="story.patterns && story.patterns.length > 0" class="patterns-tags">
+            <span class="text-xs text-tertiary">Patterns Used:</span>
+            <router-link
+              v-for="patternTitle in story.patterns"
+              :key="patternTitle"
+              :to="getPatternRoute(patternTitle)"
+              class="pattern-tag text-xs"
+            >
+              {{ patternTitle }}
+            </router-link>
+          </div>
         </div>
       </section>
 
@@ -78,16 +89,16 @@
 
             <!-- Sidebar -->
             <aside class="sidebar">
-              <div v-if="story.patterns && story.patterns.length > 0" class="sidebar-block">
-                <h3 class="sidebar-title text-sm">Patterns Used</h3>
+              <div v-if="relatedStories.length > 0" class="sidebar-block">
+                <h3 class="sidebar-title text-sm">Related Stories</h3>
                 <div class="related-list">
                   <router-link
-                    v-for="patternTitle in story.patterns"
-                    :key="patternTitle"
-                    :to="getPatternRoute(patternTitle)"
+                    v-for="relatedStory in relatedStories"
+                    :key="relatedStory.id"
+                    :to="`/stories/${relatedStory.id}`"
                     class="related-link text-sm"
                   >
-                    {{ patternTitle }}
+                    {{ relatedStory.title }}
                   </router-link>
                 </div>
               </div>
@@ -169,6 +180,16 @@ const formatDate = (dateString: string): string => {
     day: 'numeric'
   })
 }
+
+const relatedStories = computed(() => {
+  if (!story.value) return []
+  
+  // Find stories that share at least one pattern with the current story
+  return allStories.filter(s => 
+    s.id !== story.value!.id && 
+    s.patterns.some(p => story.value!.patterns.includes(p))
+  ).slice(0, 3)
+})
 </script>
 
 <style scoped>
@@ -263,6 +284,30 @@ const formatDate = (dateString: string): string => {
   font-size: 1.25rem;
   line-height: 1.7;
   max-width: 800px;
+  margin-bottom: 3rem;
+}
+
+.patterns-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.pattern-tag {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--color-text-primary);
+  color: var(--color-text-primary);
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  transition: all var(--transition-base);
+}
+
+.pattern-tag:hover {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  transform: translateY(-2px);
 }
 
 .story-content {

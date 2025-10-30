@@ -25,7 +25,11 @@
             <div class="progress-bar">
               <div 
                 class="progress-fill" 
-                :style="{ width: `${playbook.progress}%` }"
+                :class="{ 'progress-complete': playbook.progress >= 100 }"
+                :style="{ 
+                  width: `${playbook.progress}%`,
+                  backgroundSize: playbook.progress >= 100 ? '200% 100%' : `${100 / (playbook.progress || 1) * 100}% 100%`
+                }"
               ></div>
             </div>
           </div>
@@ -748,15 +752,15 @@ const getResourceLink = (resource: any) => {
 }
 
 .status-active {
-  background: rgba(184, 212, 200, 0.1);
-  border-color: var(--color-accent-2);
-  color: var(--color-accent-2);
+  background: rgba(181, 160, 232, 0.1);
+  border-color: var(--color-accent-3);
+  color: var(--color-accent-3);
 }
 
 .status-completed {
-  background: rgba(232, 180, 160, 0.1);
-  border-color: var(--color-accent-1);
-  color: var(--color-accent-warm);
+  background: rgba(184, 212, 200, 0.1);
+  border-color: var(--color-accent-2);
+  color: var(--color-accent-2);
 }
 
 .status-paused {
@@ -805,9 +809,14 @@ const getResourceLink = (resource: any) => {
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2), var(--color-accent-3));
+  background-position: left center;
+  background-repeat: no-repeat;
+  transition: width var(--transition-base), background-size var(--transition-base);
+}
+
+.progress-fill.progress-complete {
   background-size: 200% 100%;
   animation: gradientFlow 3s ease infinite;
-  transition: width var(--transition-base);
 }
 
 @keyframes gradientFlow {

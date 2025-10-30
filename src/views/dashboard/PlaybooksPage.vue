@@ -51,18 +51,30 @@
           >
             <!-- Header -->
             <div class="card-header">
-              <div class="pattern-number text-xs text-tertiary">
-                Pattern {{ String(playbook.patternId).padStart(2, '0') }}
-              </div>
+              <h3 class="card-title">{{ playbook.patternTitle }}</h3>
               <div class="progress-badge text-xs">
                 {{ playbook.progress }}%
               </div>
             </div>
-
-            <h3 class="card-title">{{ playbook.patternTitle }}</h3>
             
             <div class="card-location text-sm text-secondary">
               {{ playbook.location }}
+            </div>
+
+            <!-- Meta Info -->
+            <div class="card-meta">
+              <div class="meta-item text-xs text-tertiary">
+                <span class="meta-label">Pattern</span>
+                <span class="meta-value">{{ String(playbook.patternId).padStart(2, '0') }}</span>
+              </div>
+              <div class="meta-item text-xs text-tertiary">
+                <span class="meta-label">Challenge</span>
+                <span class="meta-value">{{ playbook.challenge }}</span>
+              </div>
+              <div class="meta-item text-xs text-tertiary">
+                <span class="meta-label">Due</span>
+                <span class="meta-value">{{ formatDate(playbook.targetCompletionDate) }}</span>
+              </div>
             </div>
 
             <!-- Progress Bar -->
@@ -70,8 +82,10 @@
               <div class="progress-bar">
                 <div 
                   class="progress-fill" 
-                  :style="{ width: `${playbook.progress}%` }"
-                  :data-accent="(index % 3) + 1"
+                  :style="{ 
+                    width: `${playbook.progress}%`,
+                    backgroundSize: `${100 / (playbook.progress || 1) * 100}% 100%`
+                  }"
                 ></div>
               </div>
               <div class="progress-label text-xs text-tertiary">
@@ -79,26 +93,11 @@
               </div>
             </div>
 
-            <!-- Quick Info -->
-            <div class="card-info">
-              <div class="info-item">
-                <span class="text-xs text-tertiary">Challenge</span>
-                <span class="text-sm">{{ playbook.challenge }}</span>
-              </div>
-              <div class="info-item">
-                <span class="text-xs text-tertiary">Target Date</span>
-                <span class="text-sm">{{ formatDate(playbook.targetCompletionDate) }}</span>
-              </div>
-            </div>
-
             <!-- Actions -->
             <div class="card-actions">
               <router-link :to="`/dashboard/playbooks/${playbook.id}`" class="btn action-btn-primary">
-                View Details
+                VIEW DETAILS
               </router-link>
-              <button class="action-btn text-xs">
-                {{ playbook.status === 'paused' ? 'Resume' : 'Pause' }}
-              </button>
             </div>
           </div>
         </div>
@@ -170,7 +169,7 @@ const formatDate = (dateString: string) => {
 <style scoped>
 .playbooks-page {
   min-height: 100vh;
-  background: var(--color-bg-primary);
+  background: var(--color-bg-secondary);
 }
 
 /* Header */
@@ -280,13 +279,9 @@ const formatDate = (dateString: string) => {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.pattern-number {
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .progress-badge {
@@ -295,20 +290,45 @@ const formatDate = (dateString: string) => {
   border: 1px solid rgba(42, 42, 42, 0.1);
   letter-spacing: 0.08em;
   font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .card-title {
   font-size: 1.5rem;
   font-weight: var(--font-weight-normal);
   letter-spacing: -0.01em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
   line-height: 1.3;
+  flex: 1;
 }
 
 .card-location {
+  margin-bottom: 1rem;
+}
+
+/* Card Meta */
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+}
+
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  letter-spacing: 0.05em;
+}
+
+.meta-label {
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.meta-value {
+  font-weight: var(--font-weight-medium);
 }
 
 /* Progress */
@@ -325,44 +345,14 @@ const formatDate = (dateString: string) => {
 
 .progress-fill {
   height: 100%;
-  transition: width var(--transition-base);
-}
-
-.progress-fill[data-accent="1"] {
-  background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-warm));
-}
-
-.progress-fill[data-accent="2"] {
-  background: linear-gradient(90deg, var(--color-accent-2), #9dc4b5);
-}
-
-.progress-fill[data-accent="3"] {
-  background: linear-gradient(90deg, var(--color-accent-3), #b5a0d8);
+  background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2), var(--color-accent-3));
+  background-position: left center;
+  background-repeat: no-repeat;
+  transition: width var(--transition-base), background-size var(--transition-base);
 }
 
 .progress-label {
   letter-spacing: 0.05em;
-}
-
-/* Card Info */
-.card-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.info-item .text-xs {
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 /* Card Actions */
@@ -377,25 +367,6 @@ const formatDate = (dateString: string) => {
   text-decoration: none;
   padding: 0.75rem 1.5rem;
   font-size: 0.75rem;
-}
-
-.action-btn {
-  padding: 0.75rem 1.25rem;
-  background: transparent;
-  border: 1px solid rgba(42, 42, 42, 0.15);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-normal);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: all var(--transition-base);
-}
-
-.action-btn:hover {
-  border-color: var(--color-text-primary);
-  color: var(--color-text-primary);
-  background: rgba(42, 42, 42, 0.02);
 }
 
 /* Empty State */
@@ -446,14 +417,6 @@ const formatDate = (dateString: string) => {
 
   .playbooks-grid {
     grid-template-columns: 1fr;
-  }
-
-  .card-actions {
-    flex-direction: column;
-  }
-
-  .action-btn {
-    width: 100%;
   }
 }
 </style>

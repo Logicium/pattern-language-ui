@@ -20,28 +20,27 @@
           >
             <!-- Pattern Number -->
             <div class="story-header">
-              <div class="story-number text-xs text-tertiary">
-                Pattern {{ String(playbook.patternId).padStart(2, '0') }}
-              </div>
+              <h3 class="story-title">{{ playbook.patternTitle }}</h3>
               <div class="completion-badge text-xs">
                 ✓ Complete
               </div>
             </div>
 
-            <!-- Title -->
-            <h3 class="story-title">{{ playbook.patternTitle }}</h3>
             <div class="story-location text-sm text-secondary">{{ playbook.location }}</div>
 
-            <!-- Dates -->
-            <div class="story-timeline">
-              <div class="timeline-item">
-                <div class="text-xs text-tertiary">Started</div>
-                <div class="text-sm">{{ formatDate(playbook.startDate) }}</div>
+            <!-- Meta Info -->
+            <div class="story-meta">
+              <div class="meta-item text-xs text-tertiary">
+                <span class="meta-label">Pattern</span>
+                <span class="meta-value">{{ String(playbook.patternId).padStart(2, '0') }}</span>
               </div>
-              <div class="timeline-arrow">→</div>
-              <div class="timeline-item">
-                <div class="text-xs text-tertiary">Completed</div>
-                <div class="text-sm">{{ formatDate(playbook.completedDate!) }}</div>
+              <div class="meta-item text-xs text-tertiary">
+                <span class="meta-label">Started</span>
+                <span class="meta-value">{{ formatDate(playbook.startDate) }}</span>
+              </div>
+              <div class="meta-item text-xs text-tertiary">
+                <span class="meta-label">Completed</span>
+                <span class="meta-value">{{ formatDate(playbook.completedDate!) }}</span>
               </div>
             </div>
 
@@ -70,9 +69,8 @@
             <!-- Actions -->
             <div class="story-actions">
               <router-link :to="`/dashboard/playbooks/${playbook.id}`" class="action-btn-primary text-xs">
-                View Details
+                VIEW DETAILS
               </router-link>
-              <button class="action-btn-secondary text-xs">Share Story</button>
             </div>
           </div>
         </div>
@@ -121,13 +119,12 @@ const formatDate = (dateString: string) => {
 <style scoped>
 .stories-page {
   min-height: 100vh;
-  background: var(--color-bg-primary);
+  background: var(--color-bg-secondary);
 }
 
 /* Header */
 .page-header {
   padding: 3rem var(--container-padding);
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
 .page-header .container,
@@ -184,13 +181,18 @@ const formatDate = (dateString: string) => {
 .story-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.story-number {
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.story-title {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-normal);
+  letter-spacing: -0.01em;
+  margin-bottom: 0;
+  line-height: 1.3;
+  flex: 1;
 }
 
 .completion-badge {
@@ -200,73 +202,53 @@ const formatDate = (dateString: string) => {
   border: 1px solid var(--color-accent-2);
   letter-spacing: 0.08em;
   font-weight: var(--font-weight-medium);
-}
-
-.story-title {
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-normal);
-  letter-spacing: -0.01em;
-  margin-bottom: 0.5rem;
-  line-height: 1.3;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .story-location {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  margin-bottom: 1.5rem;
 }
 
-/* Timeline */
-.story-timeline {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: var(--color-bg-secondary);
-}
-
-.timeline-item {
-  flex: 1;
+/* Meta */
+.story-meta {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 2rem;
 }
 
-.timeline-item .text-xs {
-  letter-spacing: 0.08em;
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  letter-spacing: 0.05em;
+}
+
+.meta-label {
   text-transform: uppercase;
+  opacity: 0.6;
 }
 
-.timeline-arrow {
-  color: var(--color-accent-2);
-  font-size: 1.25rem;
-  font-weight: var(--font-weight-light);
+.meta-value {
+  font-weight: var(--font-weight-medium);
 }
 
 /* Stats */
 .story-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 2rem;
   margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
 .stat-item {
   text-align: center;
-  padding: 1.25rem 0.75rem;
-  background: var(--color-bg-secondary);
-  transition: all var(--transition-base);
-}
-
-.stat-item:hover {
-  background: rgba(184, 212, 200, 0.08);
+  padding: 0;
 }
 
 .stat-value {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: var(--font-weight-light);
   letter-spacing: -0.01em;
   margin-bottom: 0.5rem;
@@ -283,7 +265,12 @@ const formatDate = (dateString: string) => {
   margin-bottom: 2rem;
   padding: 1.5rem;
   background: var(--color-bg-secondary);
-  border-left: 3px solid var(--color-accent-3);
+  border-left: 3px solid transparent;
+  background-image: 
+    linear-gradient(var(--color-bg-secondary), var(--color-bg-secondary)),
+    linear-gradient(to bottom, var(--color-accent-1), var(--color-accent-2), var(--color-accent-3));
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
 }
 
 .notes-label {
@@ -317,49 +304,34 @@ const formatDate = (dateString: string) => {
   text-decoration: none;
   text-align: center;
   transition: all var(--transition-base);
-  position: relative;
-  overflow: hidden;
   display: inline-block;
+  position: relative;
+  z-index: 1;
 }
 
 .action-btn-primary::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--color-text-primary);
-  transform: translateY(100%);
-  transition: transform var(--transition-base);
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2), var(--color-accent-3), var(--color-accent-1));
+  background-size: 300% 100%;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--transition-base);
   z-index: -1;
+  animation: borderSwirl 3s linear infinite;
 }
 
 .action-btn-primary:hover::before {
-  transform: translateY(0);
+  opacity: 1;
 }
 
 .action-btn-primary:hover {
   color: var(--color-bg-primary);
-}
-
-.action-btn-secondary {
-  padding: 0.75rem 1rem;
-  background: transparent;
-  border: 1px solid rgba(42, 42, 42, 0.15);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-normal);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: all var(--transition-base);
-}
-
-.action-btn-secondary:hover {
-  border-color: var(--color-accent-3);
-  color: var(--color-text-primary);
-  background: rgba(201, 184, 232, 0.05);
+  border-color: transparent;
 }
 
 /* Empty State */
@@ -409,21 +381,6 @@ const formatDate = (dateString: string) => {
 
   .story-card {
     padding: 2rem;
-  }
-
-  .story-timeline {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .timeline-arrow {
-    transform: rotate(90deg);
-    align-self: center;
-  }
-
-  .story-actions {
-    flex-direction: column;
   }
 }
 </style>
