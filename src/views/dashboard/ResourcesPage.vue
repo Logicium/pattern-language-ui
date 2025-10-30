@@ -51,12 +51,12 @@
     </section>
 
     <!-- Content -->
-    <section class="page-content">
+    <section class="page-content" id="resources-content">
       <div class="container">
         <!-- Patterns Tab -->
         <div v-if="activeTab === 'patterns'" class="resources-grid">
           <div
-            v-for="(pattern, index) in filteredPatterns"
+            v-for="(pattern, index) in paginatedPatterns"
             :key="pattern.id"
             class="resource-card"
             :data-accent="(index % 3) + 1"
@@ -87,7 +87,7 @@
         <!-- Stories Tab -->
         <div v-else-if="activeTab === 'stories'" class="resources-grid">
           <div
-            v-for="(story, index) in filteredStories"
+            v-for="(story, index) in paginatedStories"
             :key="story.id"
             class="resource-card"
             :data-accent="(index % 3) + 1"
@@ -113,7 +113,7 @@
         <!-- Challenges Tab -->
         <div v-else-if="activeTab === 'challenges'" class="resources-grid">
           <div
-            v-for="(challenge, index) in filteredChallenges"
+            v-for="(challenge, index) in paginatedChallenges"
             :key="challenge.id"
             class="resource-card"
             :data-accent="(index % 3) + 1"
@@ -144,7 +144,7 @@
         <!-- Links Tab -->
         <div v-else class="resources-grid">
           <div
-            v-for="(link, index) in filteredLinks"
+            v-for="(link, index) in paginatedLinks"
             :key="link.id"
             class="resource-card link-card"
             :data-accent="(index % 3) + 1"
@@ -169,6 +169,15 @@
             </div>
           </div>
         </div>
+
+        <!-- Pagination -->
+        <Pagination
+          v-model:current-page="currentPage"
+          v-model:items-per-page="itemsPerPage"
+          :total-items="activeTab === 'patterns' ? filteredPatterns.length : activeTab === 'stories' ? filteredStories.length : activeTab === 'challenges' ? filteredChallenges.length : filteredLinks.length"
+          :per-page-options="[12, 24, 48]"
+          scroll-target-id="resources-content"
+        />
       </div>
     </section>
 
@@ -214,10 +223,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import { allPatterns, allStories, allChallenges, allLinks } from '@/utils/data'
+import Pagination from '@/components/Pagination.vue'
 
 const router = useRouter()
 const playbooksStore = usePlaybooksStore()
@@ -228,7 +238,16 @@ const showAddModal = ref(false)
 const selectedResource = ref<any>(null)
 const selectedResourceType = ref<'pattern' | 'story' | 'challenge' | 'link'>('pattern')
 
+// Pagination state
+const currentPage = ref(1)
+const itemsPerPage = ref(12)
+
 const activePlaybooks = computed(() => playbooksStore.activePlaybooks)
+
+// Reset to page 1 when tab or search changes
+watch([activeTab, searchQuery], () => {
+  currentPage.value = 1
+})
 
 const filteredPatterns = computed(() => {
   if (!searchQuery.value) return allPatterns
@@ -269,6 +288,31 @@ const filteredLinks = computed(() => {
     l.location.toLowerCase().includes(query) ||
     l.description.toLowerCase().includes(query)
   )
+})
+
+// Paginated data
+const paginatedPatterns = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredPatterns.value.slice(start, end)
+})
+
+const paginatedStories = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredStories.value.slice(start, end)
+})
+
+const paginatedChallenges = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredChallenges.value.slice(start, end)
+})
+
+const paginatedLinks = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredLinks.value.slice(start, end)
 })
 
 const viewPattern = (id: number) => {
