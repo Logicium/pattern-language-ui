@@ -704,7 +704,7 @@ const getResourceLink = (resource: any) => {
   } else if (resource.type === 'challenge') {
     return `/challenges/${resource.id}`
   } else if (resource.type === 'story') {
-    return `/stories#story-${resource.id}`
+    return `/stories/${resource.id}`
   }
   // For links, we handle them with href directly
   return '#'

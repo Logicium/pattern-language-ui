@@ -276,7 +276,7 @@ const viewPattern = (id: number) => {
 }
 
 const viewStory = (id: number) => {
-  router.push(`/stories#story-${id}`)
+  router.push(`/stories/${id}`)
 }
 
 const viewChallenge = (id: number) => {

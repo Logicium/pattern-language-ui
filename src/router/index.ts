@@ -6,6 +6,7 @@ import PatternsPage from '@/views/PatternsPage.vue'
 import FullPatternPage from '@/views/FullPatternPage.vue'
 import FullChallengePage from '@/views/FullChallengePage.vue'
 import StoriesPage from '@/views/StoriesPage.vue'
+import FullStoryPage from '@/views/FullStoryPage.vue'
 import SignupPage from '@/views/SignupPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
@@ -43,6 +44,11 @@ const router = createRouter({
       path: '/stories',
       name: 'stories',
       component: StoriesPage
+    },
+    {
+      path: '/stories/:id',
+      name: 'story-detail',
+      component: FullStoryPage
     },
     {
       path: '/signup',

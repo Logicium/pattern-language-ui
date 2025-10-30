@@ -47,6 +47,9 @@
                 </span>
               </div>
             </div>
+            <router-link :to="`/stories/${featuredStory.id}`" class="btn featured-story-btn">
+              Read Full Story
+            </router-link>
           </div>
         </div>
       </div>
@@ -91,6 +94,9 @@
                   {{ p }}
                 </span>
               </div>
+              <router-link :to="`/stories/${story.id}`" class="read-more-btn text-sm">
+                Read More →
+              </router-link>
             </div>
           </div>
         </div>
@@ -254,6 +260,12 @@ const paginatedStories = computed(() => {
   letter-spacing: 0.05em;
 }
 
+.featured-story-btn {
+  margin-top: 2rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
 .all-stories-section {
   background: var(--color-bg-secondary);
 }
@@ -267,6 +279,8 @@ const paginatedStories = computed(() => {
 .story-card {
   overflow: hidden;
   transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .story-card:hover {
@@ -327,6 +341,22 @@ const paginatedStories = computed(() => {
   padding: 0.375rem 0.75rem;
   border: 1px solid rgba(42, 42, 42, 0.1);
   letter-spacing: 0.05em;
+}
+
+.read-more-btn {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.05em;
+  transition: all var(--transition-base);
+  border-bottom: 2px solid transparent;
+}
+
+.read-more-btn:hover {
+  color: var(--color-accent-1);
+  border-bottom-color: var(--color-accent-1);
 }
 
 .share-section {

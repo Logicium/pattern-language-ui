@@ -23,6 +23,9 @@ export interface CaseStudy {
   patterns: string[]
   excerpt?: string
   timeframe?: string
+  story?: string
+  publishedDate?: string
+  references?: string[] // Array of URLs
 }
 
 export interface Challenge {

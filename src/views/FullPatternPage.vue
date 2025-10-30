@@ -122,9 +122,10 @@
         <div class="container">
           <h2 class="section-title mb-md">Success Stories Using This Pattern</h2>
           <div class="stories-grid">
-            <div
+            <router-link
               v-for="story in relatedStories"
               :key="story.id"
+              :to="`/stories/${story.id}`"
               class="story-card"
             >
               <div class="story-visual" :style="{ backgroundColor: story.color }">
@@ -141,7 +142,7 @@
                 <h3 class="text-sm">{{ story.title }}</h3>
                 <p class="text-xs text-secondary">{{ story.problem }}</p>
               </div>
-            </div>
+            </router-link>
           </div>
         </div>
       </section>
@@ -382,6 +383,9 @@ const getPatternRoute = (title: string) => {
 .story-card {
   background: var(--color-bg-secondary);
   transition: transform var(--transition-base);
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 
 .story-card:hover {
