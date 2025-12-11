@@ -13,7 +13,7 @@ export interface PlaybookTask {
 }
 
 export interface Playbook {
-  id: string
+  id: string | number // Support both string (AI-generated) and number (database)
   patternId: number
   patternTitle: string
   challenge: string
@@ -96,8 +96,8 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     }
   }
 
-  function getPlaybookById(id: string): Playbook | undefined {
-    return playbooks.value.find(p => p.id === id)
+  function getPlaybookById(id: string | number): Playbook | undefined {
+    return playbooks.value.find(p => p.id.toString() === id.toString())
   }
 
   function clearCache() {
@@ -149,8 +149,8 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     }
   }
 
-  function updatePlaybook(id: string, updates: Partial<Playbook>) {
-    const playbook = playbooks.value.find((p) => p.id === id)
+  function updatePlaybook(id: string | number, updates: Partial<Playbook>) {
+    const playbook = playbooks.value.find((p) => p.id.toString() === id.toString())
     if (!playbook) return
     
     Object.assign(playbook, updates)
@@ -169,13 +169,13 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     saveToLocalStorage()
   }
 
-  function deletePlaybook(id: string) {
-    playbooks.value = playbooks.value.filter((p) => p.id !== id)
+  function deletePlaybook(id: string | number) {
+    playbooks.value = playbooks.value.filter((p) => p.id.toString() !== id.toString())
     saveToLocalStorage()
   }
 
-  function toggleTaskCompletion(playbookId: string, taskId: string) {
-    const playbook = playbooks.value.find((p) => p.id === playbookId)
+  function toggleTaskCompletion(playbookId: string | number, taskId: string) {
+    const playbook = playbooks.value.find((p) => p.id.toString() === playbookId.toString())
     if (playbook) {
       const task = playbook.tasks.find((t) => t.id === taskId)
       if (task) {
@@ -198,8 +198,8 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     }
   }
 
-  function addResourceToPlaybook(playbookId: string, resource: { type: 'pattern' | 'story' | 'challenge' | 'link'; id: number; title: string; url?: string }) {
-    const playbook = playbooks.value.find((p) => p.id === playbookId)
+  function addResourceToPlaybook(playbookId: string | number, resource: { type: 'pattern' | 'story' | 'challenge' | 'link'; id: number; title: string; url?: string }) {
+    const playbook = playbooks.value.find((p) => p.id.toString() === playbookId.toString())
     if (playbook) {
       // Check if resource already exists
       const exists = playbook.resources.some(r => r.type === resource.type && r.id === resource.id)
@@ -210,8 +210,8 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     }
   }
 
-  function updatePlaybookNotes(playbookId: string, notes: string) {
-    const playbook = playbooks.value.find((p) => p.id === playbookId)
+  function updatePlaybookNotes(playbookId: string | number, notes: string) {
+    const playbook = playbooks.value.find((p) => p.id.toString() === playbookId.toString())
     if (playbook) {
       playbook.notes = notes
       saveToLocalStorage()

@@ -453,7 +453,7 @@ onMounted(() => {
 const playbookId = computed(() => route.params.id as string)
 
 const playbook = computed(() => 
-  playbooksStore.playbooks.find(p => p.id === playbookId.value)
+  playbooksStore.playbooks.find(p => p.id.toString() === playbookId.value)
 )
 
 const completedTasksCount = computed(() => {

@@ -82,12 +82,22 @@ export const useChatStore = defineStore('chat', () => {
               if (typeof msg === 'number') {
                 return null // Skip numeric references
               }
-              return {
+              
+              const message: any = {
                 id: msg.id?.toString() || `msg_${Date.now()}`,
                 role: msg.role || 'assistant',
                 content: msg.content || '',
                 timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date()
               }
+              
+              // Check if message contains playbook data
+              const playbookData = extractPlaybookFromMessage(msg.content)
+              if (playbookData) {
+                message.content = playbookData.cleanedContent
+                message.playbook = playbookData.playbook
+              }
+              
+              return message
             }).filter(Boolean) // Remove null entries
           : []
       }))
@@ -116,12 +126,22 @@ export const useChatStore = defineStore('chat', () => {
               if (typeof msg === 'number') {
                 return null // Skip numeric references
               }
-              return {
+              
+              const message: any = {
                 id: msg.id?.toString() || `msg_${Date.now()}`,
                 role: msg.role || 'assistant',
                 content: msg.content || '',
                 timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date()
               }
+              
+              // Check if message contains playbook data
+              const playbookData = extractPlaybookFromMessage(msg.content)
+              if (playbookData) {
+                message.content = playbookData.cleanedContent
+                message.playbook = playbookData.playbook
+              }
+              
+              return message
             }).filter(Boolean) // Remove null entries
           : []
       }))
