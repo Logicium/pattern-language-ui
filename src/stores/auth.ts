@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
 export interface User {
   id: string
   email: string
@@ -22,48 +24,64 @@ export const useAuthStore = defineStore('auth', () => {
   const currentUser = computed(() => user.value)
 
   // Actions
-  function login(email: string, password: string) {
-    // Mock authentication - generate a fake token
-    const mockToken = `mock_token_${Date.now()}_${Math.random().toString(36).substring(7)}`
-    const mockUser: User = {
-      id: `user_${Date.now()}`,
-      email,
-      name: email.split('@')[0] || 'User',
-      location: 'Rural America',
-      interests: [],
-      createdAt: new Date().toISOString()
+  async function login(email: string, password: string) {
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Login failed')
+      }
+
+      const data = await response.json()
+      
+      token.value = data.access_token
+      user.value = data.user
+
+      // Persist to localStorage
+      localStorage.setItem('auth_token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+
+      return data
+    } catch (error) {
+      console.error('Login error:', error)
+      throw error
     }
-
-    token.value = mockToken
-    user.value = mockUser
-
-    // Persist to localStorage
-    localStorage.setItem('auth_token', mockToken)
-    localStorage.setItem('user', JSON.stringify(mockUser))
-
-    return { token: mockToken, user: mockUser }
   }
 
-  function signup(signupData: { email: string; name: string; location?: string; interests?: string[] }) {
-    // Mock signup - generate a fake token
-    const mockToken = `mock_token_${Date.now()}_${Math.random().toString(36).substring(7)}`
-    const mockUser: User = {
-      id: `user_${Date.now()}`,
-      email: signupData.email,
-      name: signupData.name,
-      location: signupData.location,
-      interests: signupData.interests || [],
-      createdAt: new Date().toISOString()
+  async function signup(signupData: { email: string; password: string; name: string; location?: string; interests?: string[] }) {
+    try {
+      const response = await fetch(`${API_URL}/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signupData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Signup failed')
+      }
+
+      const data = await response.json()
+      
+      token.value = data.access_token
+      user.value = data.user
+
+      // Persist to localStorage
+      localStorage.setItem('auth_token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+
+      return data
+    } catch (error) {
+      console.error('Signup error:', error)
+      throw error
     }
-
-    token.value = mockToken
-    user.value = mockUser
-
-    // Persist to localStorage
-    localStorage.setItem('auth_token', mockToken)
-    localStorage.setItem('user', JSON.stringify(mockUser))
-
-    return { token: mockToken, user: mockUser }
   }
 
   function logout() {
@@ -73,10 +91,32 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
-  function updateUser(updates: Partial<User>) {
-    if (user.value) {
-      user.value = { ...user.value, ...updates }
-      localStorage.setItem('user', JSON.stringify(user.value))
+  async function updateUser(updates: Partial<User>) {
+    try {
+      const response = await fetch(`${API_URL}/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token.value}`,
+        },
+        body: JSON.stringify(updates),
+      })
+
+      if (!response.ok) {
+        throw new Error('Update failed')
+      }
+
+      const data = await response.json()
+      
+      if (user.value) {
+        user.value = { ...user.value, ...data }
+        localStorage.setItem('user', JSON.stringify(user.value))
+      }
+
+      return data
+    } catch (error) {
+      console.error('Update error:', error)
+      throw error
     }
   }
 

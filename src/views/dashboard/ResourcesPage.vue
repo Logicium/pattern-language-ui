@@ -231,8 +231,16 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlaybooksStore } from '@/stores/playbooks'
-import { allPatterns, allStories, allChallenges, allLinks } from '@/utils/data'
+import { usePatterns } from '@/composables/usePatterns'
+import { useStories } from '@/composables/useStories'
+import { useChallenges } from '@/composables/useChallenges'
+import { useResources } from '@/composables/useResources'
 import Pagination from '@/components/Pagination.vue'
+
+const { patterns: allPatterns } = usePatterns()
+const { stories: allStories } = useStories()
+const { challenges: allChallenges } = useChallenges()
+const { resources: allLinks } = useResources()
 
 const router = useRouter()
 const playbooksStore = usePlaybooksStore()
@@ -255,9 +263,9 @@ watch([activeTab, searchQuery], () => {
 })
 
 const filteredPatterns = computed(() => {
-  if (!searchQuery.value) return allPatterns
+  if (!searchQuery.value) return allPatterns.value
   const query = searchQuery.value.toLowerCase()
-  return allPatterns.filter(p =>
+  return allPatterns.value.filter(p =>
     p.title.toLowerCase().includes(query) ||
     p.description.toLowerCase().includes(query) ||
     p.addresses.some(a => a.toLowerCase().includes(query))
@@ -265,9 +273,9 @@ const filteredPatterns = computed(() => {
 })
 
 const filteredStories = computed(() => {
-  if (!searchQuery.value) return allStories
+  if (!searchQuery.value) return allStories.value
   const query = searchQuery.value.toLowerCase()
-  return allStories.filter(s =>
+  return allStories.value.filter(s =>
     s.title.toLowerCase().includes(query) ||
     (s.excerpt && s.excerpt.toLowerCase().includes(query)) ||
     s.problem.toLowerCase().includes(query) ||
@@ -276,9 +284,9 @@ const filteredStories = computed(() => {
 })
 
 const filteredChallenges = computed(() => {
-  if (!searchQuery.value) return allChallenges
+  if (!searchQuery.value) return allChallenges.value
   const query = searchQuery.value.toLowerCase()
-  return allChallenges.filter(c =>
+  return allChallenges.value.filter(c =>
     c.title.toLowerCase().includes(query) ||
     c.description.toLowerCase().includes(query) ||
     c.context.toLowerCase().includes(query)
@@ -286,9 +294,9 @@ const filteredChallenges = computed(() => {
 })
 
 const filteredLinks = computed(() => {
-  if (!searchQuery.value) return allLinks
+  if (!searchQuery.value) return allLinks.value
   const query = searchQuery.value.toLowerCase()
-  return allLinks.filter(l =>
+  return allLinks.value.filter(l =>
     l.name.toLowerCase().includes(query) ||
     l.location.toLowerCase().includes(query) ||
     l.description.toLowerCase().includes(query)
@@ -344,7 +352,8 @@ const getHostname = (url: string): string => {
   }
 }
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | undefined) => {
+  if (!dateString) return 'No date'
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',

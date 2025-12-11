@@ -86,16 +86,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { allChallenges, allPatterns } from '@/utils/data'
+import { useChallenges } from '@/composables/useChallenges'
+import { usePatterns } from '@/composables/usePatterns'
+
+const { challenges: allChallenges } = useChallenges()
+const { patterns: allPatterns } = usePatterns()
 
 const route = useRoute()
 const router = useRouter()
 
 const challengeId = computed(() => parseInt(route.params.id as string))
-const challenge = computed(() => allChallenges.find(c => c.id === challengeId.value))
+const challenge = computed(() => allChallenges.value.find(c => c.id === challengeId.value))
 
 const getPatternIdByTitle = (title: string): number => {
-  const pattern = allPatterns.find(p => p.title === title)
+  const pattern = allPatterns.value.find(p => p.title === title)
   return pattern?.id || 0
 }
 

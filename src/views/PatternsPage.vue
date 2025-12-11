@@ -61,13 +61,22 @@
     <!-- Results -->
     <section class="section results-section">
       <div class="container">
-        <div id="results-header" class="results-header">
-          <span class="text-sm text-secondary">
-            {{ filteredPatterns.length }} {{ filteredPatterns.length === 1 ? 'pattern' : 'patterns' }} found
-          </span>
+        <div v-if="loading" class="loading-state">
+          <p class="text-secondary">Loading patterns...</p>
         </div>
 
-        <div v-if="filteredPatterns.length > 0" class="patterns-grid">
+        <div v-else-if="error" class="error-state">
+          <p class="text-secondary">{{ error }}</p>
+        </div>
+
+        <template v-else>
+          <div id="results-header" class="results-header">
+            <span class="text-sm text-secondary">
+              {{ filteredPatterns.length }} {{ filteredPatterns.length === 1 ? 'pattern' : 'patterns' }} found
+            </span>
+          </div>
+
+          <div v-if="filteredPatterns.length > 0" class="patterns-grid">
           <div
             v-for="(pattern, index) in paginatedPatterns"
             :key="pattern.id"
@@ -97,18 +106,19 @@
           </div>
         </div>
 
-        <Pagination
-          v-if="filteredPatterns.length > itemsPerPage"
-          v-model:current-page="currentPage"
-          v-model:items-per-page="itemsPerPage"
-          :total-items="filteredPatterns.length"
-          :per-page-options="perPageOptions"
-          scroll-target-id="results-header"
-        />
+          <Pagination
+            v-if="filteredPatterns.length > itemsPerPage"
+            v-model:current-page="currentPage"
+            v-model:items-per-page="itemsPerPage"
+            :total-items="filteredPatterns.length"
+            :per-page-options="perPageOptions"
+            scroll-target-id="results-header"
+          />
 
-        <div v-if="filteredPatterns.length === 0" class="empty-state">
-          <p class="text-secondary">No patterns match your search. Try different terms or clear filters.</p>
-        </div>
+          <div v-if="filteredPatterns.length === 0" class="empty-state">
+            <p class="text-secondary">No patterns match your search. Try different terms or clear filters.</p>
+          </div>
+        </template>
       </div>
     </section>
 
@@ -120,7 +130,9 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { Navbar, Footer, CTASection, RibbonCanvas, Pagination } from '@/components'
-import { allPatterns } from '@/utils/data'
+import { usePatterns } from '@/composables/usePatterns'
+
+const { patterns: allPatterns, loading, error } = usePatterns()
 
 const searchQuery = ref('')
 const activeFilters = ref<string[]>([])
@@ -131,7 +143,7 @@ const perPageOptions = [9, 12, 15, 24]
 // Extract unique challenges
 const commonChallenges = computed(() => {
   const challenges = new Set<string>()
-  allPatterns.forEach(pattern => {
+  allPatterns.value.forEach(pattern => {
     pattern.addresses.forEach(addr => challenges.add(addr))
   })
   return Array.from(challenges).sort()
@@ -139,7 +151,7 @@ const commonChallenges = computed(() => {
 
 // Filter patterns
 const filteredPatterns = computed(() => {
-  let results = allPatterns
+  let results = allPatterns.value
 
   // Apply search query
   if (searchQuery.value) {

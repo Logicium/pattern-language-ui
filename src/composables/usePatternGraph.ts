@@ -1,5 +1,5 @@
 import { ref, type Ref } from 'vue'
-import { allPatterns } from '@/utils/data'
+import { usePatterns } from './usePatterns'
 
 interface GraphNode {
   id: number
@@ -36,6 +36,8 @@ const nodeColors = [
 ]
 
 export function usePatternGraph(canvasRef: Ref<HTMLCanvasElement | null>, blurredCanvasRef?: Ref<HTMLCanvasElement | null>) {
+  const { patterns: allPatterns } = usePatterns()
+  
   let animationFrame: number | null = null
   let nodes: GraphNode[] = []
   let connections: Connection[] = []
@@ -49,7 +51,7 @@ export function usePatternGraph(canvasRef: Ref<HTMLCanvasElement | null>, blurre
   // Build the graph from pattern data
   const buildGraph = () => {
     // Use all patterns for the visualization
-    const selectedPatterns = allPatterns
+    const selectedPatterns = allPatterns.value
     
     // Build nodes with connection counts
     const connectionCounts = new Map<number, number>()

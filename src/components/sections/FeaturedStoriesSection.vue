@@ -51,9 +51,11 @@
 </template>
 
 <script setup lang="ts">
-import { caseStudies } from '@/utils/data'
+import { computed } from 'vue'
+import { useStories } from '@/composables/useStories'
 
-const studies = caseStudies.slice(0, 3)
+const { stories: allStories, loading } = useStories()
+const studies = computed(() => allStories.value.slice(0, 3))
 </script>
 
 <style scoped>

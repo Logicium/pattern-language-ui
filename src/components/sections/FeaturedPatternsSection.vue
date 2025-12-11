@@ -32,9 +32,11 @@
 </template>
 
 <script setup lang="ts">
-import { highlightedPatterns } from '@/utils/data'
+import { computed } from 'vue'
+import { usePatterns } from '@/composables/usePatterns'
 
-const patterns = highlightedPatterns
+const { patterns: allPatterns, loading } = usePatterns()
+const patterns = computed(() => allPatterns.value.slice(0, 6))
 </script>
 
 <style scoped>

@@ -15,7 +15,19 @@
     </section>
 
     <!-- Featured Story -->
-    <section v-if="featuredStory" class="section featured-section">
+    <div v-if="loading" class="section featured-section">
+      <div class="container">
+        <p class="text-secondary">Loading stories...</p>
+      </div>
+    </div>
+
+    <div v-else-if="error" class="section featured-section">
+      <div class="container">
+        <p class="text-secondary">{{ error }}</p>
+      </div>
+    </div>
+
+    <section v-else-if="featuredStory" class="section featured-section">
       <div class="container">
         <span class="label text-xs text-tertiary">Featured</span>
         <div class="featured-story">
@@ -138,15 +150,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Navbar, Footer, CTASection, RibbonCanvas, Pagination } from '@/components'
-import { allStories } from '@/utils/data'
+import { useStories } from '@/composables/useStories'
 
-const featuredStory = allStories[0]
+const { stories: allStories, loading, error } = useStories()
+
+const featuredStory = computed(() => allStories.value[0])
 const currentPage = ref(1)
 const itemsPerPage = ref(9)
 const perPageOptions = [6, 9, 12, 18]
 
 // Get stories excluding the featured one
-const allOtherStories = computed(() => allStories.slice(1))
+const allOtherStories = computed(() => allStories.value.slice(1))
 
 // Paginated stories
 const paginatedStories = computed(() => {

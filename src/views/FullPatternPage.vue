@@ -164,13 +164,19 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Navbar, Footer } from '@/components'
-import { allPatterns, allStories, allChallenges } from '@/utils/data'
+import { usePatterns } from '@/composables/usePatterns'
+import { useStories } from '@/composables/useStories'
+import { useChallenges } from '@/composables/useChallenges'
+
+const { patterns: allPatterns } = usePatterns()
+const { stories: allStories } = useStories()
+const { challenges: allChallenges } = useChallenges()
 
 const route = useRoute()
 const patternId = computed(() => Number(route.params.id))
 
 const pattern = computed(() => 
-  allPatterns.find(p => p.id === patternId.value)
+  allPatterns.value.find(p => p.id === patternId.value)
 )
 
 const relatedStories = computed(() => {
@@ -178,7 +184,7 @@ const relatedStories = computed(() => {
   
   const patternTitle = pattern.value.title.toLowerCase()
   
-  return allStories.filter(story => 
+  return allStories.value.filter(story => 
     story.patterns.some(p => 
       p.toLowerCase() === patternTitle
     )
@@ -186,7 +192,7 @@ const relatedStories = computed(() => {
 })
 
 const getPatternRoute = (title: string) => {
-  const relatedPattern = allPatterns.find(p => 
+  const relatedPattern = allPatterns.value.find(p => 
     p.title.toLowerCase().includes(title.toLowerCase()) ||
     title.toLowerCase().includes(p.title.toLowerCase())
   )
@@ -194,7 +200,7 @@ const getPatternRoute = (title: string) => {
 }
 
 const getChallengeRoute = (title: string) => {
-  const challenge = allChallenges.find(c => 
+  const challenge = allChallenges.value.find(c => 
     c.title.toLowerCase().includes(title.toLowerCase()) ||
     title.toLowerCase().includes(c.title.toLowerCase())
   )

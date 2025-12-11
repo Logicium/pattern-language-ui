@@ -146,13 +146,17 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import VueMarkdownRender from 'vue-markdown-render'
 import { Navbar, Footer } from '@/components'
-import { allStories, allPatterns } from '@/utils/data'
+import { useStories } from '@/composables/useStories'
+import { usePatterns } from '@/composables/usePatterns'
+
+const { stories: allStories } = useStories()
+const { patterns: allPatterns } = usePatterns()
 
 const route = useRoute()
 const storyId = computed(() => Number(route.params.id))
 
 const story = computed(() => 
-  allStories.find(s => s.id === storyId.value)
+  allStories.value.find(s => s.id === storyId.value)
 )
 
 const extractDomain = (url: string): string => {
@@ -165,7 +169,7 @@ const extractDomain = (url: string): string => {
 }
 
 const getPatternRoute = (title: string) => {
-  const pattern = allPatterns.find(p => 
+  const pattern = allPatterns.value.find(p => 
     p.title.toLowerCase().includes(title.toLowerCase()) ||
     title.toLowerCase().includes(p.title.toLowerCase())
   )
@@ -185,7 +189,7 @@ const relatedStories = computed(() => {
   if (!story.value) return []
   
   // Find stories that share at least one pattern with the current story
-  return allStories.filter(s => 
+  return allStories.value.filter(s => 
     s.id !== story.value!.id && 
     s.patterns.some(p => story.value!.patterns.includes(p))
   ).slice(0, 3)
