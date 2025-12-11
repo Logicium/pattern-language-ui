@@ -90,10 +90,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { usePlaybooksStore } from '@/stores/playbooks'
 
 const playbooksStore = usePlaybooksStore()
+
+// Fetch playbooks on mount
+onMounted(() => {
+  playbooksStore.fetchPlaybooks()
+})
+
 const completedPlaybooks = computed(() => playbooksStore.completedPlaybooks)
 
 const getDuration = (playbook: any) => {

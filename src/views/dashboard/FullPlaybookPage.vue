@@ -436,7 +436,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import { ConfirmModal, Toast } from '@/components'
@@ -444,6 +444,11 @@ import { ConfirmModal, Toast } from '@/components'
 const route = useRoute()
 const router = useRouter()
 const playbooksStore = usePlaybooksStore()
+
+// Fetch playbooks on mount
+onMounted(() => {
+  playbooksStore.fetchPlaybooks()
+})
 
 const playbookId = computed(() => route.params.id as string)
 

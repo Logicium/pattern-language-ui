@@ -74,11 +74,12 @@ export const chatApi = {
   getAll: () => authFetch('/chat'),
   getById: (id: number) => authFetch(`/chat/${id}`),
   create: (data: { title?: string }) => authFetch('/chat', { method: 'POST', body: JSON.stringify(data) }),
+  updateTitle: (id: number, title: string) => authFetch(`/chat/${id}`, { method: 'PUT', body: JSON.stringify({ title }) }),
   delete: (id: number) => authFetch(`/chat/${id}`, { method: 'DELETE' }),
-  sendMessage: (chatId: number, message: string, context?: string) => 
-    authFetch(`/chat/${chatId}/message`, { 
+  sendMessage: (chatId: number, message: string) => 
+    authFetch('/chat/message', { 
       method: 'POST', 
-      body: JSON.stringify({ message, context }) 
+      body: JSON.stringify({ chatId, message }) 
     }),
 }
 

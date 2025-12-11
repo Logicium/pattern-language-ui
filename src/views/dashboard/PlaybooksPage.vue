@@ -115,10 +115,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { usePlaybooksStore } from '@/stores/playbooks'
 
 const playbooksStore = usePlaybooksStore()
+
+// Fetch playbooks on mount
+onMounted(() => {
+  playbooksStore.fetchPlaybooks()
+})
 
 const activeTab = ref<'active' | 'completed' | 'paused'>('active')
 const expandedPlaybooks = ref(new Set<string>())

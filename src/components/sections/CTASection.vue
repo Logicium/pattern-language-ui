@@ -3,7 +3,7 @@
     <div class="cta-divider"></div>
     <div class="cta-content">
       <h2 class="cta-title">Ready to transform<br>your community?</h2>
-      <button class="btn btn-lg btn-light">Create Profile</button>
+      <router-link to="/signup" class="btn btn-lg btn-light">Create Profile</router-link>
     </div>
   </section>
 </template>

@@ -28,6 +28,19 @@ export interface CaseStudy {
   references?: string[] // Array of URLs
 }
 
+export interface UserStory {
+  id: number
+  title: string
+  challenge: string
+  solution: string
+  patternsUsed?: string[]
+  location?: string
+  timeframe?: string
+  published: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Challenge {
   id: number
   title: string

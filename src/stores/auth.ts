@@ -35,7 +35,9 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       if (!response.ok) {
-        throw new Error('Login failed')
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.message || 'Login failed'
+        throw new Error(`${response.status}: ${errorMessage}`)
       }
 
       const data = await response.json()
@@ -54,7 +56,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function signup(signupData: { email: string; password: string; name: string; location?: string; interests?: string[] }) {
+  async function signup(signupData: { 
+    email: string; 
+    password: string; 
+    firstName?: string;
+    lastName?: string;
+    name: string; 
+    location?: string; 
+    interests?: string[] 
+  }) {
     try {
       const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
@@ -65,7 +75,9 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       if (!response.ok) {
-        throw new Error('Signup failed')
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.message || 'Signup failed'
+        throw new Error(`${response.status}: ${errorMessage}`)
       }
 
       const data = await response.json()
