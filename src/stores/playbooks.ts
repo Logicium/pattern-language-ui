@@ -126,9 +126,27 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
       timestamp: lastFetched.value
     }))
   }
-  function addPlaybook(playbook: Playbook) {
-    playbooks.value.push(playbook)
-    saveToLocalStorage()
+  
+  async function addPlaybook(playbook: Omit<Playbook, 'id'>) {
+    loading.value = true
+    error.value = null
+    
+    try {
+      // Send to backend
+      const newPlaybook = await playbooksApi.createFromGenerated(playbook)
+      
+      // Add to local store
+      playbooks.value.push(newPlaybook)
+      saveToLocalStorage()
+      
+      return newPlaybook
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to add playbook'
+      console.error('Error adding playbook:', e)
+      throw e
+    } finally {
+      loading.value = false
+    }
   }
 
   function updatePlaybook(id: string, updates: Partial<Playbook>) {

@@ -7,6 +7,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  playbook?: any // Optional playbook data if message contains generated playbook
 }
 
 export interface ChatSession {
@@ -290,6 +291,72 @@ export const useChatStore = defineStore('chat', () => {
     }))
   }
 
+  // Helper to extract playbook from message content
+  function extractPlaybookFromMessage(content: string): { playbook: any; cleanedContent: string } | null {
+    // Look for PLAYBOOK_GENERATION: marker
+    const playbookMarker = 'PLAYBOOK_GENERATION:'
+    const markerIndex = content.indexOf(playbookMarker)
+    
+    if (markerIndex === -1) return null
+    
+    try {
+      // Extract JSON after the marker
+      const jsonStart = markerIndex + playbookMarker.length
+      const jsonContent = content.substring(jsonStart).trim()
+      
+      // Find the JSON object boundaries
+      let braceCount = 0
+      let jsonEnd = -1
+      let inString = false
+      let escapeNext = false
+      
+      for (let i = 0; i < jsonContent.length; i++) {
+        const char = jsonContent[i]
+        
+        if (escapeNext) {
+          escapeNext = false
+          continue
+        }
+        
+        if (char === '\\') {
+          escapeNext = true
+          continue
+        }
+        
+        if (char === '"') {
+          inString = !inString
+          continue
+        }
+        
+        if (inString) continue
+        
+        if (char === '{') {
+          braceCount++
+        } else if (char === '}') {
+          braceCount--
+          if (braceCount === 0) {
+            jsonEnd = i + 1
+            break
+          }
+        }
+      }
+      
+      if (jsonEnd === -1) return null
+      
+      const playbookJson = jsonContent.substring(0, jsonEnd)
+      const playbook = JSON.parse(playbookJson)
+      
+      // Get any text after the JSON
+      const remainingText = jsonContent.substring(jsonEnd).trim()
+      const cleanedContent = `I've generated a playbook for you! ${remainingText}`
+      
+      return { playbook, cleanedContent }
+    } catch (e) {
+      console.error('Failed to parse playbook JSON:', e)
+      return null
+    }
+  }
+
   return {
     sessions,
     currentSessionId,
@@ -307,6 +374,7 @@ export const useChatStore = defineStore('chat', () => {
     deleteSession,
     setCurrentSession,
     addMessageToCurrentSession,
+    extractPlaybookFromMessage,
     clearCache
   }
 })

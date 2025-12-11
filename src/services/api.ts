@@ -87,10 +87,14 @@ export const chatApi = {
 export const playbooksApi = {
   getAll: () => authFetch('/playbooks'),
   getById: (id: number) => authFetch(`/playbooks/${id}`),
-  create: (data: { title: string; description?: string; patterns: number[] }) => 
+  create: (data: any) => 
     authFetch('/playbooks', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => authFetch(`/playbooks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => authFetch(`/playbooks/${id}`, { method: 'DELETE' }),
+  
+  // Create from AI-generated playbook data
+  createFromGenerated: (playbookData: any) =>
+    authFetch('/playbooks', { method: 'POST', body: JSON.stringify(playbookData) }),
 }
 
 // User Stories API

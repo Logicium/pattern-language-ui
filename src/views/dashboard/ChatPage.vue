@@ -75,6 +75,13 @@
                 </div>
                 <div class="message-content">
                   <p>{{ message.content }}</p>
+                  
+                  <!-- Playbook Preview if message contains one -->
+                  <PlaybookPreview 
+                    v-if="message.playbook"
+                    :playbook="message.playbook"
+                    @add-to-playbooks="handleAddPlaybook"
+                  />
                 </div>
                 <div class="message-time text-xs text-tertiary">{{ formatTime(message.timestamp) }}</div>
               </div>
@@ -119,10 +126,14 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
+import { usePlaybooksStore } from '@/stores/playbooks'
 import AiAvatar from '@/components/AiAvatar.vue'
+import { PlaybookPreview } from '@/components'
 import type { AvatarState } from '@/types'
+import type { Playbook } from '@/stores/playbooks'
 
 const chatStore = useChatStore()
+const playbooksStore = usePlaybooksStore()
 
 const inputMessage = ref('')
 const textarea = ref<HTMLTextAreaElement>()
@@ -195,15 +206,48 @@ const sendMessage = async () => {
     
     const fullResponse = response.content
     
+    // Check if response contains a playbook
+    const playbookData = chatStore.extractPlaybookFromMessage(fullResponse)
+    let contentToType = fullResponse
+    let extractedPlaybook = null
+    
+    if (playbookData) {
+      contentToType = playbookData.cleanedContent
+      extractedPlaybook = playbookData.playbook
+    }
+    
     // Type out the response character by character
-    for (let i = 0; i < fullResponse.length; i++) {
-      typedContent.value += fullResponse[i]
+    for (let i = 0; i < contentToType.length; i++) {
+      typedContent.value += contentToType[i]
       scrollToBottom()
       await new Promise(resolve => setTimeout(resolve, 15)) // 15ms per character
     }
     
-    // Typing complete - add assistant message to store
-    chatStore.addMessageToCurrentSession('assistant', fullResponse)
+    // Typing complete - add assistant message to store with playbook if present
+    const messageId = `msg_${Date.now()}_assistant`
+    const newMessage: any = {
+      id: messageId,
+      role: 'assistant',
+      content: contentToType,
+      timestamp: new Date()
+    }
+    
+    if (extractedPlaybook) {
+      newMessage.playbook = extractedPlaybook
+    }
+    
+    // Add to session
+    chatStore.addMessageToCurrentSession('assistant', contentToType)
+    
+    // If there's a playbook, update the message in the store to include it
+    if (extractedPlaybook && chatStore.currentSession) {
+      const messages = chatStore.currentSession.messages
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage) {
+        lastMessage.playbook = extractedPlaybook
+      }
+    }
+    
     isTyping.value = false
     typedContent.value = ''
     
@@ -218,6 +262,17 @@ const sendMessage = async () => {
     
     // Show error message
     alert('Failed to send message. Please try again.')
+  }
+}
+
+const handleAddPlaybook = async (playbook: Playbook) => {
+  try {
+    await playbooksStore.addPlaybook(playbook)
+    // Show success message
+    alert('Playbook added successfully!')
+  } catch (error) {
+    console.error('Error adding playbook:', error)
+    alert('Failed to add playbook. Please try again.')
   }
 }
 
