@@ -92,7 +92,7 @@
             <span class="text-xs text-tertiary">Logged in as</span>
             <p class="text-sm">{{ currentUser?.email }}</p>
           </div>
-          <button class="btn-danger" @click="handleLogout">Logout</button>
+          <button class="btn-danger" @click="showLogoutModal = true">Logout</button>
         </div>
       </div>
     </section>
@@ -103,6 +103,16 @@
       :message="toastMessage"
       @update:show="showToast = $event"
     />
+
+    <!-- Logout Confirmation Modal -->
+    <ConfirmModal
+      v-model="showLogoutModal"
+      title="Confirm Logout"
+      message="Are you sure you want to logout?"
+      confirm-text="Logout"
+      danger
+      @confirm="confirmLogout"
+    />
   </div>
 </template>
 
@@ -110,7 +120,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { Toast } from '@/components'
+import { Toast, ConfirmModal } from '@/components'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -138,6 +148,7 @@ const notifications = reactive({
 
 const showToast = ref(false)
 const toastMessage = ref('')
+const showLogoutModal = ref(false)
 
 onMounted(() => {
   const savedAIPrefs = localStorage.getItem('ai_preferences')
@@ -166,11 +177,9 @@ const saveNotifications = () => {
   showSuccessToast('Notification settings saved')
 }
 
-const handleLogout = () => {
-  if (confirm('Logout?')) {
-    authStore.logout()
-    router.push('/')
-  }
+const confirmLogout = () => {
+  authStore.logout()
+  router.push('/')
 }
 
 const showSuccessToast = (message: string) => {

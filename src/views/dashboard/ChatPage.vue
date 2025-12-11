@@ -120,18 +120,32 @@
         </form>
       </div>
     </div>
+
+    <!-- Success Modal -->
+    <MessageModal
+      :is-open="showSuccessModal"
+      title="Playbook Added!"
+      message="Your playbook has been successfully added to your dashboard."
+      icon="✓"
+      primary-button-text="Close"
+      secondary-button-text="View Playbooks"
+      @close="showSuccessModal = false"
+      @secondary-action="goToPlaybooks"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import AiAvatar from '@/components/AiAvatar.vue'
-import { PlaybookPreview } from '@/components'
+import { PlaybookPreview, MessageModal } from '@/components'
 import type { AvatarState } from '@/types'
 import type { Playbook } from '@/stores/playbooks'
 
+const router = useRouter()
 const chatStore = useChatStore()
 const playbooksStore = usePlaybooksStore()
 
@@ -141,6 +155,7 @@ const messagesArea = ref<HTMLDivElement>()
 const avatarState = ref<AvatarState>('idle')
 const isTyping = ref(false)
 const typedContent = ref('')
+const showSuccessModal = ref(false)
 
 // Fetch chat sessions on mount
 onMounted(async () => {
@@ -268,12 +283,17 @@ const sendMessage = async () => {
 const handleAddPlaybook = async (playbook: Playbook) => {
   try {
     await playbooksStore.addPlaybook(playbook)
-    // Show success message
-    alert('Playbook added successfully!')
+    // Show success modal
+    showSuccessModal.value = true
   } catch (error) {
     console.error('Error adding playbook:', error)
     alert('Failed to add playbook. Please try again.')
   }
+}
+
+const goToPlaybooks = () => {
+  showSuccessModal.value = false
+  router.push('/dashboard/playbooks')
 }
 
 const sendSuggestion = (suggestion: string) => {
