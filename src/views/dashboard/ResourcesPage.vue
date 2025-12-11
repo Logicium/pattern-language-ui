@@ -368,7 +368,7 @@ const addToPlaybook = (resource: any, type: 'pattern' | 'story' | 'challenge' | 
   showAddModal.value = true
 }
 
-const selectPlaybook = (playbookId: string) => {
+const selectPlaybook = (playbookId: string | number) => {
   if (selectedResource.value) {
     const resource: any = {
       type: selectedResourceType.value,
