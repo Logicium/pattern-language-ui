@@ -83,6 +83,18 @@
                 />
               </div>
 
+              <!-- Password -->
+              <div class="form-group">
+                <label class="form-label text-xs text-tertiary">Password</label>
+                <input
+                  v-model="formData.password"
+                  type="password"
+                  placeholder="Create a password"
+                  class="form-input"
+                  required
+                />
+              </div>
+
               <!-- Current Challenges -->
               <div class="form-group">
                 <label class="form-label text-xs text-tertiary">
@@ -202,6 +214,7 @@ interface FormData {
   region: string
   role: string
   email: string
+  password: string
   selectedChallenges: string[]
   currentWork: string
   goals: string
@@ -213,6 +226,7 @@ const formData = ref<FormData>({
   region: '',
   role: '',
   email: '',
+  password: '',
   selectedChallenges: [],
   currentWork: '',
   goals: ''
@@ -235,6 +249,7 @@ const handleSubmit = () => {
   // Create user with auth store
   authStore.signup({
     email: formData.value.email,
+    password: formData.value.password,
     name: formData.value.communityName,
     location: formData.value.communityName,
     interests: formData.value.selectedChallenges
