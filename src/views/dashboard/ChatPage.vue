@@ -81,12 +81,11 @@
             </div>
             
             <!-- Loading/Typing state -->
-            <div v-if="loading || isTyping" class="message assistant loading-message">
+            <div v-if="isTyping" class="message assistant loading-message">
               <div class="message-content-wrapper">
                 <div class="message-label text-xs text-tertiary">Assistant</div>
                 <div class="message-content">
-                  <p v-if="loading" class="thinking-text">Thinking...</p>
-                  <p v-else class="typing-text">{{ typedContent }}<span class="typing-cursor">|</span></p>
+                  <p class="typing-text">{{ typedContent }}<span class="typing-cursor">|</span></p>
                 </div>
               </div>
             </div>
@@ -118,39 +117,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { ref, computed, nextTick, onMounted, watch } from 'vue'
+import { useChatStore } from '@/stores/chat'
 import AiAvatar from '@/components/AiAvatar.vue'
 import type { AvatarState } from '@/types'
 
-interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: Date
-}
+const chatStore = useChatStore()
 
-const authStore = useAuthStore()
-const user = computed(() => authStore.currentUser)
-
-const userInitials = computed(() => {
-  if (!user.value?.name) return 'U'
-  return user.value.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-})
-
-const messages = ref<Message[]>([])
 const inputMessage = ref('')
-const loading = ref(false)
 const textarea = ref<HTMLTextAreaElement>()
 const messagesArea = ref<HTMLDivElement>()
 const avatarState = ref<AvatarState>('idle')
 const isTyping = ref(false)
 const typedContent = ref('')
+
+// Fetch chat sessions on mount
+onMounted(async () => {
+  await chatStore.fetchSessions()
+  
+  // If no sessions exist, create one
+  if (chatStore.sessions.length === 0) {
+    await chatStore.createSession('New Chat')
+  } else {
+    // Set the first session as active
+    chatStore.setCurrentSession(chatStore.sessions[0]?.id || null)
+  }
+})
+
+const messages = computed(() => chatStore.currentMessages)
+const loading = computed(() => chatStore.loading)
 
 const autoResize = () => {
   if (textarea.value) {
@@ -167,100 +162,68 @@ const scrollToBottom = () => {
   })
 }
 
+// Watch for new messages and scroll
+watch(() => messages.value.length, () => {
+  scrollToBottom()
+})
+
 const sendMessage = async () => {
-  if (!inputMessage.value.trim() || loading.value) return
+  if (!inputMessage.value.trim() || loading.value || isTyping.value) return
 
-  const userMessage: Message = {
-    id: `msg_${Date.now()}`,
-    role: 'user',
-    content: inputMessage.value.trim(),
-    timestamp: new Date()
-  }
-
-  messages.value.push(userMessage)
-  const question = inputMessage.value
+  const messageText = inputMessage.value.trim()
   inputMessage.value = ''
   
   if (textarea.value) {
     textarea.value.style.height = 'auto'
   }
   
+  // Add user message immediately to UI
+  chatStore.addMessageToCurrentSession('user', messageText)
   scrollToBottom()
-  loading.value = true
+  
+  // Set avatar to thinking state
   avatarState.value = 'thinking'
 
-  // Simulate AI response delay
-  await new Promise(resolve => setTimeout(resolve, 1600 + Math.random() * 800))
-
-  loading.value = false
-  avatarState.value = 'chatting'
-  isTyping.value = true
-  
-  const fullResponse = generateMockResponse(question)
-  typedContent.value = ''
-  
-  // Type out the response quickly (15ms per character - 2x faster)
-  for (let i = 0; i < fullResponse.length; i++) {
-    typedContent.value += fullResponse[i]
+  try {
+    // Send message to API (returns only assistant content)
+    const response = await chatStore.sendMessage(messageText)
+    
+    // Avatar transitions to chatting while typing response
+    avatarState.value = 'chatting'
+    isTyping.value = true
+    typedContent.value = ''
+    
+    const fullResponse = response.content
+    
+    // Type out the response character by character
+    for (let i = 0; i < fullResponse.length; i++) {
+      typedContent.value += fullResponse[i]
+      scrollToBottom()
+      await new Promise(resolve => setTimeout(resolve, 15)) // 15ms per character
+    }
+    
+    // Typing complete - add assistant message to store
+    chatStore.addMessageToCurrentSession('assistant', fullResponse)
+    isTyping.value = false
+    typedContent.value = ''
+    
+    // Return avatar to idle
+    avatarState.value = 'idle'
     scrollToBottom()
-    await new Promise(resolve => setTimeout(resolve, 15))
+  } catch (error) {
+    console.error('Error sending message:', error)
+    avatarState.value = 'idle'
+    isTyping.value = false
+    typedContent.value = ''
+    
+    // Show error message
+    alert('Failed to send message. Please try again.')
   }
-  
-  // Typing complete, add to messages
-  isTyping.value = false
-  const assistantMessage: Message = {
-    id: `msg_${Date.now()}_assistant`,
-    role: 'assistant',
-    content: fullResponse,
-    timestamp: new Date()
-  }
-
-  messages.value.push(assistantMessage)
-  
-  // Return to idle
-  avatarState.value = 'idle'
-  scrollToBottom()
 }
 
 const sendSuggestion = (suggestion: string) => {
   inputMessage.value = suggestion
   sendMessage()
-}
-
-const generateMockResponse = (question: string): string => {
-  const responses = [
-    `That's a great question about ${question.toLowerCase()}. Community Anchor Points work best when they start small and build trust gradually. I recommend beginning with a temporary space—perhaps a library meeting room or church hall—to test the concept before committing to a permanent location.
-
-Here are 3 quick steps to get started:
-
-1. **Identify an underused space** - Look for buildings that sit empty during certain hours (libraries, firehouses, churches)
-2. **Form a small steering committee** - Recruit 5-7 trusted community champions from different sectors
-3. **Host a visioning session** - Gather community input on what programs and services the anchor should offer
-
-Would you like me to help you create a playbook for this pattern?`,
-    
-    `Great question! Based on your community's context, I'd suggest looking at patterns that reinforce each other. For example:
-
-• **Community Anchor Point** works well with **Village Broadcast Loop** - the anchor gives you a physical hub, and the broadcast loop helps people know what's happening there
-• **Trust Infrastructure** pairs nicely with **Nested Governance Tables** - both focus on making decision-making transparent and inclusive
-
-The key is starting with one foundation pattern that addresses your most urgent challenge, then layering in supporting patterns as you build momentum. What challenge feels most pressing in your community right now?`,
-    
-    `Building trust is foundational work. The **Trust Infrastructure** pattern is specifically designed for this. Here's what makes it work:
-
-**Operational Trust** - Trust isn't just a feeling; it's a set of visible practices:
-• Open office hours (same time, same place, every week)
-• Public community boards with transparent updates
-• Clear conflict resolution processes with neutral facilitators
-• Co-created community agreements that everyone helps write
-
-The Vermont Front Porch Forum is a great example - it's a moderated neighborhood platform where people see their voices matter and follow-through actually happens.
-
-Would you like to explore how to implement this in your community?`
-  ]
-  
-  const selectedResponse = responses[Math.floor(Math.random() * responses.length)]
-  return selectedResponse || responses[0] || 'Thanks for your message! Let me think about that and get back to you.'
 }
 
 const formatTime = (date: Date): string => {
