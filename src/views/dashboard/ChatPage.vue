@@ -1,24 +1,20 @@
 <template>
   <div class="chat-page">
-    <!-- Header -->
+    <!-- Header with Avatar -->
     <section class="page-header gradient-bg">
       <div class="container">
         <h1 class="page-title">Chat</h1>
         <p class="text-sm text-secondary">AI Pattern Assistant</p>
-      </div>
-    </section>
-
-    <!-- AI Avatar - Fixed at top -->
-    <div class="avatar-section">
-      <div class="container">
+        
+        <!-- AI Avatar - Centered and overlapping header -->
         <div class="avatar-container">
           <AiAvatar :state="avatarState" :use-flow="true" />
-        </div>
-        <div class="avatar-state-text" :class="{ 'is-visible': avatarState !== 'idle' }">
-          {{ avatarState === 'thinking' ? 'THINKING...' : 'RESPONDING...' }}
+          <div class="avatar-state-text" :class="{ 'is-visible': avatarState !== 'idle' }">
+            {{ avatarState === 'thinking' ? 'THINKING...' : 'RESPONDING...' }}
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Scrollable Messages Area -->
     <div class="messages-section" ref="messagesArea">
@@ -74,7 +70,10 @@
                   {{ message.role === 'user' ? 'You' : 'Assistant' }}
                 </div>
                 <div class="message-content">
-                  <p>{{ message.content }}</p>
+                  <!-- User messages as plain text -->
+                  <p v-if="message.role === 'user'">{{ message.content }}</p>
+                  <!-- Assistant messages as markdown -->
+                  <VueMarkdownRender v-else :source="message.content" />
                   
                   <!-- Playbook Preview if message contains one -->
                   <PlaybookPreview 
@@ -92,7 +91,7 @@
               <div class="message-content-wrapper">
                 <div class="message-label text-xs text-tertiary">Assistant</div>
                 <div class="message-content">
-                  <p class="typing-text">{{ typedContent }}<span class="typing-cursor">|</span></p>
+                  <VueMarkdownRender :source="typedContent + '|'" />
                 </div>
               </div>
             </div>
@@ -140,6 +139,7 @@ import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { usePlaybooksStore } from '@/stores/playbooks'
+import VueMarkdownRender from 'vue-markdown-render'
 import AiAvatar from '@/components/AiAvatar.vue'
 import { PlaybookPreview, MessageModal } from '@/components'
 import type { AvatarState } from '@/types'
@@ -322,6 +322,15 @@ const formatTime = (date: Date): string => {
   flex-shrink: 0;
   padding: 3rem var(--container-padding);
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  position: relative;
+  z-index: 10;
+}
+
+.page-header .container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0;
+  position: relative;
 }
 
 .page-title {
@@ -331,31 +340,35 @@ const formatTime = (date: Date): string => {
   margin-bottom: 0.25rem;
 }
 
-.page-header .container,
 .messages-section .container {
-  max-width: 900px;
+  max-width: var(--container-max);
   margin: 0 auto;
   padding: 0;
 }
 
-/* Avatar Section - Fixed */
-.avatar-section {
-  flex-shrink: 0;
-  padding: var(--spacing-sm) 0;
-  background: var(--color-bg-primary);
+/* Avatar in Header - Absolutely positioned, centered */
+.avatar-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 140px;
+  pointer-events: none;
 }
 
-.avatar-container {
+.avatar-container > :first-child {
   width: 140px;
   height: 140px;
-  margin: 0 auto;
-  margin-bottom: -2rem;
+  pointer-events: auto;
 }
 
 .avatar-state-text {
   text-align: center;
-  margin-top: var(--spacing-sm);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.1em;
   line-height: 1rem;
@@ -374,6 +387,7 @@ const formatTime = (date: Date): string => {
   animation: gradient-flow 3s ease infinite;
   opacity: 0;
   transition: opacity 0.4s ease;
+  white-space: nowrap;
 }
 
 .avatar-state-text.is-visible {
@@ -392,6 +406,7 @@ const formatTime = (date: Date): string => {
   overflow-y: auto;
   padding: 3rem var(--container-padding);
   background: var(--color-bg-primary);
+  position: relative;
 }
 
 /* Welcome State */
@@ -530,6 +545,115 @@ const formatTime = (date: Date): string => {
   white-space: pre-line;
 }
 
+/* Markdown Styling for Assistant Messages */
+.message.assistant .message-content :deep(h2) {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-normal);
+  margin: 2rem 0 1rem 0;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.message.assistant .message-content :deep(h3) {
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-normal);
+  margin: 1.5rem 0 0.75rem 0;
+  color: var(--color-text-secondary);
+  letter-spacing: -0.01em;
+}
+
+.message.assistant .message-content :deep(p) {
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+}
+
+.message.assistant .message-content :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.message.assistant .message-content :deep(strong) {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.message.assistant .message-content :deep(em) {
+  font-style: italic;
+  color: var(--color-text-tertiary);
+}
+
+.message.assistant .message-content :deep(a) {
+  color: var(--color-accent-1);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-accent-1);
+  transition: all var(--transition-base);
+}
+
+.message.assistant .message-content :deep(a:hover) {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-text-primary);
+}
+
+.message.assistant .message-content :deep(ul),
+.message.assistant .message-content :deep(ol) {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.message.assistant .message-content :deep(li) {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.message.assistant .message-content :deep(code) {
+  background: rgba(42, 42, 42, 0.05);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: var(--color-text-primary);
+}
+
+.message.assistant .message-content :deep(pre) {
+  background: rgba(42, 42, 42, 0.05);
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.message.assistant .message-content :deep(pre code) {
+  background: transparent;
+  padding: 0;
+}
+
+.message.assistant .message-content :deep(blockquote) {
+  border-left: 3px solid var(--color-accent-2);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+.message.assistant .message-content :deep(hr) {
+  margin: 2rem 0;
+  border: none;
+  border-top: 1px solid rgba(42, 42, 42, 0.08);
+}
+
+/* Typing cursor animation for markdown content */
+.loading-message .message-content :deep(p:last-child::after) {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--color-accent-2);
+  margin-left: 2px;
+  animation: blink 0.8s infinite;
+  vertical-align: text-bottom;
+}
+
 .message.user .message-content {
   border-left-color: var(--color-accent-1);
   background: rgba(232, 180, 160, 0.05);
@@ -613,16 +737,24 @@ const formatTime = (date: Date): string => {
 /* Responsive */
 @media (max-width: 768px) {
   .page-header {
-    padding: 2rem var(--container-padding);
-  }
-
-  .page-title {
-    font-size: 1.5rem;
+    padding: 3rem var(--container-padding);
   }
 
   .avatar-container {
     width: 100px;
+  }
+
+  .avatar-container > :first-child {
+    width: 100px;
     height: 100px;
+  }
+
+  .avatar-state-text {
+    font-size: 0.6rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
   }
 
   .welcome-state {
