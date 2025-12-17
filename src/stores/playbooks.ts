@@ -149,10 +149,11 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     }
   }
 
-  function updatePlaybook(id: string | number, updates: Partial<Playbook>) {
+  async function updatePlaybook(id: string | number, updates: Partial<Playbook>) {
     const playbook = playbooks.value.find((p) => p.id.toString() === id.toString())
     if (!playbook) return
     
+    // Update local state first for immediate UI feedback
     Object.assign(playbook, updates)
     
     // Recalculate progress based on completed tasks
@@ -167,18 +168,47 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     }
     
     saveToLocalStorage()
+    
+    // Sync with backend
+    try {
+      // Only send numeric IDs to backend (skip AI-generated string IDs)
+      if (typeof playbook.id === 'number') {
+        await playbooksApi.update(playbook.id, {
+          ...updates,
+          progress: playbook.progress,
+          status: playbook.status,
+          completedDate: playbook.completedDate
+        })
+      }
+    } catch (e) {
+      console.error('Failed to sync playbook update with backend:', e)
+      // Keep local changes even if backend sync fails
+    }
   }
 
-  function deletePlaybook(id: string | number) {
+  async function deletePlaybook(id: string | number) {
+    // Delete from backend first
+    try {
+      // Only send numeric IDs to backend (skip AI-generated string IDs)
+      if (typeof id === 'number') {
+        await playbooksApi.delete(id)
+      }
+    } catch (e) {
+      console.error('Failed to delete playbook from backend:', e)
+      // Continue with local deletion even if backend fails
+    }
+    
+    // Delete from local state
     playbooks.value = playbooks.value.filter((p) => p.id.toString() !== id.toString())
     saveToLocalStorage()
   }
 
-  function toggleTaskCompletion(playbookId: string | number, taskId: string) {
+  async function toggleTaskCompletion(playbookId: string | number, taskId: string) {
     const playbook = playbooks.value.find((p) => p.id.toString() === playbookId.toString())
     if (playbook) {
       const task = playbook.tasks.find((t) => t.id === taskId)
       if (task) {
+        // Update local state first for immediate UI feedback
         task.completed = !task.completed
         const today = new Date().toISOString().split('T')[0]
         if (today) task.completedDate = task.completed ? today : null
@@ -194,6 +224,17 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
         }
         
         saveToLocalStorage()
+        
+        // Sync with backend
+        try {
+          // Only send numeric IDs to backend (skip AI-generated string IDs)
+          if (typeof playbook.id === 'number') {
+            await playbooksApi.toggleTask(playbook.id, taskId)
+          }
+        } catch (e) {
+          console.error('Failed to sync task toggle with backend:', e)
+          // Keep local changes even if backend sync fails
+        }
       }
     }
   }
@@ -210,11 +251,23 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     }
   }
 
-  function updatePlaybookNotes(playbookId: string | number, notes: string) {
+  async function updatePlaybookNotes(playbookId: string | number, notes: string) {
     const playbook = playbooks.value.find((p) => p.id.toString() === playbookId.toString())
     if (playbook) {
+      // Update local state first
       playbook.notes = notes
       saveToLocalStorage()
+      
+      // Sync with backend
+      try {
+        // Only send numeric IDs to backend (skip AI-generated string IDs)
+        if (typeof playbook.id === 'number') {
+          await playbooksApi.update(playbook.id, { notes })
+        }
+      } catch (e) {
+        console.error('Failed to sync notes with backend:', e)
+        // Keep local changes even if backend sync fails
+      }
     }
   }
 

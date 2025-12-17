@@ -95,6 +95,10 @@ export const playbooksApi = {
   // Create from AI-generated playbook data
   createFromGenerated: (playbookData: any) =>
     authFetch('/playbooks', { method: 'POST', body: JSON.stringify(playbookData) }),
+  
+  // Toggle task completion
+  toggleTask: (playbookId: number, taskId: string) => 
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/toggle`, { method: 'PATCH' }),
 }
 
 // User Stories API
