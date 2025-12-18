@@ -11,6 +11,13 @@ import SignupPage from '@/views/SignupPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import ChatPage from '@/views/dashboard/ChatPage.vue'
+import PlaybooksPage from '@/views/dashboard/PlaybooksPage.vue'
+import FullPlaybookPage from '@/views/dashboard/FullPlaybookPage.vue'
+import DashboardStoriesPage from '@/views/dashboard/DashboardStoriesPage.vue'
+import SuccessStoriesListPage from '@/views/dashboard/SuccessStoriesListPage.vue'
+import GeneratedStoryPage from '@/views/dashboard/GeneratedStoryPage.vue'
+import ResourcesPage from '@/views/dashboard/ResourcesPage.vue'
+import SettingsPage from '@/views/dashboard/SettingsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -75,37 +82,37 @@ const router = createRouter({
         {
           path: 'playbooks',
           name: 'dashboard-playbooks',
-          component: () => import('@/views/dashboard/PlaybooksPage.vue')
+          component: PlaybooksPage
         },
         {
           path: 'playbooks/:id',
           name: 'dashboard-playbook-detail',
-          component: () => import('@/views/dashboard/FullPlaybookPage.vue')
+          component: FullPlaybookPage
         },
         {
           path: 'stories',
           name: 'dashboard-stories',
-          component: () => import('@/views/dashboard/DashboardStoriesPage.vue')
+          component: DashboardStoriesPage
         },
         {
           path: 'success-stories',
           name: 'dashboard-success-stories',
-          component: () => import('@/views/dashboard/SuccessStoriesListPage.vue')
+          component: SuccessStoriesListPage
         },
         {
           path: 'success-stories/:id',
           name: 'dashboard-success-story-detail',
-          component: () => import('@/views/dashboard/GeneratedStoryPage.vue')
+          component: GeneratedStoryPage
         },
         {
           path: 'resources',
           name: 'dashboard-resources',
-          component: () => import('@/views/dashboard/ResourcesPage.vue')
+          component: ResourcesPage
         },
         {
           path: 'settings',
           name: 'dashboard-settings',
-          component: () => import('@/views/dashboard/SettingsPage.vue')
+          component: SettingsPage
         }
       ]
     }
