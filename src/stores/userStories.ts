@@ -68,16 +68,31 @@ export const useUserStoriesStore = defineStore('userStories', () => {
     }
   }
 
-  async function createUserStory(data: { title: string; challenge: string; solution: string; patternsUsed?: string[]; location?: string; timeframe?: string; published?: boolean }) {
+  async function createUserStory(data: { 
+    title: string
+    problem: string
+    solution: string
+    story?: string
+    patterns?: string[]
+    location?: string
+    color?: string
+    image?: string
+    published?: boolean 
+  }) {
     loading.value = true
     error.value = null
     
     try {
       const newStory = await userStoriesApi.create({
         title: data.title,
-        content: data.solution, // Map solution to content for API
-        patterns: data.patternsUsed?.map(p => parseInt(p)) || [],
-        isPublic: data.published || false
+        problem: data.problem,
+        solution: data.solution,
+        story: data.story,
+        patterns: data.patterns || [],
+        location: data.location,
+        color: data.color,
+        image: data.image,
+        published: data.published || false
       })
       
       // Add to local store

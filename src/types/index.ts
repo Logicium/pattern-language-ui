@@ -31,11 +31,17 @@ export interface CaseStudy {
 export interface UserStory {
   id: number
   title: string
-  challenge: string
+  problem: string
   solution: string
-  patternsUsed?: string[]
+  story?: string
+  patterns?: string[]
   location?: string
-  timeframe?: string
+  color?: string
+  image?: string
+  references?: string[]
+  publishedDate?: string
+  playbookId?: number
+  publicStoryId?: number
   published: boolean
   createdAt: string
   updatedAt: string
