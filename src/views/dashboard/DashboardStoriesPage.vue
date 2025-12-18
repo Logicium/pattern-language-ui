@@ -436,11 +436,12 @@ const formatDate = (dateString: string) => {
   line-height: 1.3;
   letter-spacing: -0.01em;
   margin-bottom: 0.5rem;
+  color: #2a2a2a;
 }
 
 .story-problem {
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: #2a2a2a;
   flex: 1;
 }
 
@@ -456,12 +457,14 @@ const formatDate = (dateString: string) => {
   background: rgba(253, 251, 247, 0.9);
   border: 1px solid rgba(42, 42, 42, 0.1);
   letter-spacing: 0.05em;
+  color: #2a2a2a;
 }
 
 .publish-date {
   margin-top: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(42, 42, 42, 0.1);
+  color: #2a2a2a;
 }
 
 /* Playbooks Grid (for completed playbooks) */
