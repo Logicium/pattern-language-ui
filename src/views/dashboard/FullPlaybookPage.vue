@@ -103,6 +103,14 @@
                       Mark Complete
                     </button>
                     <button 
+                      v-if="playbook.status === 'completed'"
+                      @click="generateSuccessStory"
+                      :disabled="isGenerating"
+                      class="btn btn-sm"
+                    >
+                      {{ isGenerating ? 'Generating...' : 'Generate Success Story' }}
+                    </button>
+                    <button 
                       @click="togglePause"
                       class="btn-secondary btn-sm"
                     >
@@ -439,6 +447,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePlaybooksStore } from '@/stores/playbooks'
+import { userStoriesApi } from '@/services/api'
 import { ConfirmModal, Toast } from '@/components'
 
 const route = useRoute()
@@ -460,6 +469,9 @@ const completedTasksCount = computed(() => {
   if (!playbook.value) return 0
   return playbook.value.tasks.filter(t => t.completed).length
 })
+
+// Success story generation
+const isGenerating = ref(false)
 
 // Task management
 const isAddingTask = ref(false)
@@ -685,6 +697,28 @@ const togglePause = () => {
     playbooksStore.updatePlaybook(playbook.value.id, {
       status: newStatus as 'active' | 'paused'
     })
+  }
+}
+
+const generateSuccessStory = async () => {
+  if (!playbook.value || typeof playbook.value.id !== 'number') return
+  
+  isGenerating.value = true
+  try {
+    const story = await userStoriesApi.generateFromPlaybook(playbook.value.id)
+    toastMessage.value = 'Success story generated!'
+    showToast.value = true
+    
+    // Navigate to the generated story after a brief delay
+    setTimeout(() => {
+      router.push(`/dashboard/success-stories/${story.id}`)
+    }, 1000)
+  } catch (error) {
+    console.error('Failed to generate success story:', error)
+    toastMessage.value = 'Failed to generate success story'
+    showToast.value = true
+  } finally {
+    isGenerating.value = false
   }
 }
 

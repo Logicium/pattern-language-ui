@@ -88,6 +88,16 @@ const router = createRouter({
           component: () => import('@/views/dashboard/DashboardStoriesPage.vue')
         },
         {
+          path: 'success-stories',
+          name: 'dashboard-success-stories',
+          component: () => import('@/views/dashboard/SuccessStoriesListPage.vue')
+        },
+        {
+          path: 'success-stories/:id',
+          name: 'dashboard-success-story-detail',
+          component: () => import('@/views/dashboard/GeneratedStoryPage.vue')
+        },
+        {
           path: 'resources',
           name: 'dashboard-resources',
           component: () => import('@/views/dashboard/ResourcesPage.vue')

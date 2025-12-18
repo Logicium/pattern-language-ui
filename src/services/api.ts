@@ -105,8 +105,10 @@ export const playbooksApi = {
 export const userStoriesApi = {
   getAll: () => authFetch('/user-stories'),
   getById: (id: number) => authFetch(`/user-stories/${id}`),
-  create: (data: { title: string; content: string; patterns?: number[]; isPublic?: boolean }) => 
+  create: (data: { title: string; problem: string; solution: string; story?: string; patterns?: string[]; location?: string; color?: string; image?: string; references?: string[]; published?: boolean; playbookId?: number }) => 
     authFetch('/user-stories', { method: 'POST', body: JSON.stringify(data) }),
+  generateFromPlaybook: (playbookId: number) =>
+    authFetch('/user-stories/generate', { method: 'POST', body: JSON.stringify({ playbookId }) }),
   update: (id: number, data: any) => authFetch(`/user-stories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => authFetch(`/user-stories/${id}`, { method: 'DELETE' }),
 }

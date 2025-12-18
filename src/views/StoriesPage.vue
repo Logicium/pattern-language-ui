@@ -148,11 +148,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Navbar, Footer, CTASection, RibbonCanvas, Pagination } from '@/components'
 import { useStories } from '@/composables/useStories'
 
-const { stories: allStories, loading, error } = useStories()
+const { stories: allStories, loading, error, fetchStories } = useStories()
+
+// Fetch stories on mount with force refresh to bypass cache
+onMounted(() => {
+  fetchStories(true)
+})
 
 const featuredStory = computed(() => allStories.value[0])
 const currentPage = ref(1)
