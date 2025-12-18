@@ -3,6 +3,18 @@
     <div v-if="story">
       <!-- Hero -->
       <section class="story-hero" :style="{ backgroundColor: story.color || '#b8d4c8' }">
+        <img 
+          v-if="story.image" 
+          :src="story.image" 
+          :alt="story.location"
+          class="hero-image"
+        />
+        <img 
+          v-if="story.image" 
+          :src="story.image" 
+          :alt="story.location"
+          class="hero-image-blurred"
+        />
         <div class="color-overlay" :style="{ backgroundColor: story.color || '#b8d4c8' }"></div>
         <div class="container">
           <div class="hero-meta">
@@ -130,16 +142,6 @@
 
               <!-- View Mode -->
               <div v-else>
-                <!-- Image Display -->
-                <div v-if="story.image" class="story-image-container" style="margin-bottom: 3rem;">
-                  <img 
-                    :src="story.image" 
-                    :alt="story.title" 
-                    class="story-image"
-                    style="width: 100%; max-height: 500px; object-fit: cover; border-radius: 8px;"
-                  />
-                </div>
-                
                 <!-- Markdown Story -->
                 <div v-if="story.story" class="content-block story-body">
                   <VueMarkdownRender :source="story.story" />
@@ -279,7 +281,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import VueMarkdownRender from 'vue-markdown-render'
-import { userStoriesApi } from '@/services/api'
+import { userStoriesApi, uploadApi } from '@/services/api'
 import { ConfirmModal, Toast } from '@/components'
 
 const route = useRoute()
@@ -396,22 +398,21 @@ const handleImageUpload = async (event: Event) => {
   }
   
   try {
-    // Convert to base64
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const base64 = e.target?.result as string
-      editableStory.value.image = base64
-      toastMessage.value = 'Image uploaded successfully'
-      showToast.value = true
-    }
-    reader.onerror = () => {
-      toastMessage.value = 'Failed to read image file'
-      showToast.value = true
-    }
-    reader.readAsDataURL(file)
+    // Show loading message
+    toastMessage.value = 'Uploading image...'
+    showToast.value = true
+    
+    // Upload to backend (Vercel Blob)
+    const result = await uploadApi.uploadImage(file)
+    
+    // Store the blob URL instead of base64
+    editableStory.value.image = result.url
+    
+    toastMessage.value = 'Image uploaded successfully'
+    showToast.value = true
   } catch (error) {
     console.error('Failed to upload image:', error)
-    toastMessage.value = 'Failed to upload image'
+    toastMessage.value = error instanceof Error ? error.message : 'Failed to upload image'
     showToast.value = true
   }
 }
@@ -436,6 +437,30 @@ const formatDate = (dateString: string): string => {
   padding: 8rem var(--container-padding) 6rem;
   position: relative;
   overflow: hidden;
+}
+
+.hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%);
+  z-index: 0;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 70%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 70%);
+}
+
+.hero-image-blurred {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%) blur(12px);
+  z-index: 0;
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 30%, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 30%, black 70%, transparent 100%);
 }
 
 .color-overlay {

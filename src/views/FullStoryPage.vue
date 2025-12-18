@@ -142,18 +142,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import VueMarkdownRender from 'vue-markdown-render'
 import { Navbar, Footer } from '@/components'
 import { useStories } from '@/composables/useStories'
 import { usePatterns } from '@/composables/usePatterns'
 
-const { stories: allStories } = useStories()
+const { stories: allStories, fetchStories } = useStories()
 const { patterns: allPatterns } = usePatterns()
 
 const route = useRoute()
 const storyId = computed(() => Number(route.params.id))
+
+// Force refresh stories when component mounts to ensure we have latest data
+onMounted(async () => {
+  await fetchStories(true)
+})
 
 const story = computed(() => 
   allStories.value.find(s => s.id === storyId.value)

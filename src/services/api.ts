@@ -118,3 +118,30 @@ export const settingsApi = {
   get: () => authFetch('/settings'),
   update: (data: any) => authFetch('/settings', { method: 'PUT', body: JSON.stringify(data) }),
 }
+
+// Upload API
+export const uploadApi = {
+  uploadImage: async (file: File): Promise<{ url: string; filename: string; size: number; mimetype: string }> => {
+    const token = getAuthToken()
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    const headers: Record<string, string> = {}
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    
+    const response = await fetch(`${API_URL}/upload/image`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    })
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: response.statusText }))
+      throw new Error(error.message || 'Failed to upload image')
+    }
+    
+    return response.json()
+  },
+}
