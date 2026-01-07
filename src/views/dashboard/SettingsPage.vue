@@ -14,19 +14,10 @@
         <!-- User Profile -->
         <div class="settings-section" data-accent="1">
           <h2 class="section-title">Profile</h2>
-          <div class="form-group">
-            <label class="form-label text-xs text-tertiary">Name</label>
-            <input v-model="userProfile.name" type="text" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label class="form-label text-xs text-tertiary">Email</label>
-            <input v-model="userProfile.email" type="email" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label class="form-label text-xs text-tertiary">Location</label>
-            <input v-model="userProfile.location" type="text" class="form-input" />
-          </div>
-          <button class="btn" @click="saveProfile">Save Profile</button>
+          <p class="text-sm text-secondary" style="margin-bottom: 1.5rem;">
+            Manage your public profile, bio, and community information
+          </p>
+          <button class="btn" @click="showProfileEdit = true">Edit Profile</button>
         </div>
 
         <!-- AI Preferences -->
@@ -113,6 +104,16 @@
       danger
       @confirm="confirmLogout"
     />
+
+    <!-- Profile Edit Modal -->
+    <SlideInModal v-model="showProfileEdit">
+      <ProfileEditPage 
+        v-if="myProfile"
+        :profile="myProfile"
+        @close="showProfileEdit = false"
+        @saved="handleProfileSaved"
+      />
+    </SlideInModal>
   </div>
 </template>
 
@@ -120,17 +121,16 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { Toast, ConfirmModal } from '@/components'
+import { Toast, ConfirmModal, SlideInModal } from '@/components'
+import ProfileEditPage from './ProfileEditPage.vue'
+import { usersApi } from '@/services/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const currentUser = authStore.currentUser
 
-const userProfile = reactive({
-  name: currentUser?.name || '',
-  email: currentUser?.email || '',
-  location: currentUser?.location || ''
-})
+const myProfile = ref<any>(null)
+const showProfileEdit = ref(false)
 
 const aiPreferences = reactive({
   conversationStyle: 'detailed',
@@ -156,7 +156,24 @@ onMounted(() => {
 
   const savedNotifications = localStorage.getItem('notifications')
   if (savedNotifications) Object.assign(notifications, JSON.parse(savedNotifications))
+
+  // Load user profile
+  loadProfile()
 })
+
+const loadProfile = async () => {
+  try {
+    myProfile.value = await usersApi.getMyProfile()
+  } catch (error) {
+    console.error('Failed to load profile:', error)
+  }
+}
+
+const handleProfileSaved = (updatedProfile: any) => {
+  myProfile.value = updatedProfile
+  authStore.updateUser(updatedProfile)
+  showSuccessToast('Profile updated successfully')
+}
 
 const saveProfile = () => {
   authStore.updateUser({

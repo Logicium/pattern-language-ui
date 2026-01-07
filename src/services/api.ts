@@ -145,3 +145,10 @@ export const uploadApi = {
     return response.json()
   },
 }
+
+// Users API
+export const usersApi = {
+  getProfile: (id: number) => authFetch(`/users/${id}`),
+  getMyProfile: () => authFetch('/users/me/profile'),
+  updateMyProfile: (data: any) => authFetch('/users/me/profile', { method: 'PUT', body: JSON.stringify(data) }),
+}

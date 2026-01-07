@@ -131,15 +131,12 @@
                     />
                   </div>
                   <div class="form-group">
-                    <label class="form-label text-xs text-tertiary">Region</label>
-                    <select v-model="formData.region" class="form-input" required>
-                      <option value="">Select region</option>
-                      <option value="northeast">Northeast</option>
-                      <option value="southeast">Southeast</option>
-                      <option value="midwest">Midwest</option>
-                      <option value="southwest">Southwest</option>
-                      <option value="west">West</option>
-                      <option value="northwest">Northwest</option>
+                    <label class="form-label text-xs text-tertiary">State</label>
+                    <select v-model="formData.state" class="form-input" required>
+                      <option value="">Select state</option>
+                      <option v-for="state in usStates" :key="state.value" :value="state.value">
+                        {{ state.label }}
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -163,7 +160,7 @@
                   </label>
                   <div class="checkbox-grid">
                     <label
-                      v-for="challenge in challenges"
+                      v-for="challenge in wickedChallenges"
                       :key="challenge"
                       class="checkbox-label text-sm"
                     >
@@ -286,16 +283,20 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Navbar, Footer, ErrorModal } from '@/components'
 import { useAuthStore } from '@/stores/auth'
+import { US_STATES, WICKED_CHALLENGES } from '@/utils/constants'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const usStates = US_STATES
+const wickedChallenges = WICKED_CHALLENGES
 
 interface FormData {
   firstName: string
   lastName: string
   communityName: string
   population: string
-  region: string
+  state: string
   role: string
   email: string
   password: string
@@ -316,7 +317,7 @@ const formData = ref<FormData>({
   lastName: '',
   communityName: '',
   population: '',
-  region: '',
+  state: '',
   role: '',
   email: '',
   password: '',
@@ -324,19 +325,6 @@ const formData = ref<FormData>({
   currentWork: '',
   goals: ''
 })
-
-const challenges = [
-  'Youth Flight & Talent Drain',
-  'Aging Population',
-  'Economic Stagnation',
-  'Infrastructure Decay',
-  'Food Insecurity',
-  'Low Civic Trust',
-  'Isolation & Disconnection',
-  'Skills Gap',
-  'Environmental Degradation',
-  'Civic Apathy'
-]
 
 const nextStep = () => {
   if (currentStep.value < 2) {
@@ -364,6 +352,9 @@ const handleSubmit = async () => {
       lastName: formData.value.lastName,
       name: `${formData.value.firstName} ${formData.value.lastName}`,
       location: formData.value.communityName,
+      state: formData.value.state,
+      currentWork: formData.value.currentWork,
+      goals: formData.value.goals,
       interests: formData.value.selectedChallenges
     })
     
@@ -645,10 +636,15 @@ const handleGoToLogin = () => {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  align-items: stretch;
 }
 
 .button-group .btn {
   flex: 1;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .submit-btn {
@@ -657,14 +653,21 @@ const handleGoToLogin = () => {
 }
 
 .btn-secondary {
-  background: transparent;
-  border: 1px solid var(--color-text-tertiary);
-  color: var(--color-text-primary);
+  background: transparent !important;
+  border: 1px solid var(--color-text-tertiary) !important;
+  color: var(--color-text-primary) !important;
+  padding: 1rem 2.5rem !important;
+}
+
+.btn-secondary::before {
+  display: none !important;
 }
 
 .btn-secondary:hover {
-  border-color: var(--color-text-primary);
-  box-shadow: none;
+  border-color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+  color: var(--color-text-primary) !important;
+  background: transparent !important;
 }
 
 .btn:disabled {

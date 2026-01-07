@@ -18,6 +18,7 @@ import SuccessStoriesListPage from '@/views/dashboard/SuccessStoriesListPage.vue
 import GeneratedStoryPage from '@/views/dashboard/GeneratedStoryPage.vue'
 import ResourcesPage from '@/views/dashboard/ResourcesPage.vue'
 import SettingsPage from '@/views/dashboard/SettingsPage.vue'
+import ProfilePageWrapper from '@/views/dashboard/ProfilePageWrapper.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -113,6 +114,11 @@ const router = createRouter({
           path: 'settings',
           name: 'dashboard-settings',
           component: SettingsPage
+        },
+        {
+          path: 'profile/:id',
+          name: 'dashboard-profile',
+          component: ProfilePageWrapper
         }
       ]
     }
