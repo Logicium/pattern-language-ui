@@ -91,6 +91,55 @@
                   </div>
                 </div>
 
+                <!-- Collaboration -->
+                <div class="overview-section">
+                  <div class="section-header-with-actions">
+                    <span class="section-label text-xs text-tertiary">Collaboration</span>
+                    <div class="section-actions">
+                      <button 
+                        v-if="userRole === 'creator'"
+                        @click="togglePublishState"
+                        :disabled="loading"
+                        class="btn-text text-xs"
+                      >
+                        {{ playbook.isPublic ? 'Unpublish' : 'Publish' }}
+                      </button>
+                      <button 
+                        v-if="userRole === 'creator'"
+                        @click="showInviteMemberModal = true"
+                        :disabled="loading"
+                        class="btn-text text-xs"
+                      >
+                        + Invite Member
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="members-grid">
+                    <router-link 
+                      v-for="member in members" 
+                      :key="member.id"
+                      :to="`/dashboard/profile/${member.user.id}`"
+                      class="member-card"
+                      :class="{ 'member-creator': member.role === 'creator' }"
+                    >
+                      <div class="member-circle">
+                        {{ getInitials(member.user.name) }}
+                      </div>
+                      <div class="member-name text-xs">{{ member.user.name }}</div>
+                      <div v-if="member.role === 'creator'" class="member-role text-xs text-tertiary">Creator</div>
+                      <div v-else class="member-role text-xs text-tertiary">Member</div>
+                    </router-link>
+                    <p v-if="members.length === 0" class="text-xs text-tertiary">No members yet</p>
+                  </div>
+
+                  <div v-if="playbook.isPublic" class="public-indicator">
+                    <span class="text-xs text-tertiary">
+                      🌍 This playbook is visible to your local community
+                    </span>
+                  </div>
+                </div>
+
                 <!-- Actions -->
                 <div class="overview-section">
                   <span class="section-label text-xs text-tertiary">Actions</span>
@@ -192,30 +241,38 @@
                 >
                   <!-- Task Display Mode -->
                   <div v-if="editingTaskId !== task.id" class="task-main">
-                    <label class="task-label">
+                    <div class="task-checkbox-wrapper">
                       <input
                         type="checkbox"
                         :checked="task.completed"
                         @change="toggleTask(task.id)"
                         class="task-checkbox"
                       />
-                      <div class="task-content">
-                        <div class="task-title text-sm" :class="{ completed: task.completed }">
-                          {{ task.title }}
-                        </div>
-                        <p class="task-description text-xs text-secondary">
-                          {{ task.description }}
-                        </p>
-                        <div class="task-meta text-xs text-tertiary">
-                          <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
-                          <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
-                        </div>
+                    </div>
+                    <div class="task-content">
+                      <div class="task-title text-sm" :class="{ completed: task.completed }">
+                        {{ task.title }}
                       </div>
-                    </label>
+                      <p class="task-description text-xs text-secondary">
+                        {{ task.description }}
+                      </p>
+                      <div class="task-meta text-xs text-tertiary">
+                        <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
+                        <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
+                      </div>
+                    </div>
                     <div class="task-actions">
+                      <button
+                        @click="selectedTask = task; showTaskDetailsModal = true"
+                        class="task-action-btn text-xs"
+                        type="button"
+                      >
+                        View
+                      </button>
                       <button
                         @click="startEditingTask(task)"
                         class="task-action-btn text-xs"
+                        type="button"
                       >
                         Edit
                       </button>
@@ -223,6 +280,7 @@
                         @click="toggleTaskNotes(task.id)"
                         class="task-action-btn text-xs"
                         :class="{ active: expandedTaskNotes[task.id] }"
+                        type="button"
                       >
                         {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
                       </button>
@@ -440,6 +498,70 @@
       :message="toastMessage"
       @update:show="showToast = $event"
     />
+
+    <!-- Full Task Page Modal -->
+    <FullTaskPage
+      v-model="showTaskDetailsModal"
+      :playbook="playbook"
+      :task="selectedTask"
+      :members="members"
+      :userRole="userRole"
+      @refresh="refreshPlaybook"
+    />
+
+    <!-- Invite Member Modal -->
+    <div v-if="showInviteMemberModal" class="modal-overlay" @click.self="showInviteMemberModal = false">
+      <div class="modal-content invite-modal">
+        <div class="modal-header">
+          <h2>Invite Member</h2>
+          <button class="close-btn" @click="showInviteMemberModal = false">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="text-sm text-secondary" style="margin-bottom: 20px;">
+            Search for users in your local community to invite to this playbook.
+          </p>
+          
+          <!-- Search Input -->
+          <div class="form-group">
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="form-input"
+              placeholder="Search by name..."
+              @input="searchUsers"
+            />
+          </div>
+
+          <!-- Search Results -->
+          <div v-if="searchResults.length > 0" class="search-results">
+            <div
+              v-for="user in searchResults"
+              :key="user.id"
+              class="user-result"
+            >
+              <div 
+                class="user-avatar" 
+                :style="{ backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none' }"
+              >
+                {{ !user.profileImage ? getInitials(user.name) : '' }}
+              </div>
+              <div class="user-info-result">
+                <div class="user-name-result">{{ user.name }}</div>
+                <div class="text-xs text-tertiary">{{ user.location }}, {{ user.state }}</div>
+              </div>
+              <button
+                @click="inviteUser(user)"
+                :disabled="loading || invitedUserIds.includes(user.id)"
+                class="btn-sm"
+              >
+                {{ invitedUserIds.includes(user.id) ? 'Invited' : 'Invite' }}
+              </button>
+            </div>
+          </div>
+          <p v-else-if="searchQuery" class="text-xs text-tertiary">No users found</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -447,16 +569,21 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePlaybooksStore } from '@/stores/playbooks'
-import { userStoriesApi } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
+import { userStoriesApi, playbooksApi, usersApi } from '@/services/api'
 import { ConfirmModal, Toast } from '@/components'
+import FullTaskPage from '@/components/FullTaskPage.vue'
+import type { PlaybookMember, SearchedUser, Task } from '@/types/collaboration'
 
 const route = useRoute()
 const router = useRouter()
 const playbooksStore = usePlaybooksStore()
+const authStore = useAuthStore()
 
 // Fetch playbooks on mount
 onMounted(() => {
   playbooksStore.fetchPlaybooks()
+  loadMembers()
 })
 
 const playbookId = computed(() => route.params.id as string)
@@ -731,6 +858,140 @@ const handleDelete = () => {
     router.push('/dashboard/playbooks')
   }
 }
+
+// ========== PART II: COLLABORATION ==========
+
+// General loading state
+const loading = ref(false)
+
+// Members
+const members = ref<PlaybookMember[]>([])
+
+const userRole = computed(() => {
+  if (!authStore.user || !playbook.value) return null
+  const member = members.value.find(m => String(m.user.id) === String(authStore.user?.id))
+  return member?.role || null
+})
+
+const loadMembers = async () => {
+  if (!playbook.value || typeof playbook.value.id !== 'number') return
+  try {
+    members.value = await playbooksApi.getMembers(playbook.value.id)
+  } catch (error) {
+    console.error('Failed to load members:', error)
+  }
+}
+
+const removeMember = async (userId: number) => {
+  if (!playbook.value || typeof playbook.value.id !== 'number' || !confirm('Remove this member from the playbook?')) return
+  
+  loading.value = true
+  try {
+    await playbooksApi.removeMember(playbook.value.id, userId)
+    await loadMembers()
+    toastMessage.value = 'Member removed'
+    showToast.value = true
+  } catch (error) {
+    console.error('Failed to remove member:', error)
+    toastMessage.value = 'Failed to remove member'
+    showToast.value = true
+  } finally {
+    loading.value = false
+  }
+}
+
+// Publish/Unpublish
+const togglePublishState = async () => {
+  if (!playbook.value || typeof playbook.value.id !== 'number' || loading.value) return
+  
+  loading.value = true
+  try {
+    if (playbook.value.isPublic) {
+      await playbooksApi.unpublish(playbook.value.id)
+      toastMessage.value = 'Playbook unpublished'
+    } else {
+      await playbooksApi.publish(playbook.value.id)
+      toastMessage.value = 'Playbook published to local community'
+    }
+    showToast.value = true
+    await refreshPlaybook()
+  } catch (error) {
+    console.error('Failed to toggle publish state:', error)
+    toastMessage.value = 'Failed to update playbook'
+    showToast.value = true
+  } finally {
+    loading.value = false
+  }
+}
+
+// Task Details Modal
+const showTaskDetailsModal = ref(false)
+const selectedTask = ref<Task | null>(null)
+
+const refreshPlaybook = async () => {
+  await playbooksStore.fetchPlaybooks()
+  await loadMembers()
+}
+
+// Invite Member Modal
+const showInviteMemberModal = ref(false)
+const searchQuery = ref('')
+const searchResults = ref<SearchedUser[]>([])
+const invitedUserIds = ref<number[]>([])
+
+const searchUsers = async () => {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = []
+    return
+  }
+  
+  try {
+    const users = await usersApi.search()
+    // Filter by search query
+    searchResults.value = users.filter((u: SearchedUser) => 
+      u.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  } catch (error) {
+    console.error('Failed to search users:', error)
+  }
+}
+
+const inviteUser = async (user: SearchedUser) => {
+  if (!playbook.value || typeof playbook.value.id !== 'number' || loading.value) return
+  
+  loading.value = true
+  try {
+    await playbooksApi.invite(playbook.value.id, user.id)
+    invitedUserIds.value.push(user.id)
+    toastMessage.value = `Invitation sent to ${user.name}`
+    showToast.value = true
+  } catch (error: any) {
+    console.error('Failed to invite user:', error)
+    toastMessage.value = error.message || 'Failed to send invitation'
+    showToast.value = true
+  } finally {
+    loading.value = false
+  }
+}
+
+const getInitials = (name: string) => {
+  if (!name) return '?'
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+// Watch for playbook changes to reload members
+watch(() => playbook.value?.id, (newId) => {
+  if (newId) {
+    loadMembers()
+  }
+})
+
+// ========== END COLLABORATION ==========
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
@@ -1192,6 +1453,10 @@ const getResourceLink = (resource: any) => {
   transition: all var(--transition-base);
 }
 
+.task-item:hover {
+  background: var(--color-bg-secondary);
+}
+
 .task-item:last-child {
   border-bottom: none;
 }
@@ -1208,10 +1473,6 @@ const getResourceLink = (resource: any) => {
   border-left-color: var(--color-accent-3);
 }
 
-.task-item:hover {
-  background: var(--color-bg-secondary);
-}
-
 .task-main {
   display: flex;
   align-items: flex-start;
@@ -1219,12 +1480,10 @@ const getResourceLink = (resource: any) => {
   gap: 1rem;
 }
 
-.task-label {
-  flex: 1;
+.task-checkbox-wrapper {
+  padding: 1.5rem 0 1.5rem 1.5rem;
   display: flex;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  cursor: pointer;
+  align-items: flex-start;
 }
 
 .task-checkbox {
@@ -1241,6 +1500,7 @@ const getResourceLink = (resource: any) => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  padding: 1.5rem 0;
 }
 
 .task-title {
@@ -1582,5 +1842,208 @@ const getResourceLink = (resource: any) => {
     align-items: flex-end;
     gap: 0.75rem;
   }
+}
+
+/* PART II: Collaboration Styles */
+.section-header-with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.members-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.member-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.member-card:hover {
+  opacity: 0.7;
+}
+
+.member-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #d0d0d0;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.member-card:hover .member-circle {
+  transform: scale(1.05);
+}
+
+.member-card.member-creator .member-circle {
+  background: linear-gradient(135deg, #e8b4a0, #b8d4c8, #c9b8e8);
+}
+
+.member-name {
+  font-weight: 400;
+  color: var(--color-text-primary);
+  text-align: center;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-role {
+  text-align: center;
+}
+
+.btn-text-small {
+  background: none;
+  border: none;
+  color: #999;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.btn-text-small:hover {
+  color: #e74c3c;
+}
+
+.btn-text-small:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.public-indicator {
+  padding: 0.75rem;
+  background: #f0f8f0;
+  margin-top: 1rem;
+}
+
+/* Invite Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content.invite-modal {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  font-weight: 400;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  font-weight: 300;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #2c2c2c;
+}
+
+.modal-body {
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.user-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #fafafa;
+  transition: background 0.2s;
+}
+
+.user-result:hover {
+  background: #f5f5f5;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  background: #b8d4c8;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  font-size: 16px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.user-info-result {
+  flex: 1;
+}
+
+.user-name-result {
+  font-weight: 400;
+  font-size: 15px;
+  margin-bottom: 2px;
 }
 </style>

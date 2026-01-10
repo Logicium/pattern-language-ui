@@ -62,7 +62,10 @@ export const useAuthStore = defineStore('auth', () => {
     firstName?: string;
     lastName?: string;
     name: string; 
-    location?: string; 
+    location?: string;
+    state?: string;
+    currentWork?: string;
+    goals?: string;
     interests?: string[] 
   }) {
     try {

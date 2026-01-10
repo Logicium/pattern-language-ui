@@ -35,6 +35,12 @@
           >
             Paused ({{ pausedPlaybooks.length }})
           </button>
+          <button
+            :class="['tab text-xs', { active: activeTab === 'local' }]"
+            @click="activeTab = 'local'"
+          >
+            Local Playbooks ({{ localPlaybooks.length }})
+          </button>
         </div>
       </div>
     </section>
@@ -59,6 +65,11 @@
             
             <div class="card-location text-sm text-secondary">
               {{ playbook.location }}
+            </div>
+
+            <!-- Creator Info (Local Playbooks Only) -->
+            <div v-if="activeTab === 'local' && playbook.user" class="creator-info text-xs text-tertiary">
+              <span>By {{ playbook.user.name }}</span>
             </div>
 
             <!-- Meta Info -->
@@ -105,9 +116,13 @@
         <!-- Empty State -->
         <div v-else class="empty-state">
           <div class="empty-icon">∅</div>
-          <h3>No {{ activeTab }} playbooks</h3>
-          <p class="text-secondary">Start tracking your pattern implementations</p>
-          <button class="btn btn-lg">Create Playbook</button>
+          <h3 v-if="activeTab === 'local'">No local playbooks found</h3>
+          <h3 v-else>No {{ activeTab }} playbooks</h3>
+          <p v-if="activeTab === 'local'" class="text-secondary">
+            No published playbooks from your local community yet
+          </p>
+          <p v-else class="text-secondary">Start tracking your pattern implementations</p>
+          <button v-if="activeTab !== 'local'" class="btn btn-lg">Create Playbook</button>
         </div>
       </div>
     </section>
@@ -117,20 +132,36 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { usePlaybooksStore } from '@/stores/playbooks'
+import { playbooksApi } from '@/services/api'
 
 const playbooksStore = usePlaybooksStore()
 
 // Fetch playbooks on mount
 onMounted(() => {
   playbooksStore.fetchPlaybooks()
+  loadLocalPlaybooks()
 })
 
-const activeTab = ref<'active' | 'completed' | 'paused'>('active')
+const activeTab = ref<'active' | 'completed' | 'paused' | 'local'>('active')
 const expandedPlaybooks = ref(new Set<string>())
+const localPlaybooks = ref<any[]>([])
+const loadingLocal = ref(false)
 
 const activePlaybooks = computed(() => playbooksStore.activePlaybooks)
 const completedPlaybooks = computed(() => playbooksStore.completedPlaybooks)
 const pausedPlaybooks = computed(() => playbooksStore.pausedPlaybooks)
+
+const loadLocalPlaybooks = async () => {
+  loadingLocal.value = true
+  try {
+    localPlaybooks.value = await playbooksApi.getLocalPublished()
+  } catch (error) {
+    console.error('Failed to load local playbooks:', error)
+    localPlaybooks.value = []
+  } finally {
+    loadingLocal.value = false
+  }
+}
 
 const filteredPlaybooks = computed(() => {
   switch (activeTab.value) {
@@ -140,6 +171,8 @@ const filteredPlaybooks = computed(() => {
       return completedPlaybooks.value
     case 'paused':
       return pausedPlaybooks.value
+    case 'local':
+      return localPlaybooks.value
     default:
       return []
   }
@@ -310,6 +343,12 @@ const formatDate = (dateString: string) => {
 
 .card-location {
   margin-bottom: 1rem;
+}
+
+.creator-info {
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  font-style: italic;
 }
 
 /* Card Meta */

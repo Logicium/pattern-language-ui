@@ -15,6 +15,11 @@
           <span class="nav-label">Playbooks</span>
         </router-link>
 
+        <router-link to="/dashboard/invitations" class="nav-item" active-class="active">
+          <span class="nav-label">Invitations</span>
+          <span v-if="pendingInvitationsCount > 0" class="nav-badge">{{ pendingInvitationsCount }}</span>
+        </router-link>
+
         <router-link to="/dashboard/stories" class="nav-item" active-class="active">
           <span class="nav-label">Stories</span>
         </router-link>
@@ -46,11 +51,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { invitationsApi } from '@/services/api'
 
 const authStore = useAuthStore()
 const user = computed(() => authStore.currentUser)
+
+const pendingInvitationsCount = ref(0)
+
+const loadPendingInvitations = async () => {
+  try {
+    const invitations = await invitationsApi.getPending()
+    pendingInvitationsCount.value = invitations.length
+  } catch (error) {
+    console.error('Failed to load pending invitations:', error)
+  }
+}
+
+onMounted(() => {
+  loadPendingInvitations()
+  // Poll every 30 seconds for new invitations
+  setInterval(loadPendingInvitations, 30000)
+})
 </script>
 
 <style scoped>
@@ -132,6 +155,18 @@ const user = computed(() => authStore.currentUser)
 
 .nav-label {
   font-size: 0.875rem;
+  flex: 1;
+}
+
+.nav-badge {
+  background: #e8b4a0;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 400;
+  padding: 2px 8px;
+  min-width: 20px;
+  text-align: center;
+  margin-left: auto;
 }
 
 .sidebar-footer {

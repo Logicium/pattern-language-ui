@@ -99,6 +99,69 @@ export const playbooksApi = {
   // Toggle task completion
   toggleTask: (playbookId: number, taskId: string) => 
     authFetch(`/playbooks/${playbookId}/tasks/${taskId}/toggle`, { method: 'PATCH' }),
+
+  // ========== PART II: COLLABORATION ENDPOINTS ==========
+  
+  // Publishing
+  publish: (id: number) => 
+    authFetch(`/playbooks/${id}/publish`, { method: 'PATCH' }),
+  unpublish: (id: number) => 
+    authFetch(`/playbooks/${id}/unpublish`, { method: 'PATCH' }),
+  getLocalPublished: () => 
+    authFetch('/playbooks/local/published'),
+  
+  // Members
+  getMembers: (id: number) => 
+    authFetch(`/playbooks/${id}/members`),
+  removeMember: (id: number, userId: number) => 
+    authFetch(`/playbooks/${id}/members/${userId}`, { method: 'DELETE' }),
+  
+  // Invitations
+  invite: (id: number, userId: number, message?: string) => 
+    authFetch(`/playbooks/${id}/invite`, { 
+      method: 'POST', 
+      body: JSON.stringify({ userId, message }) 
+    }),
+  
+  // Task assignments
+  assignTask: (playbookId: number, taskId: string, userIds: number[]) => 
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/assign`, { 
+      method: 'PATCH', 
+      body: JSON.stringify({ userIds }) 
+    }),
+  
+  // Subtasks
+  addSubtask: (playbookId: number, taskId: string, title: string) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/subtasks`, { 
+      method: 'POST', 
+      body: JSON.stringify({ title }) 
+    }),
+  toggleSubtask: (playbookId: number, taskId: string, subtaskId: string) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/subtasks/${subtaskId}`, { 
+      method: 'PATCH' 
+    }),
+  deleteSubtask: (playbookId: number, taskId: string, subtaskId: string) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/subtasks/${subtaskId}`, { 
+      method: 'DELETE' 
+    }),
+  
+  // Comments
+  getComments: (playbookId: number, taskId: string) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/comments`),
+  addComment: (playbookId: number, taskId: string, content: string) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/comments`, { 
+      method: 'POST', 
+      body: JSON.stringify({ content }) 
+    }),
+  updateComment: (playbookId: number, taskId: string, commentId: number, content: string) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/comments/${commentId}`, { 
+      method: 'PUT', 
+      body: JSON.stringify({ content }) 
+    }),
+  deleteComment: (playbookId: number, taskId: string, commentId: number) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/comments/${commentId}`, { 
+      method: 'DELETE' 
+    }),
 }
 
 // User Stories API
@@ -151,4 +214,23 @@ export const usersApi = {
   getProfile: (id: number) => authFetch(`/users/${id}`),
   getMyProfile: () => authFetch('/users/me/profile'),
   updateMyProfile: (data: any) => authFetch('/users/me/profile', { method: 'PUT', body: JSON.stringify(data) }),
+  
+  // Search users
+  search: (params?: { location?: string; state?: string; challenges?: string[] }) => {
+    const searchParams = new URLSearchParams()
+    if (params?.location) searchParams.append('location', params.location)
+    if (params?.state) searchParams.append('state', params.state)
+    if (params?.challenges) searchParams.append('challenges', params.challenges.join(','))
+    
+    const queryString = searchParams.toString()
+    return authFetch(`/users/search${queryString ? `?${queryString}` : ''}`)
+  },
 }
+
+// Invitations API
+export const invitationsApi = {
+  getPending: () => authFetch('/invitations/pending'),
+  accept: (id: number) => authFetch(`/invitations/${id}/accept`, { method: 'POST' }),
+  reject: (id: number) => authFetch(`/invitations/${id}/reject`, { method: 'POST' }),
+}
+

@@ -21,13 +21,22 @@
               {{ profile?.location }}{{ profile?.state ? `, ${profile.state}` : '' }}
             </p>
           </div>
-          <button 
-            v-if="isOwnProfile" 
-            @click="$emit('edit')"
-            class="btn edit-profile-btn"
-          >
-            Edit Profile
-          </button>
+          <div class="profile-actions">
+            <button 
+              v-if="isOwnProfile" 
+              @click="$emit('edit')"
+              class="btn edit-profile-btn"
+            >
+              Edit Profile
+            </button>
+            <button 
+              v-else
+              @click="showInviteModal = true"
+              class="btn edit-profile-btn"
+            >
+              Invite to Playbook
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -108,11 +117,27 @@
         </div>
       </div>
     </section>
+
+    <!-- Invite to Playbook Modal -->
+    <InviteToPlaybookModal
+      :show="showInviteModal"
+      :user="profile"
+      @close="showInviteModal = false"
+      @invited="onInvited"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import InviteToPlaybookModal from '@/components/InviteToPlaybookModal.vue'
+
+// State
+const showInviteModal = ref(false)
+
+const onInvited = () => {
+  showInviteModal.value = false
+}
 
 interface Playbook {
   id: number
@@ -213,8 +238,12 @@ const formatDate = (dateString?: string) => {
   font-size: 1rem;
 }
 
-.edit-profile-btn {
+.profile-actions {
   margin-left: auto;
+}
+
+.edit-profile-btn {
+  white-space: nowrap;
 }
 
 .profile-content {

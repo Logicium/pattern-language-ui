@@ -176,10 +176,11 @@ const handleProfileSaved = (updatedProfile: any) => {
 }
 
 const saveProfile = () => {
+  if (!myProfile.value) return
   authStore.updateUser({
-    name: userProfile.name,
-    email: userProfile.email,
-    location: userProfile.location
+    name: myProfile.value.name,
+    email: myProfile.value.email,
+    location: myProfile.value.location
   })
   showSuccessToast('Profile saved')
 }

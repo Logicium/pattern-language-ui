@@ -50,7 +50,7 @@ const error = ref<string | null>(null)
 const showEdit = ref(false)
 
 const userId = computed(() => parseInt(route.params.id as string))
-const isOwnProfile = computed(() => authStore.currentUser?.id === userId.value)
+const isOwnProfile = computed(() => String(authStore.currentUser?.id) === String(userId.value))
 
 onMounted(async () => {
   await loadProfile()
