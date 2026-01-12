@@ -8,7 +8,7 @@
       <div class="hero-content">
         <div class="hero-text">
           <h1 class="hero-title">
-            Building Thriving<br>Rural Communities
+            Designing Thriving<br>Rural Communities
           </h1>
           <div class="typing-container">
             <span class="typed-text">{{ currentTypedText }}</span>
