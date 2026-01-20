@@ -99,6 +99,17 @@ export const playbooksApi = {
   // Toggle task completion
   toggleTask: (playbookId: number, taskId: string) => 
     authFetch(`/playbooks/${playbookId}/tasks/${taskId}/toggle`, { method: 'PATCH' }),
+  
+  // Update task
+  updateTask: (playbookId: number, taskId: string, data: { title?: string; description?: string; dueDate?: string; assignedTo?: number[] }) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}`, { 
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    }),
+
+  // Delete task
+  deleteTask: (playbookId: number, taskId: string) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}`, { method: 'DELETE' }),
 
   // ========== PART II: COLLABORATION ENDPOINTS ==========
   
@@ -139,6 +150,11 @@ export const playbooksApi = {
   toggleSubtask: (playbookId: number, taskId: string, subtaskId: string) =>
     authFetch(`/playbooks/${playbookId}/tasks/${taskId}/subtasks/${subtaskId}`, { 
       method: 'PATCH' 
+    }),
+  updateSubtask: (playbookId: number, taskId: string, subtaskId: string, data: { title: string }) =>
+    authFetch(`/playbooks/${playbookId}/tasks/${taskId}/subtasks/${subtaskId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
     }),
   deleteSubtask: (playbookId: number, taskId: string, subtaskId: string) =>
     authFetch(`/playbooks/${playbookId}/tasks/${taskId}/subtasks/${subtaskId}`, { 

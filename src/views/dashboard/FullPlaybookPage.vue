@@ -68,24 +68,24 @@
                   <span class="section-label text-xs text-tertiary">Timeline</span>
                   <div class="timeline">
                     <div class="timeline-item">
-                      <div class="timeline-marker" data-accent="1"></div>
-                      <div class="timeline-content">
-                        <span class="text-xs text-tertiary">Started</span>
-                        <p class="text-sm">{{ formatDate(playbook.startDate) }}</p>
+                      <span class="timeline-label text-xs text-tertiary">STARTED</span>
+                      <div class="timeline-value">
+                        <div class="timeline-marker" data-accent="1"></div>
+                        <p class="timeline-date text-sm">{{ formatDate(playbook.startDate) }}</p>
                       </div>
                     </div>
                     <div class="timeline-item">
-                      <div class="timeline-marker" data-accent="2"></div>
-                      <div class="timeline-content">
-                        <span class="text-xs text-tertiary">Target Completion</span>
-                        <p class="text-sm">{{ formatDate(playbook.targetCompletionDate) }}</p>
+                      <span class="timeline-label text-xs text-tertiary">TARGET COMPLETION</span>
+                      <div class="timeline-value">
+                        <div class="timeline-marker" data-accent="2"></div>
+                        <p class="timeline-date text-sm">{{ formatDate(playbook.targetCompletionDate) }}</p>
                       </div>
                     </div>
                     <div v-if="playbook.completedDate" class="timeline-item">
-                      <div class="timeline-marker" data-accent="3"></div>
-                      <div class="timeline-content">
-                        <span class="text-xs text-tertiary">Completed</span>
-                        <p class="text-sm">{{ formatDate(playbook.completedDate) }}</p>
+                      <span class="timeline-label text-xs text-tertiary">COMPLETED</span>
+                      <div class="timeline-value">
+                        <div class="timeline-marker" data-accent="3"></div>
+                        <p class="timeline-date text-sm">{{ formatDate(playbook.completedDate) }}</p>
                       </div>
                     </div>
                   </div>
@@ -96,14 +96,6 @@
                   <div class="section-header-with-actions">
                     <span class="section-label text-xs text-tertiary">Collaboration</span>
                     <div class="section-actions">
-                      <button 
-                        v-if="userRole === 'creator'"
-                        @click="togglePublishState"
-                        :disabled="loading"
-                        class="btn-text text-xs"
-                      >
-                        {{ playbook.isPublic ? 'Unpublish' : 'Publish' }}
-                      </button>
                       <button 
                         v-if="userRole === 'creator'"
                         @click="showInviteMemberModal = true"
@@ -135,7 +127,7 @@
 
                   <div v-if="playbook.isPublic" class="public-indicator">
                     <span class="text-xs text-tertiary">
-                      🌍 This playbook is visible to your local community
+                      This playbook is visible to your local community
                     </span>
                   </div>
                 </div>
@@ -144,33 +136,55 @@
                 <div class="overview-section">
                   <span class="section-label text-xs text-tertiary">Actions</span>
                   <div class="overview-actions">
-                    <button 
-                      v-if="playbook.status === 'active'"
-                      @click="markComplete"
-                      class="btn btn-sm"
-                    >
-                      Mark Complete
-                    </button>
-                    <button 
-                      v-if="playbook.status === 'completed'"
-                      @click="generateSuccessStory"
-                      :disabled="isGenerating"
-                      class="btn btn-sm"
-                    >
-                      {{ isGenerating ? 'Generating...' : 'Generate Success Story' }}
-                    </button>
-                    <button 
-                      @click="togglePause"
-                      class="btn-secondary btn-sm"
-                    >
-                      {{ playbook.status === 'paused' ? 'Resume' : 'Pause' }}
-                    </button>
-                    <button 
-                      @click="showDeleteModal = true"
-                      class="btn-secondary btn-sm btn-danger"
-                    >
-                      Delete
-                    </button>
+                    <!-- Actions for members -->
+                    <template v-if="isUserMember">
+                      <button 
+                        v-if="playbook.status === 'active'"
+                        @click="markComplete"
+                        class="btn btn-sm"
+                      >
+                        Mark Complete
+                      </button>
+                      <button 
+                        v-if="playbook.status === 'completed'"
+                        @click="generateSuccessStory"
+                        :disabled="isGenerating"
+                        class="btn btn-sm"
+                      >
+                        {{ isGenerating ? 'Generating...' : 'Generate Success Story' }}
+                      </button>
+                      <button 
+                        v-if="userRole === 'creator'"
+                        @click="togglePublishState"
+                        :disabled="loading"
+                        class="btn-secondary btn-sm"
+                      >
+                        {{ playbook.isPublic ? 'Unpublish' : 'Publish' }}
+                      </button>
+                      <button 
+                        @click="togglePause"
+                        class="btn-secondary btn-sm"
+                      >
+                        {{ playbook.status === 'paused' ? 'Resume' : 'Pause' }}
+                      </button>
+                      <button 
+                        @click="showDeleteModal = true"
+                        class="btn-secondary btn-sm btn-danger"
+                      >
+                        Delete
+                      </button>
+                    </template>
+                    
+                    <!-- Action for non-members viewing a public playbook -->
+                    <template v-else>
+                      <button 
+                        @click="requestToJoin"
+                        :disabled="loading"
+                        class="btn btn-sm"
+                      >
+                        Request to Join
+                      </button>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -192,14 +206,18 @@
                   <span class="text-xs text-tertiary">
                     {{ completedTasksCount }} of {{ playbook.tasks.length }} complete
                   </span>
-                  <button @click="startAddingTask" class="btn-text text-xs">
+                  <button 
+                    v-if="isUserMember"
+                    @click="startAddingTask" 
+                    class="btn-text text-xs"
+                  >
                     + Add Task
                   </button>
                 </div>
               </div>
 
               <!-- Add New Task Form -->
-              <div v-if="isAddingTask" class="task-form">
+              <div v-if="isAddingTask && isUserMember" class="task-form">
                 <div class="form-group">
                   <label class="text-xs text-tertiary">Task Title</label>
                   <input
@@ -241,7 +259,7 @@
                 >
                   <!-- Task Display Mode -->
                   <div v-if="editingTaskId !== task.id" class="task-main">
-                    <div class="task-checkbox-wrapper">
+                    <div v-if="isUserMember" class="task-checkbox-wrapper">
                       <input
                         type="checkbox"
                         :checked="task.completed"
@@ -261,7 +279,7 @@
                         <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
                       </div>
                     </div>
-                    <div class="task-actions">
+                    <div v-if="isUserMember" class="task-actions">
                       <button
                         @click="selectedTask = task; showTaskDetailsModal = true"
                         class="task-action-btn text-xs"
@@ -288,7 +306,7 @@
                   </div>
 
                   <!-- Task Edit Mode -->
-                  <div v-else class="task-edit-form">
+                  <div v-else-if="isUserMember" class="task-edit-form">
                     <div class="form-group">
                       <label class="text-xs text-tertiary">Task Title</label>
                       <input
@@ -321,7 +339,7 @@
                     <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
                   </div>
                 </div>                  <!-- Expandable Notes Section -->
-                  <div v-if="expandedTaskNotes[task.id]" class="task-notes-section">
+                  <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
                     <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
                       Implementation Notes
                     </label>
@@ -342,7 +360,7 @@
               <div class="block-header">
                 <h2 class="section-subtitle">Notes & Learnings</h2>
                 <button 
-                  v-if="!isEditingNotes"
+                  v-if="!isEditingNotes && isUserMember"
                   @click="startEditingNotes"
                   class="btn-text text-xs"
                 >
@@ -353,11 +371,13 @@
               <!-- Display Mode -->
               <div v-if="!isEditingNotes" class="notes-display">
                 <p v-if="playbook.notes" class="text-secondary">{{ playbook.notes }}</p>
-                <p v-else class="text-tertiary" style="font-style: italic;">No notes added yet. Click Edit to add your learnings and insights.</p>
+                <p v-else class="text-tertiary" style="font-style: italic;">
+                  {{ isUserMember ? 'No notes added yet. Click Edit to add your learnings and insights.' : 'No notes added yet.' }}
+                </p>
               </div>
 
               <!-- Edit Mode -->
-              <div v-else class="notes-edit">
+              <div v-else-if="isUserMember" class="notes-edit">
                 <textarea
                   v-model="editableNotes"
                   class="notes-textarea"
@@ -376,7 +396,7 @@
               <div class="block-header">
                 <h2 class="section-subtitle">Resources</h2>
                 <button 
-                  v-if="!isEditingResources"
+                  v-if="!isEditingResources && isUserMember"
                   @click="startEditingResources"
                   class="btn-text text-xs"
                 >
@@ -509,88 +529,148 @@
       @refresh="refreshPlaybook"
     />
 
-    <!-- Invite Member Modal -->
-    <div v-if="showInviteMemberModal" class="modal-overlay" @click.self="showInviteMemberModal = false">
-      <div class="modal-content invite-modal">
-        <div class="modal-header">
-          <h2>Invite Member</h2>
-          <button class="close-btn" @click="showInviteMemberModal = false">×</button>
-        </div>
-        <div class="modal-body">
-          <p class="text-sm text-secondary" style="margin-bottom: 20px;">
-            Search for users in your local community to invite to this playbook.
-          </p>
-          
-          <!-- Search Input -->
-          <div class="form-group">
-            <input
-              v-model="searchQuery"
-              type="text"
-              class="form-input"
-              placeholder="Search by name..."
-              @input="searchUsers"
-            />
-          </div>
+    <!-- Invite Member Slide-In Modal -->
+    <SlideInModal v-model="showInviteMemberModal" title="Invite Member">
+      <div class="invite-member-content">
+        <!-- Back Button -->
+        <button class="close-button" @click="showInviteMemberModal = false" title="Close">
+          ← Back
+        </button>
 
-          <!-- Search Results -->
-          <div v-if="searchResults.length > 0" class="search-results">
-            <div
-              v-for="user in searchResults"
-              :key="user.id"
-              class="user-result"
-            >
-              <div 
-                class="user-avatar" 
-                :style="{ backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none' }"
-              >
-                {{ !user.profileImage ? getInitials(user.name) : '' }}
-              </div>
-              <div class="user-info-result">
-                <div class="user-name-result">{{ user.name }}</div>
-                <div class="text-xs text-tertiary">{{ user.location }}, {{ user.state }}</div>
-              </div>
-              <button
-                @click="inviteUser(user)"
-                :disabled="loading || invitedUserIds.includes(user.id)"
-                class="btn-sm"
-              >
-                {{ invitedUserIds.includes(user.id) ? 'Invited' : 'Invite' }}
-              </button>
-            </div>
-          </div>
-          <p v-else-if="searchQuery" class="text-xs text-tertiary">No users found</p>
+        <h2 class="modal-title">Invite Member</h2>
+        
+        <p class="text-sm text-secondary" style="margin-bottom: 20px;">
+          Invite users from your local community to collaborate on this playbook.
+        </p>
+        
+        <!-- Search Input -->
+        <div class="form-group">
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="form-input"
+            placeholder="Search by name..."
+            @input="searchUsers"
+          />
         </div>
+
+        <!-- All Available Users -->
+        <div class="users-list">
+          <div
+            v-for="user in filteredAvailableUsers"
+            :key="user.id"
+            class="user-result"
+          >
+            <div 
+              class="user-avatar" 
+              :style="{ backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none' }"
+            >
+              {{ !user.profileImage ? getInitials(user.name) : '' }}
+            </div>
+            <div class="user-info-result">
+              <div class="user-name-result">{{ user.name }}</div>
+              <div class="text-xs text-tertiary">{{ user.location }}, {{ user.state }}</div>
+            </div>
+            <button
+              @click="inviteUser(user)"
+              :disabled="loading || invitedUserIds.includes(user.id)"
+              class="btn-sm"
+            >
+              {{ invitedUserIds.includes(user.id) ? 'Invited' : 'Invite' }}
+            </button>
+          </div>
+        </div>
+        <p v-if="filteredAvailableUsers.length === 0" class="text-xs text-tertiary">
+          {{ searchQuery ? 'No users found matching your search' : 'No users available to invite' }}
+        </p>
       </div>
-    </div>
+    </SlideInModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import { useAuthStore } from '@/stores/auth'
 import { userStoriesApi, playbooksApi, usersApi } from '@/services/api'
 import { ConfirmModal, Toast } from '@/components'
 import FullTaskPage from '@/components/FullTaskPage.vue'
+import SlideInModal from '@/components/SlideInModal.vue'
 import type { PlaybookMember, SearchedUser, Task } from '@/types/collaboration'
 
 const route = useRoute()
 const router = useRouter()
 const playbooksStore = usePlaybooksStore()
 const authStore = useAuthStore()
-
-// Fetch playbooks on mount
-onMounted(() => {
-  playbooksStore.fetchPlaybooks()
-  loadMembers()
-})
+const loading = ref(false)
+const localPlaybookData = ref<any>(null)
+const allLocalPlaybooks = ref<any[]>([])
 
 const playbookId = computed(() => route.params.id as string)
 
-const playbook = computed(() => 
-  playbooksStore.playbooks.find(p => p.id.toString() === playbookId.value)
-)
+// Fetch playbooks on mount
+onMounted(async () => {
+  // Force refresh to ensure we have the latest data including public playbooks
+  await playbooksStore.fetchPlaybooks(true)
+  
+  // Check if playbook exists in user's playbooks
+  const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === playbookId.value)
+  
+  if (!userPlaybook) {
+    // Not in user's playbooks, try loading from local published playbooks
+    await loadPublicPlaybook()
+  }
+  
+  loadMembers()
+})
+
+// Watch for route changes (navigating between different playbooks)
+watch(() => route.params.id, async (newId) => {
+  if (newId) {
+    localPlaybookData.value = null // Reset
+    const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === newId)
+    if (!userPlaybook) {
+      await loadPublicPlaybook()
+    }
+    loadMembers()
+  }
+})
+
+const playbook = computed(() => {
+  // First check user's own playbooks
+  const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === playbookId.value)
+  if (userPlaybook) return userPlaybook
+  
+  // Otherwise return the loaded public playbook
+  return localPlaybookData.value
+})
+
+// Load public playbook data (for local playbooks from other users)
+const loadPublicPlaybook = async () => {
+  try {
+    loading.value = true
+    console.log('Loading public playbook with ID:', playbookId.value)
+    
+    // First try to get all local published playbooks
+    allLocalPlaybooks.value = await playbooksApi.getLocalPublished()
+    console.log('All local playbooks:', allLocalPlaybooks.value)
+    
+    // Find the specific playbook by ID
+    const foundPlaybook = allLocalPlaybooks.value.find(p => p.id.toString() === playbookId.value)
+    
+    if (foundPlaybook) {
+      localPlaybookData.value = foundPlaybook
+      console.log('Found public playbook:', localPlaybookData.value)
+    } else {
+      console.error('Playbook not found in local published playbooks')
+    }
+  } catch (error) {
+    console.error('Failed to load public playbook:', error)
+  } finally {
+    loading.value = false
+  }
+}
 
 const completedTasksCount = computed(() => {
   if (!playbook.value) return 0
@@ -685,23 +765,32 @@ const confirmDeleteTask = (taskId: string) => {
   showDeleteTaskModal.value = true
 }
 
-const handleDeleteTask = () => {
+const handleDeleteTask = async () => {
   if (!playbook.value || !taskToDelete.value) return
   
-  const updatedTasks = playbook.value.tasks.filter(task => task.id !== taskToDelete.value)
-  playbooksStore.updatePlaybook(playbook.value.id, { tasks: updatedTasks })
-  
-  // Clean up task notes from localStorage
-  const storageKey = `task-notes-${playbook.value.id}-${taskToDelete.value}`
-  localStorage.removeItem(storageKey)
-  delete taskNotes.value[taskToDelete.value]
-  delete expandedTaskNotes.value[taskToDelete.value]
-  
-  showDeleteTaskModal.value = false
-  taskToDelete.value = null
-  toastMessage.value = 'Task deleted successfully'
-  showToast.value = true
-  cancelTaskEdit()
+  try {
+    // Call API to delete task
+    await playbooksApi.deleteTask(playbook.value.id, taskToDelete.value)
+    
+    // Clean up task notes from localStorage
+    const storageKey = `task-notes-${playbook.value.id}-${taskToDelete.value}`
+    localStorage.removeItem(storageKey)
+    delete taskNotes.value[taskToDelete.value]
+    delete expandedTaskNotes.value[taskToDelete.value]
+    
+    // Refresh playbook data
+    await refreshPlaybook()
+    
+    showDeleteTaskModal.value = false
+    taskToDelete.value = null
+    toastMessage.value = 'Task deleted successfully'
+    showToast.value = true
+    cancelTaskEdit()
+  } catch (error) {
+    console.error('Failed to delete task:', error)
+    toastMessage.value = 'Failed to delete task'
+    showToast.value = true
+  }
 }
 
 // Task notes
@@ -861,9 +950,6 @@ const handleDelete = () => {
 
 // ========== PART II: COLLABORATION ==========
 
-// General loading state
-const loading = ref(false)
-
 // Members
 const members = ref<PlaybookMember[]>([])
 
@@ -873,12 +959,20 @@ const userRole = computed(() => {
   return member?.role || null
 })
 
+// Check if user is a member of this playbook
+const isUserMember = computed(() => {
+  if (!authStore.user || !playbook.value) return false
+  return members.value.some(m => String(m.user.id) === String(authStore.user?.id))
+})
+
 const loadMembers = async () => {
   if (!playbook.value || typeof playbook.value.id !== 'number') return
   try {
     members.value = await playbooksApi.getMembers(playbook.value.id)
   } catch (error) {
     console.error('Failed to load members:', error)
+    // If it's a local playbook we're not a member of, members might return empty
+    members.value = []
   }
 }
 
@@ -924,36 +1018,92 @@ const togglePublishState = async () => {
   }
 }
 
+// Request to Join (for non-members viewing a public playbook)
+const requestToJoin = async () => {
+  if (!playbook.value || typeof playbook.value.id !== 'number' || !authStore.user) return
+  
+  loading.value = true
+  try {
+    // Find the creator from members list or playbook data
+    const creator = members.value.find(m => m.role === 'creator')
+    if (creator) {
+      await playbooksApi.invite(playbook.value.id, authStore.user.id, 'Request to join this playbook')
+      toastMessage.value = 'Join request sent to playbook creator'
+      showToast.value = true
+    } else {
+      toastMessage.value = 'Unable to send request - creator not found'
+      showToast.value = true
+    }
+  } catch (error) {
+    console.error('Failed to request join:', error)
+    toastMessage.value = 'Failed to send request'
+    showToast.value = true
+  } finally {
+    loading.value = false
+  }
+}
+
 // Task Details Modal
 const showTaskDetailsModal = ref(false)
 const selectedTask = ref<Task | null>(null)
 
 const refreshPlaybook = async () => {
+  const currentTaskId = selectedTask.value?.id
   await playbooksStore.fetchPlaybooks()
   await loadMembers()
+  
+  // Update selectedTask with fresh data if it was open
+  if (currentTaskId && playbook.value?.tasks) {
+    const updatedTask = playbook.value.tasks.find((t: Task) => t.id === currentTaskId)
+    if (updatedTask) {
+      selectedTask.value = updatedTask
+    }
+  }
 }
 
 // Invite Member Modal
 const showInviteMemberModal = ref(false)
 const searchQuery = ref('')
-const searchResults = ref<SearchedUser[]>([])
+const allAvailableUsers = ref<SearchedUser[]>([])
 const invitedUserIds = ref<number[]>([])
 
-const searchUsers = async () => {
+// Computed property to filter users based on search
+const filteredAvailableUsers = computed(() => {
   if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    return
+    return allAvailableUsers.value
   }
-  
+  return allAvailableUsers.value.filter((u: SearchedUser) => 
+    u.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+// Load all available users when modal opens
+watch(showInviteMemberModal, async (isOpen) => {
+  if (isOpen && allAvailableUsers.value.length === 0) {
+    await loadAvailableUsers()
+  }
+  // Clear search when closing
+  if (!isOpen) {
+    searchQuery.value = ''
+  }
+})
+
+const loadAvailableUsers = async () => {
   try {
     const users = await usersApi.search()
-    // Filter by search query
-    searchResults.value = users.filter((u: SearchedUser) => 
-      u.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    // Filter out users who are already members
+    const memberIds = members.value.map(m => m.user.id)
+    allAvailableUsers.value = users.filter((u: SearchedUser) => 
+      !memberIds.includes(u.id)
     )
   } catch (error) {
-    console.error('Failed to search users:', error)
+    console.error('Failed to load users:', error)
   }
+}
+
+const searchUsers = async () => {
+  // The filtering is now handled by the computed property
+  // This function can be kept for potential future enhancements
 }
 
 const inviteUser = async (user: SearchedUser) => {
@@ -1264,8 +1414,19 @@ const getResourceLink = (resource: any) => {
 
 .timeline-item {
   display: flex;
-  gap: 1rem;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.timeline-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timeline-value {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .timeline-marker {
@@ -1273,7 +1434,6 @@ const getResourceLink = (resource: any) => {
   height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-top: 0.25rem;
 }
 
 .timeline-marker[data-accent="1"] {
@@ -1288,15 +1448,9 @@ const getResourceLink = (resource: any) => {
   background: var(--color-accent-3);
 }
 
-.timeline-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.timeline-content .text-xs {
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.timeline-date {
+  margin: 0;
+  color: var(--color-text-primary);
 }
 
 /* Overview Actions */
@@ -1500,7 +1654,12 @@ const getResourceLink = (resource: any) => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 1.5rem 0;
+  padding: 1.5rem;
+}
+
+/* When checkbox is present, remove left padding from content */
+.task-checkbox-wrapper + .task-content {
+  padding-left: 0;
 }
 
 .task-title {
@@ -1953,60 +2112,42 @@ const getResourceLink = (resource: any) => {
   z-index: 1000;
 }
 
-.modal-content.invite-modal {
-  background: white;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
+/* Invite Member Styles */
+.invite-member-content {
+  padding: 3rem;
+  position: relative;
 }
 
-.modal-header {
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e8e8e8;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h2 {
-  font-size: 20px;
-  font-weight: 400;
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
+.invite-member-content .close-button {
+  background: transparent;
   border: none;
-  font-size: 32px;
-  font-weight: 300;
-  color: #999;
+  color: var(--color-text-tertiary);
   cursor: pointer;
+  font-size: 16px;
+  font-weight: 300;
   padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-bottom: 2rem;
   transition: color 0.2s;
 }
 
-.close-btn:hover {
+.invite-member-content .close-button:hover {
+  color: var(--color-text-primary);
+}
+
+.invite-member-content .modal-title {
+  font-size: 28px;
+  font-weight: 300;
+  margin: 0 0 16px 0;
   color: #2c2c2c;
 }
 
-.modal-body {
-  padding: 2rem;
-  overflow-y: auto;
-}
-
-.search-results {
+.users-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
+  margin-top: 1rem;
 }
 
 .user-result {

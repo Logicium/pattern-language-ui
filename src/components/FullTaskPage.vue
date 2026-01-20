@@ -8,43 +8,128 @@
 
       <!-- Task Header -->
       <div class="task-header">
-        <h2>{{ task.title }}</h2>
-        <div class="task-status">
-          <label class="checkbox-container">
-            <input 
-              type="checkbox" 
-              :checked="task.completed"
-              @change="toggleTaskCompletion"
-              :disabled="loading"
-            />
-            <span>Mark as complete</span>
-          </label>
+        <div v-if="!isEditingTask" class="task-view-mode">
+          <h2>{{ task.title }}</h2>
+          <p class="task-description">{{ task.description }}</p>
+          
+          <!-- Due Date Display -->
+          <div v-if="task.dueDate" class="task-due-date">
+            <div class="timeline-item">
+              <div class="timeline-content">
+                <span class="timeline-label text-xs text-tertiary">DUE DATE</span>
+                <div class="timeline-value">
+                  <div class="timeline-marker" :data-accent="task.completed ? '2' : '1'"></div>
+                  <p class="timeline-date text-sm">{{ formatDate(task.dueDate) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Status Display -->
+          <div class="task-status-section">
+            <h3 class="section-label text-xs text-tertiary">STATUS</h3>
+            <div class="status-badge" :class="task.completed ? 'status-completed' : 'status-in-progress'">
+              {{ task.completed ? 'Completed' : 'In Progress' }}
+            </div>
+          </div>
+          
+          <div class="task-actions-section">
+            <h3 class="section-label text-xs text-tertiary">TASK ACTIONS</h3>
+            <div class="task-actions-row">
+              <button 
+                v-if="canManage"
+                class="task-action-btn text-xs"
+                @click="toggleTaskCompletion"
+                :disabled="loading"
+              >
+                {{ task.completed ? 'Resume Task' : 'Mark Complete' }}
+              </button>
+              <button 
+                v-if="canManage"
+                class="task-action-btn text-xs"
+                @click="startEditingTask"
+                :disabled="loading"
+              >
+                Edit
+              </button>
+              <button 
+                v-if="canManage"
+                class="task-action-btn text-xs"
+                @click="showDeleteConfirm = true"
+                :disabled="loading"
+              >
+                Delete Task
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <!-- Task Description -->
-      <div class="task-section">
-        <p class="task-description">{{ task.description }}</p>
+        <div v-else class="task-edit-mode">
+          <div class="form-group">
+            <label class="text-xs text-tertiary">Task Title</label>
+            <input
+              v-model="editableTask.title"
+              type="text"
+              class="form-input"
+              placeholder="Enter task title..."
+            />
+          </div>
+          <div class="form-group">
+            <label class="text-xs text-tertiary">Description</label>
+            <textarea
+              v-model="editableTask.description"
+              class="form-textarea"
+              rows="3"
+              placeholder="Enter task description..."
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label class="text-xs text-tertiary">Due Date</label>
+            <input
+              v-model="editableTask.dueDate"
+              type="date"
+              class="form-input"
+            />
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-sm" @click="saveTaskEdit" :disabled="!editableTask.title.trim() || loading">
+              Save
+            </button>
+            <button class="btn-text" @click="cancelEditingTask">Cancel</button>
+          </div>
+        </div>
       </div>
 
       <!-- Assigned Members -->
       <div class="task-section" v-if="canManage">
-        <h3>Assigned To</h3>
-        <div class="assigned-members">
+        <div class="section-header">
+          <h3>Assigned To</h3>
+          <div class="section-header-actions">
+            <button 
+              class="btn-text-assignee" 
+              @click="showAssignMemberModal = true"
+              :disabled="loading"
+            >
+              + Assign Member
+            </button>
+            <button 
+              v-if="assignedMembers.length > 0"
+              class="btn-text-assignee" 
+              @click="toggleAssigneeEditMode"
+              :disabled="loading"
+            >
+              {{ isEditingAssignees ? 'Done' : 'Edit' }}
+            </button>
+          </div>
+        </div>
+        
+        <!-- Assigned Members Display -->
+        <div v-if="assignedMembers.length > 0" class="assigned-members">
           <div 
-            v-for="member in members" 
+            v-for="member in assignedMembers" 
             :key="member.user.id"
             class="member-card"
             :class="{ 'member-creator': member.role === 'creator' }"
           >
-            <label class="checkbox-container-card">
-              <input 
-                type="checkbox" 
-                :checked="isAssigned(member.user.id)"
-                @change="toggleAssignment(member.user.id)"
-                :disabled="loading"
-              />
-            </label>
             <div 
               class="member-circle" 
               :class="{ 'member-circle-creator': member.role === 'creator' }"
@@ -54,22 +139,91 @@
             <div class="member-name text-xs">{{ member.user.name }}</div>
             <div v-if="member.role === 'creator'" class="member-role text-xs text-tertiary">Creator</div>
             <div v-else class="member-role text-xs text-tertiary">Member</div>
+            <button 
+              v-if="isEditingAssignees" 
+              class="remove-member-btn-action"
+              @click="unassignMember(member.user.id)"
+              :disabled="loading"
+            >
+              Remove
+            </button>
           </div>
         </div>
+        <p v-else class="text-xs text-tertiary">No members assigned yet</p>
       </div>
+
+      <!-- Assign Member Modal -->
+      <Teleport to="body">
+        <Transition name="modal">
+          <div v-if="showAssignMemberModal" class="modal-overlay" @click.self="showAssignMemberModal = false">
+            <div class="modal-container assign-member-modal" @click.stop>
+              <div class="modal-header-custom">
+                <h3 class="modal-title">Assign Member</h3>
+                <button @click="showAssignMemberModal = false" class="modal-close-btn" aria-label="Close">×</button>
+              </div>
+              <div class="modal-content-inner">
+                <p class="modal-subtitle">Select a member to assign to this task</p>
+                
+                <!-- Search Input -->
+                <input
+                  v-model="memberSearchQuery"
+                  type="text"
+                  class="modal-search-input"
+                  placeholder="Search members..."
+                />
+
+                <!-- Available Members -->
+                <div v-if="filteredUnassignedMembers.length > 0" class="modal-members-list">
+                  <div
+                    v-for="member in filteredUnassignedMembers"
+                    :key="member.user.id"
+                    class="modal-member-item"
+                    @click="assignMember(member.user.id)"
+                    :class="{ 'disabled': loading }"
+                  >
+                    <div 
+                      class="modal-member-avatar" 
+                      :class="{ 'is-creator': member.role === 'creator' }"
+                    >
+                      {{ getInitials(member.user.name) }}
+                    </div>
+                    <div class="modal-member-info">
+                      <div class="modal-member-name">{{ member.user.name }}</div>
+                      <div class="modal-member-role">{{ member.role === 'creator' ? 'Creator' : 'Member' }}</div>
+                    </div>
+                  </div>
+                </div>
+                <p v-else class="modal-empty-message">
+                  {{ memberSearchQuery ? 'No members found' : 'All members are already assigned' }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
 
       <!-- Subtasks -->
       <div class="task-section">
         <div class="section-header">
           <h3>Subtasks</h3>
-          <button 
-            v-if="canManage"
-            class="btn-text" 
-            @click="showAddSubtask = true"
-            :disabled="loading"
-          >
-            + Add Subtask
-          </button>
+          <div class="section-header-actions">
+            <button 
+              v-if="canManage"
+              class="btn-text-assignee" 
+              @click="showAddSubtask = true"
+              :disabled="loading"
+            >
+              + Add Subtask
+            </button>
+            <button 
+              v-if="canManage && task.subtasks && task.subtasks.length > 0"
+              class="btn-text-assignee" 
+              @click="toggleSubtaskEditMode"
+              :disabled="loading"
+            >
+              {{ isEditingSubtasks ? 'Done' : 'Edit' }}
+            </button>
+          </div>
         </div>
 
         <div v-if="showAddSubtask" class="add-subtask-form">
@@ -97,15 +251,33 @@
           >
             <label class="checkbox-container">
               <input 
+                v-if="!isEditingSubtasks"
                 type="checkbox" 
                 :checked="subtask.completed"
                 @change="toggleSubtaskCompletion(subtask.id)"
                 :disabled="loading"
               />
-              <span :class="{ completed: subtask.completed }">{{ subtask.title }}</span>
+              <input 
+                v-if="isEditingSubtasks && editingSubtaskId === subtask.id"
+                v-model="editingSubtaskTitle"
+                type="text"
+                class="subtask-edit-input"
+                @keyup.enter="saveSubtaskEdit(subtask.id)"
+                @keyup.esc="cancelSubtaskEdit"
+                @blur="saveSubtaskEdit(subtask.id)"
+                ref="subtaskEditInput"
+              />
+              <span 
+                v-else
+                :class="{ completed: subtask.completed }"
+                @click="isEditingSubtasks ? startEditingSubtask(subtask.id, subtask.title) : null"
+                :style="{ cursor: isEditingSubtasks ? 'pointer' : 'default' }"
+              >
+                {{ subtask.title }}
+              </span>
             </label>
             <button 
-              v-if="canManage"
+              v-if="isEditingSubtasks"
               class="btn-delete" 
               @click="deleteSubtask(subtask.id)"
               :disabled="loading"
@@ -196,6 +368,20 @@
       </div>
     </div>
   </SlideInModal>
+
+  <!-- Delete Confirmation Modal -->
+  <ConfirmModal
+    v-model="showDeleteConfirm"
+    title="Delete Task"
+    message="Are you sure you want to delete this task? This action cannot be undone."
+    confirm-text="Delete"
+    cancel-text="Cancel"
+    :danger="true"
+    @confirm="deleteTask"
+  />
+
+  <!-- Toast Notification -->
+  <Toast :show="showToast" :message="toastMessage" @update:show="showToast = $event" />
 </template>
 
 <script setup lang="ts">
@@ -203,6 +389,8 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { playbooksApi } from '../services/api'
 import SlideInModal from './SlideInModal.vue'
+import ConfirmModal from './ConfirmModal.vue'
+import Toast from './Toast.vue'
 import type { Task, PlaybookMember, TaskComment } from '../types/collaboration'
 
 interface Props {
@@ -223,6 +411,51 @@ const loading = ref(false)
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
+})
+
+// Task editing
+const isEditingTask = ref(false)
+const editableTask = ref({
+  title: '',
+  description: '',
+  dueDate: ''
+})
+
+// Delete confirmation
+const showDeleteConfirm = ref(false)
+
+// Toast notification
+const showToast = ref(false)
+const toastMessage = ref('')
+
+// Assignee editing
+const isEditingAssignees = ref(false)
+const showAssignMemberModal = ref(false)
+const memberSearchQuery = ref('')
+
+// Subtask editing
+const isEditingSubtasks = ref(false)
+const editingSubtaskId = ref<string | null>(null)
+const editingSubtaskTitle = ref('')
+
+// Computed: Filter assigned members
+const assignedMembers = computed(() => {
+  if (!props.task?.assignedTo) return []
+  return props.members.filter(m => props.task.assignedTo.includes(m.user.id))
+})
+
+// Computed: Filter unassigned members for the modal
+const filteredUnassignedMembers = computed(() => {
+  const assignedIds = props.task?.assignedTo || []
+  const unassigned = props.members.filter(m => !assignedIds.includes(m.user.id))
+  
+  if (!memberSearchQuery.value.trim()) {
+    return unassigned
+  }
+  
+  return unassigned.filter(m => 
+    m.user.name.toLowerCase().includes(memberSearchQuery.value.toLowerCase())
+  )
 })
 
 // Subtasks
@@ -291,30 +524,110 @@ const toggleTaskCompletion = async () => {
   }
 }
 
-// Member assignments
-const isAssigned = (userId: number) => {
-  return props.task?.assignedTo?.includes(userId) || false
-}
-
-const toggleAssignment = async (userId: number) => {
+// Delete task
+const deleteTask = async () => {
   if (!props.playbook || !props.task || loading.value) return
-  
-  const currentAssignments = props.task.assignedTo || []
-  const newAssignments = isAssigned(userId)
-    ? currentAssignments.filter(id => id !== userId)
-    : [...currentAssignments, userId]
   
   loading.value = true
   try {
-    await playbooksApi.assignTask(props.playbook.id, props.task.id, newAssignments)
+    await playbooksApi.deleteTask(props.playbook.id, props.task.id)
+    
+    // Show success toast
+    toastMessage.value = 'Task deleted successfully'
+    showToast.value = true
+    
     emit('refresh')
+    isOpen.value = false // Close the modal after successful deletion
   } catch (error) {
-    console.error('Failed to update assignments:', error)
-    alert('Failed to update assignments')
+    console.error('Failed to delete task:', error)
+    toastMessage.value = 'Failed to delete task'
+    showToast.value = true
+  } finally {
+    loading.value = false
+    showDeleteConfirm.value = false
+  }
+}
+
+// Task editing
+const startEditingTask = () => {
+  if (!props.task) return
+  isEditingTask.value = true
+  editableTask.value = {
+    title: props.task.title,
+    description: props.task.description || '',
+    dueDate: props.task.dueDate || ''
+  }
+}
+
+const cancelEditingTask = () => {
+  isEditingTask.value = false
+  editableTask.value = { title: '', description: '', dueDate: '' }
+}
+
+const saveTaskEdit = async () => {
+  if (!props.playbook || !props.task || !editableTask.value.title.trim() || loading.value) return
+  
+  loading.value = true
+  try {
+    await playbooksApi.updateTask(props.playbook.id, props.task.id, {
+      title: editableTask.value.title,
+      description: editableTask.value.description,
+      dueDate: editableTask.value.dueDate
+    })
+    emit('refresh')
+    isEditingTask.value = false
+  } catch (error) {
+    console.error('Failed to update task:', error)
+    alert('Failed to update task')
   } finally {
     loading.value = false
   }
 }
+
+// Assignee editing
+const toggleAssigneeEditMode = () => {
+  isEditingAssignees.value = !isEditingAssignees.value
+}
+
+const assignMember = async (userId: number) => {
+  if (!props.playbook || !props.task || loading.value) return
+  
+  loading.value = true
+  try {
+    const updatedAssignedTo = [...(props.task.assignedTo || []), userId]
+    await playbooksApi.updateTask(props.playbook.id, props.task.id, {
+      assignedTo: updatedAssignedTo
+    })
+    emit('refresh')
+    showAssignMemberModal.value = false
+    memberSearchQuery.value = ''
+  } catch (error) {
+    console.error('Failed to assign member:', error)
+    alert('Failed to assign member')
+  } finally {
+    loading.value = false
+  }
+}
+
+const unassignMember = async (userId: number) => {
+  if (!props.playbook || !props.task || loading.value) return
+  
+  loading.value = true
+  try {
+    const updatedAssignedTo = (props.task.assignedTo || []).filter(id => id !== userId)
+    await playbooksApi.updateTask(props.playbook.id, props.task.id, {
+      assignedTo: updatedAssignedTo
+    })
+    emit('refresh')
+  } catch (error) {
+    console.error('Failed to unassign member:', error)
+    alert('Failed to unassign member')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Subtask management
 
 // Subtasks
 const addSubtask = async () => {
@@ -322,9 +635,11 @@ const addSubtask = async () => {
   
   loading.value = true
   try {
-    await playbooksApi.addSubtask(props.playbook.id, props.task.id, newSubtaskTitle.value.trim())
+    const result = await playbooksApi.addSubtask(props.playbook.id, props.task.id, newSubtaskTitle.value.trim())
     newSubtaskTitle.value = ''
     showAddSubtask.value = false
+    // Force immediate refresh to show new subtask
+    await nextTick()
     emit('refresh')
   } catch (error) {
     console.error('Failed to add subtask:', error)
@@ -356,7 +671,6 @@ const toggleSubtaskCompletion = async (subtaskId: string) => {
 
 const deleteSubtask = async (subtaskId: string) => {
   if (!props.playbook || !props.task || loading.value) return
-  if (!confirm('Delete this subtask?')) return
   
   loading.value = true
   try {
@@ -365,6 +679,44 @@ const deleteSubtask = async (subtaskId: string) => {
   } catch (error) {
     console.error('Failed to delete subtask:', error)
     alert('Failed to delete subtask')
+  } finally {
+    loading.value = false
+  }
+}
+
+const toggleSubtaskEditMode = () => {
+  isEditingSubtasks.value = !isEditingSubtasks.value
+  if (!isEditingSubtasks.value) {
+    cancelSubtaskEdit()
+  }
+}
+
+const startEditingSubtask = (subtaskId: string, title: string) => {
+  editingSubtaskId.value = subtaskId
+  editingSubtaskTitle.value = title
+}
+
+const cancelSubtaskEdit = () => {
+  editingSubtaskId.value = null
+  editingSubtaskTitle.value = ''
+}
+
+const saveSubtaskEdit = async (subtaskId: string) => {
+  if (!props.playbook || !props.task || !editingSubtaskTitle.value.trim() || loading.value) return
+  
+  loading.value = true
+  try {
+    await playbooksApi.updateSubtask(
+      props.playbook.id, 
+      props.task.id, 
+      subtaskId, 
+      { title: editingSubtaskTitle.value.trim() }
+    )
+    emit('refresh')
+    cancelSubtaskEdit()
+  } catch (error) {
+    console.error('Failed to update subtask:', error)
+    alert('Failed to update subtask')
   } finally {
     loading.value = false
   }
@@ -499,6 +851,88 @@ watch(showAddSubtask, async (show) => {
   color: #2c2c2c;
 }
 
+.task-view-mode .task-description {
+  margin-bottom: 20px;
+}
+
+/* Status Section */
+.task-status-section {
+  margin-top: 32px;
+}
+
+.task-status-section .section-label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: all var(--transition-base);
+}
+
+.status-in-progress {
+  background: rgba(232, 180, 160, 0.15);
+  color: var(--color-accent-1);
+  border: 1px solid var(--color-accent-1);
+}
+
+.status-completed {
+  background: rgba(184, 212, 200, 0.15);
+  color: var(--color-accent-2);
+  border: 1px solid var(--color-accent-2);
+}
+
+.task-actions-section {
+  margin-top: 32px;
+}
+
+.task-actions-section .section-label {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.task-actions-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.task-action-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(42, 42, 42, 0.15);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.task-action-btn:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.task-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.task-edit-mode {
+  background: var(--color-bg-secondary);
+  border-radius: 4px;
+  padding: 2rem;
+}
+
 .task-status {
   margin-top: 16px;
 }
@@ -620,6 +1054,74 @@ watch(showAddSubtask, async (show) => {
 
 .member-role {
   text-align: center;
+}
+
+.remove-member-btn-action {
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: transparent;
+  border: 1px solid #e85d4d;
+  color: #e85d4d;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  border-radius: 3px;
+}
+
+.remove-member-btn-action:hover {
+  background: #e85d4d;
+  color: white;
+}
+
+.remove-member-btn-action:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  border: 1px solid rgba(42, 42, 42, 0.15);
+  transition: border-color var(--transition-base);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent-2);
+}
+
+.form-textarea {
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding-top: 0.5rem;
 }
 
 /* Subtasks */
@@ -868,5 +1370,320 @@ watch(showAddSubtask, async (show) => {
 .btn-sm:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* Action buttons */
+.btn-text-action {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(42, 42, 42, 0.15);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.btn-text-action:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.btn-text-action:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Timeline styling */
+.task-due-date {
+  margin-bottom: 2rem;
+}
+
+.timeline-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.timeline-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timeline-value {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timeline-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeline-marker[data-accent="1"] {
+  background: var(--color-accent-1);
+}
+
+.timeline-marker[data-accent="2"] {
+  background: var(--color-accent-2);
+}
+
+.timeline-marker[data-accent="3"] {
+  background: var(--color-accent-3);
+}
+
+.timeline-date {
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+/* Assign member modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--container-padding);
+}
+
+.assign-member-modal {
+  background: var(--color-bg-primary);
+  border-left: 3px solid var(--color-accent-2);
+  max-width: 500px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 48px rgba(42, 42, 42, 0.2);
+}
+
+.modal-header-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+}
+
+.modal-content-inner {
+  padding: 2rem;
+  background: var(--color-bg-secondary);
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-normal);
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-align: left;
+  color: var(--color-text-primary);
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+}
+
+.modal-close-btn:hover {
+  color: var(--color-text-primary);
+  background: rgba(42, 42, 42, 0.05);
+}
+
+.modal-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  text-align: left;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+}
+
+.modal-search-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(42, 42, 42, 0.15);
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  margin-bottom: 1.5rem;
+  transition: border-color var(--transition-base);
+}
+
+.modal-search-input:focus {
+  outline: none;
+  border-color: var(--color-accent-2);
+}
+
+.modal-search-input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.modal-members-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.modal-member-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  cursor: pointer;
+  transition: background var(--transition-base);
+}
+
+.modal-member-item:last-child {
+  border-bottom: none;
+}
+
+.modal-member-item:hover:not(.disabled) {
+  background: rgba(42, 42, 42, 0.02);
+}
+
+.modal-member-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #d0d0d0;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+}
+
+.modal-member-avatar.is-creator {
+  background: linear-gradient(135deg, #e8b4a0, #b8d4c8, #c9b8e8);
+}
+
+.modal-member-info {
+  flex: 1;
+}
+
+.modal-member-name {
+  font-size: 0.9375rem;
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.modal-member-role {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modal-empty-message {
+  text-align: left;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  padding: 1rem 0;
+  margin: 0;
+}
+
+/* Modal Transitions */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-active .assign-member-modal,
+.modal-leave-active .assign-member-modal {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from .assign-member-modal,
+.modal-leave-to .assign-member-modal {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* Button styling matching FullPlaybookPage */
+.btn-text-assignee {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+  transition: color var(--transition-base);
+  padding: 0;
+  margin-left: 1rem;
+}
+
+.btn-text-assignee:first-child {
+  margin-left: 0;
+}
+
+.btn-text-assignee:hover {
+  color: var(--color-text-primary);
+}
+
+.btn-text-assignee:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Subtask edit input */
+.subtask-edit-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--color-accent-1);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 300;
+  background: white;
+  outline: none;
+}
+
+.subtask-edit-input:focus {
+  border-color: var(--color-accent-2);
 }
 </style>

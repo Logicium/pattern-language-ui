@@ -7,9 +7,10 @@
       </div>
 
       <div class="patterns-grid">
-        <div
+        <router-link
           v-for="(pattern, index) in patterns"
           :key="pattern.id"
+          :to="`/patterns/${pattern.id}`"
           class="pattern-item"
           :data-accent="(index % 3) + 1"
         >
@@ -25,7 +26,7 @@
               </span>
             </div>
           </div>
-        </div>
+        </router-link>
       </div>
     </div>
   </section>
@@ -60,6 +61,9 @@ const patterns = computed(() => allPatterns.value.slice(0, 6))
   gap: 2rem;
   transition: all var(--transition-base);
   position: relative;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .pattern-item::before {
