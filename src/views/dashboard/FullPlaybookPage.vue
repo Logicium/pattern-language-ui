@@ -65,7 +65,6 @@
 
                 <!-- Timeline with dots -->
                 <div class="overview-section">
-                  <span class="section-label text-xs text-tertiary">Timeline</span>
                   <div class="timeline">
                     <div class="timeline-item">
                       <span class="timeline-label text-xs text-tertiary">STARTED</span>
@@ -259,18 +258,46 @@
                 >
                   <!-- Task Display Mode -->
                   <div v-if="editingTaskId !== task.id" class="task-main">
-                    <div v-if="isUserMember" class="task-checkbox-wrapper">
-                      <input
-                        type="checkbox"
-                        :checked="task.completed"
-                        @change="toggleTask(task.id)"
-                        class="task-checkbox"
-                      />
+                    <div class="task-header-row">
+                      <div v-if="isUserMember" class="task-checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          :checked="task.completed"
+                          @change="toggleTask(task.id)"
+                          class="task-checkbox"
+                        />
+                      </div>
+                      <div class="task-title-wrapper">
+                        <div class="task-title text-sm" :class="{ completed: task.completed }">
+                          {{ task.title }}
+                        </div>
+                      </div>
+                      <div v-if="isUserMember" class="task-actions">
+                        <button
+                          @click="selectedTask = task; showTaskDetailsModal = true"
+                          class="task-action-btn text-xs"
+                          type="button"
+                        >
+                          View
+                        </button>
+                        <button
+                          @click="startEditingTask(task)"
+                          class="task-action-btn text-xs"
+                          type="button"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          @click="toggleTaskNotes(task.id)"
+                          class="task-action-btn text-xs"
+                          :class="{ active: expandedTaskNotes[task.id] }"
+                          type="button"
+                        >
+                          {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
+                        </button>
+                      </div>
                     </div>
                     <div class="task-content">
-                      <div class="task-title text-sm" :class="{ completed: task.completed }">
-                        {{ task.title }}
-                      </div>
                       <p class="task-description text-xs text-secondary">
                         {{ task.description }}
                       </p>
@@ -278,30 +305,6 @@
                         <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
                         <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
                       </div>
-                    </div>
-                    <div v-if="isUserMember" class="task-actions">
-                      <button
-                        @click="selectedTask = task; showTaskDetailsModal = true"
-                        class="task-action-btn text-xs"
-                        type="button"
-                      >
-                        View
-                      </button>
-                      <button
-                        @click="startEditingTask(task)"
-                        class="task-action-btn text-xs"
-                        type="button"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        @click="toggleTaskNotes(task.id)"
-                        class="task-action-btn text-xs"
-                        :class="{ active: expandedTaskNotes[task.id] }"
-                        type="button"
-                      >
-                        {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
-                      </button>
                     </div>
                   </div>
 
@@ -408,7 +411,7 @@
               <div v-if="!isEditingResources" class="resources-grid">
                 <!-- Link Resources (external) -->
                 <a
-                  v-for="resource in playbook.resources.filter(r => r.type === 'link')"
+                  v-for="resource in playbook.resources.filter((r: any) => r.type === 'link')"
                   :key="`${resource.type}-${resource.id}`"
                   :href="resource.url"
                   target="_blank"
@@ -422,7 +425,7 @@
                 
                 <!-- Internal Resources (patterns, challenges, stories) -->
                 <router-link
-                  v-for="resource in playbook.resources.filter(r => r.type !== 'link')"
+                  v-for="resource in playbook.resources.filter((r: any) => r.type !== 'link')"
                   :key="`${resource.type}-${resource.id}`"
                   :to="getResourceLink(resource)"
                   class="resource-card text-sm"
@@ -674,7 +677,7 @@ const loadPublicPlaybook = async () => {
 
 const completedTasksCount = computed(() => {
   if (!playbook.value) return 0
-  return playbook.value.tasks.filter(t => t.completed).length
+  return playbook.value.tasks.filter((t: any) => t.completed).length
 })
 
 // Success story generation
@@ -739,7 +742,7 @@ const cancelTaskEdit = () => {
 const saveTaskEdit = () => {
   if (!playbook.value || !editingTaskId.value || !editingTask.value.title.trim()) return
   
-  const updatedTasks = playbook.value.tasks.map(task => 
+  const updatedTasks = playbook.value.tasks.map((task: any) => 
     task.id === editingTaskId.value
       ? {
           ...task,
@@ -812,7 +815,7 @@ const saveTaskNotes = (taskId: string) => {
 // Load task notes from localStorage
 watch(() => playbook.value, (newPlaybook) => {
   if (newPlaybook) {
-    newPlaybook.tasks.forEach(task => {
+    newPlaybook.tasks.forEach((task: any) => {
       const storageKey = `task-notes-${newPlaybook.id}-${task.id}`
       const savedNotes = localStorage.getItem(storageKey)
       if (savedNotes) {
@@ -876,7 +879,7 @@ const handleDeleteResource = () => {
   if (!playbook.value || !resourceToDelete.value) return
   
   const updatedResources = playbook.value.resources.filter(
-    resource => resource.id !== resourceToDelete.value
+    (resource: any) => resource.id !== resourceToDelete.value
   )
   
   playbooksStore.updatePlaybook(playbook.value.id, { resources: updatedResources })
@@ -1027,7 +1030,9 @@ const requestToJoin = async () => {
     // Find the creator from members list or playbook data
     const creator = members.value.find(m => m.role === 'creator')
     if (creator) {
-      await playbooksApi.invite(playbook.value.id, authStore.user.id, 'Request to join this playbook')
+      // Convert user id from string to number for the API
+      const userId = parseInt(authStore.user.id, 10)
+      await playbooksApi.invite(playbook.value.id, userId, 'Request to join this playbook')
       toastMessage.value = 'Join request sent to playbook creator'
       showToast.value = true
     } else {
@@ -1173,7 +1178,7 @@ const getResourceLink = (resource: any) => {
 
 /* Hero */
 .playbook-hero {
-  padding: 8rem var(--container-padding) 8rem;
+  padding: 4rem 0;
 }
 
 .container {
@@ -1629,15 +1634,28 @@ const getResourceLink = (resource: any) => {
 
 .task-main {
   display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.task-header-row {
+  display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 1rem;
+  padding: 1.5rem 1.5rem 0.75rem;
+}
+
+.task-title-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 .task-checkbox-wrapper {
-  padding: 1.5rem 0 1.5rem 1.5rem;
   display: flex;
   align-items: flex-start;
+  padding: 0;
 }
 
 .task-checkbox {
@@ -1647,6 +1665,7 @@ const getResourceLink = (resource: any) => {
   cursor: pointer;
   accent-color: var(--color-accent-2);
   flex-shrink: 0;
+  border-radius: 0;
 }
 
 .task-content {
@@ -1654,12 +1673,12 @@ const getResourceLink = (resource: any) => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 1.5rem;
+  padding: 0 1.5rem 1.5rem 1.5rem;
 }
 
-/* When checkbox is present, remove left padding from content */
-.task-checkbox-wrapper + .task-content {
-  padding-left: 0;
+/* When checkbox is present, add left padding to align with title */
+.task-header-row + .task-content {
+  padding-left: calc(1.5rem + 18px + 1rem);
 }
 
 .task-title {
@@ -1684,7 +1703,6 @@ const getResourceLink = (resource: any) => {
 .task-actions {
   display: flex;
   gap: 0.5rem;
-  padding: 1.5rem 1.5rem 1.5rem 0;
   flex-shrink: 0;
 }
 
@@ -1952,7 +1970,7 @@ const getResourceLink = (resource: any) => {
 
 @media (max-width: 768px) {
   .playbook-hero {
-    padding: 6rem var(--container-padding) 6rem;
+    padding: 3rem 0;
   }
 
   .hero-title {
@@ -1967,13 +1985,18 @@ const getResourceLink = (resource: any) => {
     padding: 2rem;
   }
 
-  .task-main {
+  .task-header-row {
     flex-direction: column;
+    gap: 0.75rem;
   }
 
   .task-actions {
-    padding: 0 1.5rem 1.5rem;
     align-self: flex-start;
+    width: 100%;
+  }
+
+  .task-action-btn {
+    flex: 1;
   }
 
   .content-nav {
@@ -2008,7 +2031,6 @@ const getResourceLink = (resource: any) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
 }
 
 .section-actions {
@@ -2020,7 +2042,6 @@ const getResourceLink = (resource: any) => {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  margin-bottom: 1rem;
 }
 
 .member-card {

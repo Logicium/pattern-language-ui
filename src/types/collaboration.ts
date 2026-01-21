@@ -62,6 +62,7 @@ export interface Task {
   description: string
   completed: boolean
   completedDate: string | null
+  dueDate?: string | null
   assignedTo?: number[]
   subtasks?: Subtask[]
 }

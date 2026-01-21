@@ -441,7 +441,7 @@ const editingSubtaskTitle = ref('')
 // Computed: Filter assigned members
 const assignedMembers = computed(() => {
   if (!props.task?.assignedTo) return []
-  return props.members.filter(m => props.task.assignedTo.includes(m.user.id))
+  return props.members.filter(m => props.task?.assignedTo?.includes(m.user.id))
 })
 
 // Computed: Filter unassigned members for the modal
