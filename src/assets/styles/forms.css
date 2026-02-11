@@ -1,0 +1,45 @@
+/* Form Elements - Extracted from component files */
+
+/* Form Groups and Labels */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Form Inputs and Textareas */
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  border: 1px solid rgba(42, 42, 42, 0.15);
+  transition: border-color var(--transition-base);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent-2);
+}
+
+.form-textarea {
+  resize: vertical;
+}
+
+/* Form Actions Container */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding-top: 0.5rem;
+}

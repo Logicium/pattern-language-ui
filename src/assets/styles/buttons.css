@@ -1,0 +1,74 @@
+/* Button Variants - Extracted from component files */
+/* Note: Base .btn and .btn-lg already exist in global.css */
+
+/* Small Button Size */
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Secondary Button (outlined style) */
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(42, 42, 42, 0.15);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  font-size: 0.875rem;
+  transition: all var(--transition-base);
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
+}
+
+/* Text Button (no border, minimal style) */
+.btn-text {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color var(--transition-base);
+  padding: 0;
+}
+
+.btn-text:hover {
+  color: var(--color-text-primary);
+}
+
+/* Danger Button Variant */
+.btn-danger,
+.btn-secondary.btn-danger {
+  border-color: rgba(232, 180, 160, 0.3);
+  color: var(--color-accent-warm);
+}
+
+.btn-danger:hover,
+.btn-secondary.btn-danger:hover {
+  border-color: var(--color-accent-1);
+  background: rgba(232, 180, 160, 0.05);
+}
+
+/* Button Disabled State */
+.btn:disabled,
+.btn-secondary:disabled,
+.btn-text:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Text Danger Color */
+.text-danger {
+  color: var(--color-accent-warm) !important;
+}
+
+.text-danger:hover {
+  color: var(--color-accent-1) !important;
+}

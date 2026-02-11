@@ -219,7 +219,9 @@ const handleGoToSignup = () => {
 
 .form-actions {
   margin-top: 3rem;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .submit-btn {
@@ -234,6 +236,7 @@ const handleGoToSignup = () => {
 
 .auth-link {
   line-height: 1.6;
+  text-align: center;
 }
 
 .auth-link .link {

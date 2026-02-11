@@ -629,22 +629,24 @@ const handleGoToLogin = () => {
 
 .form-actions {
   margin-top: 3rem;
-  text-align: center;
-}
-
-.button-group {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  flex-direction: column;
   align-items: stretch;
 }
 
+.button-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
+}
+
 .button-group .btn {
-  flex: 1;
-  height: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
 }
 
 .submit-btn {
@@ -656,6 +658,9 @@ const handleGoToLogin = () => {
   background: transparent !important;
   border: 1px solid var(--color-text-tertiary) !important;
   color: var(--color-text-primary) !important;
+}
+
+.btn-lg.btn-secondary {
   padding: 1rem 2.5rem !important;
 }
 
@@ -677,10 +682,12 @@ const handleGoToLogin = () => {
 
 .privacy-note {
   line-height: 1.6;
+  text-align: center;
 }
 
 .auth-link {
   line-height: 1.6;
+  text-align: center;
 }
 
 .auth-link .link {
@@ -796,7 +803,7 @@ const handleGoToLogin = () => {
   }
 
   .button-group {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .step-indicator {
