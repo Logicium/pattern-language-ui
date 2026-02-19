@@ -141,6 +141,8 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
+  
+  // Check token validity - this will automatically clear expired tokens
   const isAuthenticated = authStore.isAuthenticated
 
   // Routes that require authentication

@@ -1,3 +1,6 @@
+import { isTokenExpired } from '@/utils/jwt'
+import router from '@/router'
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 // Helper function to get auth token
@@ -5,9 +8,24 @@ function getAuthToken(): string | null {
   return localStorage.getItem('auth_token')
 }
 
+// Helper function to clear auth and redirect to login
+function handleAuthError() {
+  localStorage.removeItem('auth_token')
+  localStorage.removeItem('user')
+  router.push({ name: 'login' })
+}
+
 // Helper function to make authenticated requests
 async function authFetch(url: string, options: RequestInit = {}) {
   const token = getAuthToken()
+  
+  // Check if token is expired before making request
+  if (token && isTokenExpired(token)) {
+    console.log('Token expired, redirecting to login')
+    handleAuthError()
+    throw new Error('Session expired. Please login again.')
+  }
+  
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -21,6 +39,13 @@ async function authFetch(url: string, options: RequestInit = {}) {
     ...options,
     headers,
   })
+
+  // Handle 401 Unauthorized - token is invalid or expired
+  if (response.status === 401) {
+    console.log('Received 401 Unauthorized, clearing auth and redirecting to login')
+    handleAuthError()
+    throw new Error('Session expired. Please login again.')
+  }
 
   if (!response.ok) {
     throw new Error(`API error: ${response.statusText}`)
@@ -202,6 +227,14 @@ export const settingsApi = {
 export const uploadApi = {
   uploadImage: async (file: File): Promise<{ url: string; filename: string; size: number; mimetype: string }> => {
     const token = getAuthToken()
+    
+    // Check if token is expired before making request
+    if (token && isTokenExpired(token)) {
+      console.log('Token expired, redirecting to login')
+      handleAuthError()
+      throw new Error('Session expired. Please login again.')
+    }
+    
     const formData = new FormData()
     formData.append('file', file)
     
@@ -215,6 +248,13 @@ export const uploadApi = {
       headers,
       body: formData,
     })
+    
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      console.log('Received 401 Unauthorized, clearing auth and redirecting to login')
+      handleAuthError()
+      throw new Error('Session expired. Please login again.')
+    }
     
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: response.statusText }))

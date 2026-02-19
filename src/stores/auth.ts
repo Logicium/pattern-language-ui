@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { isTokenExpired } from '@/utils/jwt'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -19,8 +20,29 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null
   )
 
+  // Check if token is expired on initialization and clear if needed
+  if (token.value && isTokenExpired(token.value)) {
+    console.log('Token expired on initialization, clearing auth state')
+    token.value = null
+    user.value = null
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user')
+  }
+
   // Getters
-  const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = computed(() => {
+    if (!token.value) return false
+    // Double-check token hasn't expired
+    if (isTokenExpired(token.value)) {
+      // Clear expired token
+      token.value = null
+      user.value = null
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user')
+      return false
+    }
+    return true
+  })
   const currentUser = computed(() => user.value)
 
   // Actions
@@ -106,6 +128,16 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
+  // Check if the current token is valid (not expired)
+  function checkTokenValidity(): boolean {
+    if (!token.value) return false
+    if (isTokenExpired(token.value)) {
+      logout()
+      return false
+    }
+    return true
+  }
+
   async function updateUser(updates: Partial<User>) {
     try {
       const response = await fetch(`${API_URL}/settings`, {
@@ -143,6 +175,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     signup,
     logout,
-    updateUser
+    updateUser,
+    checkTokenValidity
   }
 })
