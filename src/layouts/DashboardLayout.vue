@@ -367,6 +367,24 @@ onMounted(() => {
     transform: translateX(0);
   }
 
+  /* Increase text size for mobile readability */
+  .nav-item {
+    font-size: 1rem;
+    padding: 1rem var(--spacing-sm);
+  }
+
+  .nav-label {
+    font-size: 1rem;
+  }
+
+  .user-name {
+    font-size: 0.875rem;
+  }
+
+  .sidebar-footer .btn-text {
+    font-size: 0.875rem;
+  }
+
   /* Mobile Menu Overlay */
   .mobile-menu-overlay {
     display: block;
