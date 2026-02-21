@@ -108,11 +108,13 @@ defineExpose({ close })
 /* Responsive */
 @media (max-width: 768px) {
   .slide-in-modal-overlay {
-    left: 0;
+    left: 0 !important;
   }
   
   .slide-in-modal {
-    left: 0;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
   }
 }
 
