@@ -24,25 +24,25 @@
         <span></span>
       </button>
     </div>
-
-    <!-- Mobile Menu Drawer -->
-    <div class="mobile-menu" :class="{ 'is-open': isMobileMenuOpen }">
-      <div class="mobile-menu-links">
-        <router-link to="/about" @click="closeMobileMenu">About</router-link>
-        <router-link to="/patterns" @click="closeMobileMenu">Patterns</router-link>
-        <router-link to="/stories" @click="closeMobileMenu">Stories</router-link>
-        <router-link v-if="isAuthenticated" to="/dashboard" class="btn" @click="closeMobileMenu">Dashboard</router-link>
-        <router-link v-else to="/signup" class="btn" @click="closeMobileMenu">Start</router-link>
-      </div>
-    </div>
-
-    <!-- Mobile Menu Overlay -->
-    <div 
-      class="mobile-menu-overlay" 
-      :class="{ 'is-visible': isMobileMenuOpen }"
-      @click="closeMobileMenu"
-    ></div>
   </nav>
+
+  <!-- Mobile Menu Drawer -->
+  <div class="mobile-menu" :class="{ 'is-open': isMobileMenuOpen }">
+    <div class="mobile-menu-links">
+      <router-link to="/about" @click="closeMobileMenu">About</router-link>
+      <router-link to="/patterns" @click="closeMobileMenu">Patterns</router-link>
+      <router-link to="/stories" @click="closeMobileMenu">Stories</router-link>
+      <router-link v-if="isAuthenticated" to="/dashboard" class="btn" @click="closeMobileMenu">Dashboard</router-link>
+      <router-link v-else to="/signup" class="btn" @click="closeMobileMenu">Start</router-link>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Overlay -->
+  <div 
+    class="mobile-menu-overlay" 
+    :class="{ 'is-visible': isMobileMenuOpen }"
+    @click="closeMobileMenu"
+  ></div>
 </template>
 
 <script setup lang="ts">
@@ -228,6 +228,7 @@ const closeMobileMenu = () => {
   transition: opacity var(--transition-base);
   z-index: 998;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .mobile-menu-overlay.is-visible {
@@ -242,6 +243,11 @@ const closeMobileMenu = () => {
   
   .hamburger {
     display: flex;
+  }
+  
+  /* Ensure overlay is visible on mobile */
+  .mobile-menu-overlay {
+    display: block;
   }
 }
 </style>
