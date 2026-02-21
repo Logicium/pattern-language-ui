@@ -330,7 +330,7 @@ onMounted(() => {
     top: 0;
     left: 0;
     right: 0;
-    padding: 1.25rem var(--spacing-md);
+    padding: 1.5rem var(--spacing-md);
     background: rgba(253, 251, 247, 0.8);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(42, 42, 42, 0.08);
@@ -360,7 +360,7 @@ onMounted(() => {
     transform: translateX(-100%);
     transition: transform var(--transition-base);
     z-index: 999;
-    padding-top: 63px;
+    padding-top: 73px;
   }
 
   .dashboard-sidebar.is-open {
@@ -389,7 +389,7 @@ onMounted(() => {
   }
 
   .dashboard-main {
-    padding-top: 63px;
+    padding-top: 71px;
     grid-column: 1;
   }
 }
