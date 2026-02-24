@@ -62,7 +62,7 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="cta-section gradient-bg">
+    <section v-if="!isModal" class="cta-section gradient-bg">
       <div class="container">
         <div class="cta-content">
           <h2 class="cta-title">Ready to Address This Challenge?</h2>
@@ -89,14 +89,23 @@ import { useRoute, useRouter } from 'vue-router'
 import { useChallenges } from '@/composables/useChallenges'
 import { usePatterns } from '@/composables/usePatterns'
 
+interface Props {
+  challengeData?: any
+  isModal?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isModal: false
+})
+
 const { challenges: allChallenges } = useChallenges()
 const { patterns: allPatterns } = usePatterns()
 
 const route = useRoute()
 const router = useRouter()
 
-const challengeId = computed(() => parseInt(route.params.id as string))
-const challenge = computed(() => allChallenges.value.find(c => c.id === challengeId.value))
+const challengeId = computed(() => props.challengeData?.id || parseInt(route.params.id as string))
+const challenge = computed(() => props.challengeData || allChallenges.value.find(c => c.id === challengeId.value))
 
 const getPatternIdByTitle = (title: string): number => {
   const pattern = allPatterns.value.find(p => p.title === title)

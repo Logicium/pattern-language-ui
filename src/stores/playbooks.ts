@@ -17,7 +17,20 @@ export interface Playbook {
   patternId: number
   patternTitle: string
   challenge: string
+  challenges?: Array<{ id: number; title: string }>
   solution: string
+  summary?: {
+    problem: string
+    approach: string
+    success90Days: string
+  }
+  kpis?: Array<{
+    id: string
+    category: 'participation' | 'diversity-collaboration' | 'pattern-specific'
+    title: string
+    description: string
+    target?: string
+  }>
   location: string
   status: 'active' | 'completed' | 'paused'
   progress: number // 0-100

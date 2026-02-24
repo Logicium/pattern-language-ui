@@ -1,6 +1,6 @@
 <template>
   <div class="pattern-page">
-    <Navbar />
+    <Navbar v-if="!isModal" />
 
     <div v-if="pattern">
       <!-- Hero -->
@@ -156,7 +156,7 @@
       </router-link>
     </div>
 
-    <Footer />
+    <Footer v-if="!isModal" />
   </div>
 </template>
 
@@ -168,15 +168,24 @@ import { usePatterns } from '@/composables/usePatterns'
 import { useStories } from '@/composables/useStories'
 import { useChallenges } from '@/composables/useChallenges'
 
+interface Props {
+  patternData?: any
+  isModal?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isModal: false
+})
+
 const { patterns: allPatterns } = usePatterns()
 const { stories: allStories } = useStories()
 const { challenges: allChallenges } = useChallenges()
 
 const route = useRoute()
-const patternId = computed(() => Number(route.params.id))
+const patternId = computed(() => props.patternData?.id || Number(route.params.id))
 
 const pattern = computed(() => 
-  allPatterns.value.find(p => p.id === patternId.value)
+  props.patternData || allPatterns.value.find(p => p.id === patternId.value)
 )
 
 const relatedStories = computed(() => {

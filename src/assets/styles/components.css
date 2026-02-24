@@ -83,7 +83,6 @@
 
 .badge-pattern:hover {
   border-color: var(--color-accent-2);
-  background: rgba(184, 212, 200, 0.05);
 }
 
 .badge-challenge {

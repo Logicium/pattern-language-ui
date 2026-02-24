@@ -48,17 +48,30 @@
                 <div class="overview-grid">
                   <div class="overview-item">
                     <span class="section-label text-xs text-tertiary">Original Pattern</span>
-                    <router-link 
-                      :to="`/patterns/${playbook.patternId}`" 
-                      class="badge badge-pattern text-xs"
+                    <button 
+                      @click="openPatternModal(playbook.patternId)" 
+                      class="badge badge-pattern text-xs clickable-badge"
                     >
                       {{ playbook.patternTitle }}
-                    </router-link>
+                    </button>
                   </div>
                   <div class="overview-item">
-                    <span class="section-label text-xs text-tertiary">Challenge</span>
-                    <div class="badge badge-challenge text-xs">
-                      {{ playbook.challenge }}
+                    <span class="section-label text-xs text-tertiary">{{ playbook.challenges && playbook.challenges.length > 0 ? 'Related Wicked Problems' : 'Challenge' }}</span>
+                    <div class="challenges-list">
+                      <!-- New format: multiple challenges -->
+                      <button
+                        v-if="playbook.challenges && playbook.challenges.length > 0"
+                        v-for="challenge in playbook.challenges"
+                        :key="challenge.id"
+                        @click="openChallengeModal(challenge.id)"
+                        class="badge badge-challenge text-xs clickable-badge"
+                      >
+                        {{ challenge.title }}
+                      </button>
+                      <!-- Old format: single challenge string -->
+                      <div v-else class="badge badge-challenge text-xs">
+                        {{ playbook.challenge }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -191,9 +204,53 @@
 
             <!-- Summary -->
             <div class="content-block">
-              <h2 class="section-subtitle">Summary</h2>
-              <div class="solution-display">
+              <div class="block-header">
+                <h2 class="section-subtitle">Summary</h2>
+              </div>
+              <!-- New format: structured summary -->
+              <div v-if="playbook.summary" class="summary-content">
+                <div class="summary-item">
+                  <h3 class="summary-label text-xs text-tertiary">THE PROBLEM</h3>
+                  <p class="text-secondary">{{ playbook.summary.problem }}</p>
+                </div>
+                <div class="summary-item">
+                  <h3 class="summary-label text-xs text-tertiary">OUR APPROACH</h3>
+                  <p class="text-secondary">{{ playbook.summary.approach }}</p>
+                </div>
+                <div class="summary-item">
+                  <h3 class="summary-label text-xs text-tertiary">SUCCESS IN 90 DAYS</h3>
+                  <p class="text-secondary">{{ playbook.summary.success90Days }}</p>
+                </div>
+              </div>
+              <!-- Old format: simple solution text -->
+              <div v-else class="solution-display">
                 <p class="text-secondary">{{ playbook.solution }}</p>
+              </div>
+            </div>
+
+            <!-- Key Performance Indicators -->
+            <div v-if="playbook.kpis && playbook.kpis.length > 0" class="content-block">
+              <div class="block-header">
+                <h2 class="section-subtitle">Key Performance Indicators</h2>
+              </div>
+              <div class="kpis-grid">
+                <div 
+                  v-for="(kpi, index) in playbook.kpis" 
+                  :key="kpi.id"
+                  class="kpi-card"
+                  :data-accent="((index % 3) + 1)"
+                >
+                  <div class="kpi-header">
+                    <span class="kpi-category text-xs text-tertiary">
+                      {{ formatKpiCategory(kpi.category) }}
+                    </span>
+                  </div>
+                  <h3 class="kpi-title text-sm">{{ kpi.title }}</h3>
+                  <p class="kpi-description text-xs text-secondary">{{ kpi.description }}</p>
+                  <div v-if="kpi.target" class="kpi-target text-xs">
+                    <span class="text-tertiary">Target:</span> {{ kpi.target }}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -588,6 +645,26 @@
         </p>
       </div>
     </SlideInModal>
+
+    <!-- Pattern Slide-In Modal -->
+    <SlideInModal v-model="showPatternModal">
+      <div v-if="selectedPattern" class="pattern-modal-content">
+        <button class="close-button" @click="showPatternModal = false" title="Close">
+          ← Back
+        </button>
+        <FullPatternPage :patternData="selectedPattern" :isModal="true" />
+      </div>
+    </SlideInModal>
+
+    <!-- Challenge Slide-In Modal -->
+    <SlideInModal v-model="showChallengeModal">
+      <div v-if="selectedChallenge" class="challenge-modal-content">
+        <button class="close-button" @click="showChallengeModal = false" title="Close">
+          ← Back
+        </button>
+        <FullChallengePage :challengeData="selectedChallenge" :isModal="true" />
+      </div>
+    </SlideInModal>
   </div>
 </template>
 
@@ -596,16 +673,22 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import { useAuthStore } from '@/stores/auth'
+import { useChallenges } from '@/composables/useChallenges'
+import { usePatterns } from '@/composables/usePatterns'
 import { userStoriesApi, playbooksApi, usersApi } from '@/services/api'
 import { ConfirmModal, Toast } from '@/components'
 import FullTaskPage from '@/components/FullTaskPage.vue'
 import SlideInModal from '@/components/SlideInModal.vue'
+import FullPatternPage from '@/views/FullPatternPage.vue'
+import FullChallengePage from '@/views/FullChallengePage.vue'
 import type { PlaybookMember, SearchedUser, Task } from '@/types/collaboration'
 
 const route = useRoute()
 const router = useRouter()
 const playbooksStore = usePlaybooksStore()
 const authStore = useAuthStore()
+const { challenges: allChallenges } = useChallenges()
+const { patterns: allPatterns } = usePatterns()
 const loading = ref(false)
 const localPlaybookData = ref<any>(null)
 const allLocalPlaybooks = ref<any[]>([])
@@ -679,6 +762,39 @@ const completedTasksCount = computed(() => {
   if (!playbook.value) return 0
   return playbook.value.tasks.filter((t: any) => t.completed).length
 })
+
+// Pattern and Challenge Modals
+const showPatternModal = ref(false)
+const showChallengeModal = ref(false)
+const selectedPattern = ref<any>(null)
+const selectedChallenge = ref<any>(null)
+
+const openPatternModal = (patternId: number) => {
+  selectedPattern.value = allPatterns.value.find(p => p.id === patternId)
+  if (selectedPattern.value) {
+    showPatternModal.value = true
+  }
+}
+
+const openChallengeModal = (challengeId: number) => {
+  selectedChallenge.value = allChallenges.value.find(c => c.id === challengeId)
+  if (selectedChallenge.value) {
+    showChallengeModal.value = true
+  }
+}
+
+const formatKpiCategory = (category: string) => {
+  switch (category) {
+    case 'participation':
+      return 'Participation'
+    case 'diversity-collaboration':
+      return 'Diversity & Collaboration'
+    case 'pattern-specific':
+      return 'Pattern-Specific'
+    default:
+      return category
+  }
+}
 
 // Success story generation
 const isGenerating = ref(false)
@@ -1872,5 +1988,135 @@ const getResourceLink = (resource: any) => {
   font-weight: 400;
   font-size: 15px;
   margin-bottom: 2px;
+}
+
+/* Pattern and Challenge Modal Styles */
+.pattern-modal-content,
+.challenge-modal-content {
+  padding: 0;
+  min-height: 100vh;
+}
+
+.pattern-modal-content .close-button,
+.challenge-modal-content .close-button {
+  position: absolute;
+  top: 2rem;
+  left: 3rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e0e0e0;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.pattern-modal-content .close-button:hover,
+.challenge-modal-content .close-button:hover {
+  background: white;
+  color: var(--color-text-primary);
+  border-color: #2c2c2c;
+}
+
+/* Clickable Badge Styles */
+.clickable-badge {
+  cursor: pointer;
+}
+
+.badge.clickable-badge:hover {
+  border-color: var(--color-accent-2);
+}
+
+.challenges-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Summary Grid */
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.summary-label {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* KPIs Grid */
+.kpis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid rgba(42, 42, 42, 0.08);
+}
+
+.kpi-card {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  border-right: 1px solid rgba(42, 42, 42, 0.08);
+  border-left: 3px solid transparent;
+  transition: all var(--transition-base);
+}
+
+.kpi-card:hover {
+  background: var(--color-bg-secondary);
+}
+
+.kpi-card:nth-child(2n) {
+  border-right: none;
+}
+
+.kpi-card:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+.kpi-card[data-accent="1"] {
+  border-left-color: var(--color-accent-1);
+}
+
+.kpi-card[data-accent="2"] {
+  border-left-color: var(--color-accent-2);
+}
+
+.kpi-card[data-accent="3"] {
+  border-left-color: var(--color-accent-3);
+}
+
+.kpi-header {
+  margin-bottom: 0.5rem;
+}
+
+.kpi-category {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.kpi-title {
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  color: #2c2c2c;
+}
+
+.kpi-description {
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.kpi-target {
+  margin-top: 0.5rem;
 }
 </style>
