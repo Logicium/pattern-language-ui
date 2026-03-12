@@ -240,15 +240,86 @@
                   class="kpi-card"
                   :data-accent="((index % 3) + 1)"
                 >
-                  <div class="kpi-header">
-                    <span class="kpi-category text-xs text-tertiary">
-                      {{ formatKpiCategory(kpi.category) }}
-                    </span>
+                  <!-- Display Mode -->
+                  <div v-if="editingKpiId !== kpi.id">
+                    <div class="kpi-header">
+                      <span class="kpi-category text-xs text-tertiary">
+                        {{ formatKpiCategory(kpi.category) }}
+                      </span>
+                      <button
+                        v-if="isUserMember"
+                        @click="startEditingKpi(kpi)"
+                        class="kpi-edit-btn text-xs"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <h3 class="kpi-title text-sm">{{ kpi.title }}</h3>
+                    <p class="kpi-description text-xs text-secondary">{{ kpi.description }}</p>
+                    
+                    <div class="kpi-metrics">
+                      <div class="kpi-target-row">
+                        <span class="text-xs text-tertiary">Target:</span>
+                        <span class="text-xs">{{ kpi.target || 'Not set' }}</span>
+                      </div>
+                      <div v-if="kpi.target" class="kpi-progress-row">
+                        <span class="text-xs text-tertiary">Progress:</span>
+                        <span class="text-xs">{{ kpi.currentProgress || '0' }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div v-if="kpi.target && kpi.currentProgress" class="kpi-progress-bar">
+                      <div 
+                        class="kpi-progress-fill"
+                        :style="{ width: calculateKpiProgress(kpi) + '%' }"
+                      ></div>
+                    </div>
+                    <div v-if="kpi.target && kpi.currentProgress" class="kpi-progress-text text-xs text-tertiary">
+                      {{ calculateKpiProgress(kpi) }}% complete
+                    </div>
                   </div>
-                  <h3 class="kpi-title text-sm">{{ kpi.title }}</h3>
-                  <p class="kpi-description text-xs text-secondary">{{ kpi.description }}</p>
-                  <div v-if="kpi.target" class="kpi-target text-xs">
-                    <span class="text-tertiary">Target:</span> {{ kpi.target }}
+
+                  <!-- Edit Mode -->
+                  <div v-else-if="isUserMember" class="kpi-edit-form">
+                    <div class="kpi-header">
+                      <span class="kpi-category text-xs text-tertiary">
+                        {{ formatKpiCategory(kpi.category) }}
+                      </span>
+                    </div>
+                    <h3 class="kpi-title text-sm">{{ kpi.title }}</h3>
+                    <p class="kpi-description text-xs text-secondary">{{ kpi.description }}</p>
+                    
+                    <div class="form-group" style="margin-top: 1rem;">
+                      <label class="text-xs text-tertiary">Target Value</label>
+                      <input
+                        v-model="editingKpi.target"
+                        type="text"
+                        class="form-input"
+                        placeholder="e.g., '20 members' or '80%'"
+                      />
+                      <p class="text-xs text-tertiary" style="margin-top: 0.25rem; font-style: italic;">
+                        For percentage goals, enter the target as a number (e.g., "100" for 100%)
+                      </p>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label class="text-xs text-tertiary">Current Progress</label>
+                      <input
+                        v-model="editingKpi.currentProgress"
+                        type="text"
+                        class="form-input"
+                        placeholder="e.g., '15' or '3/10'"
+                      />
+                      <p class="text-xs text-tertiary" style="margin-top: 0.25rem; font-style: italic;">
+                        For numerical targets: enter a number. For percentage goals: enter as "current/total" (e.g., "3/10")
+                      </p>
+                    </div>
+
+                    <div class="form-actions">
+                      <button @click="saveKpiEdit" class="btn btn-sm">Save</button>
+                      <button @click="cancelKpiEdit" class="btn-text text-xs">Cancel</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -293,6 +364,14 @@
                   ></textarea>
                 </div>
                 <div class="form-group">
+                  <label class="text-xs text-tertiary">Phase</label>
+                  <select v-model="newTask.phase" class="form-input">
+                    <option :value="1">Phase 1: Planning</option>
+                    <option :value="2">Phase 2: Development</option>
+                    <option :value="3">Phase 3: Testing & Launch</option>
+                  </select>
+                </div>
+                <div class="form-group">
                   <label class="text-xs text-tertiary">Due Date</label>
                   <input
                     v-model="newTask.dueDate"
@@ -307,19 +386,382 @@
               </div>
 
               <div class="tasks-list">
-                <div
-                  v-for="(task, index) in playbook.tasks"
-                  :key="task.id"
-                  class="task-item"
-                  :data-accent="((index % 3) + 1)"
-                >
-                  <!-- Task Display Mode -->
-                  <div v-if="editingTaskId !== task.id" class="task-main">
-                    <div class="task-header-row">
-                      <div v-if="isUserMember" class="task-checkbox-wrapper">
+                <!-- Phase 1: Planning -->
+                <div v-if="tasksByPhase.planning.length > 0" class="phase-section">
+                  <h3 class="phase-title text-xs text-tertiary">PHASE 1: PLANNING</h3>
+                  <div
+                    v-for="task in tasksByPhase.planning"
+                    :key="task.id"
+                    class="task-item"
+                    data-accent="1"
+                  >
+                    <!-- Task Display Mode -->
+                    <div v-if="editingTaskId !== task.id" class="task-main">
+                      <div class="task-header-row">
+                        <div v-if="isUserMember" class="task-checkbox-wrapper">
+                          <input
+                            type="checkbox"
+                            :checked="task.completed"
+                            @change="toggleTask(task.id)"
+                            class="task-checkbox"
+                          />
+                        </div>
+                        <div class="task-title-wrapper">
+                          <div class="task-title text-sm" :class="{ completed: task.completed }">
+                            {{ task.title }}
+                          </div>
+                        </div>
+                        <div v-if="isUserMember" class="task-actions">
+                          <button
+                            @click="selectedTask = task; showTaskDetailsModal = true"
+                            class="task-action-btn text-xs"
+                            type="button"
+                          >
+                            View
+                          </button>
+                          <button
+                            @click="startEditingTask(task)"
+                            class="task-action-btn text-xs"
+                            type="button"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            @click="toggleTaskNotes(task.id)"
+                            class="task-action-btn text-xs"
+                            :class="{ active: expandedTaskNotes[task.id] }"
+                            type="button"
+                          >
+                            {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
+                          </button>
+                        </div>
+                      </div>
+                      <div class="task-content">
+                        <p class="task-description text-xs text-secondary">
+                          {{ task.description }}
+                        </p>
+                        <div class="task-meta text-xs text-tertiary">
+                          <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
+                          <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Task Edit Mode -->
+                    <div v-else-if="isUserMember" class="task-edit-form">
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Task Title</label>
                         <input
-                          type="checkbox"
-                          :checked="task.completed"
+                          v-model="editingTask.title"
+                          type="text"
+                          class="form-input"
+                          placeholder="Enter task title..."
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Description</label>
+                        <textarea
+                          v-model="editingTask.description"
+                          class="form-textarea"
+                          rows="2"
+                          placeholder="Enter task description..."
+                        ></textarea>
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Phase</label>
+                        <select v-model="editingTask.phase" class="form-input">
+                          <option :value="1">Phase 1: Planning</option>
+                          <option :value="2">Phase 2: Development</option>
+                          <option :value="3">Phase 3: Testing & Launch</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Due Date</label>
+                        <input
+                          v-model="editingTask.dueDate"
+                          type="date"
+                          class="form-input"
+                        />
+                      </div>
+                      <div class="form-actions">
+                        <button @click="saveTaskEdit" class="btn btn-sm">Save</button>
+                        <button @click="cancelTaskEdit" class="btn-text text-xs">Cancel</button>
+                        <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
+                      </div>
+                    </div>
+
+                    <!-- Expandable Notes Section -->
+                    <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
+                      <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
+                        Implementation Notes
+                      </label>
+                      <textarea
+                        v-model="taskNotes[task.id]"
+                        @input="saveTaskNotes(task.id)"
+                        class="task-notes-textarea"
+                        rows="3"
+                        placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Phase 2: Development -->
+                <div v-if="tasksByPhase.development.length > 0" class="phase-section">
+                  <h3 class="phase-title text-xs text-tertiary">PHASE 2: DEVELOPMENT</h3>
+                  <div
+                    v-for="task in tasksByPhase.development"
+                    :key="task.id"
+                    class="task-item"
+                    data-accent="2"
+                  >
+                    <!-- Task Display Mode -->
+                    <div v-if="editingTaskId !== task.id" class="task-main">
+                      <div class="task-header-row">
+                        <div v-if="isUserMember" class="task-checkbox-wrapper">
+                          <input
+                            type="checkbox"
+                            :checked="task.completed"
+                            @change="toggleTask(task.id)"
+                            class="task-checkbox"
+                          />
+                        </div>
+                        <div class="task-title-wrapper">
+                          <div class="task-title text-sm" :class="{ completed: task.completed }">
+                            {{ task.title }}
+                          </div>
+                        </div>
+                        <div v-if="isUserMember" class="task-actions">
+                          <button
+                            @click="selectedTask = task; showTaskDetailsModal = true"
+                            class="task-action-btn text-xs"
+                            type="button"
+                          >
+                            View
+                          </button>
+                          <button
+                            @click="startEditingTask(task)"
+                            class="task-action-btn text-xs"
+                            type="button"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            @click="toggleTaskNotes(task.id)"
+                            class="task-action-btn text-xs"
+                            :class="{ active: expandedTaskNotes[task.id] }"
+                            type="button"
+                          >
+                            {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
+                          </button>
+                        </div>
+                      </div>
+                      <div class="task-content">
+                        <p class="task-description text-xs text-secondary">
+                          {{ task.description }}
+                        </p>
+                        <div class="task-meta text-xs text-tertiary">
+                          <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
+                          <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Task Edit Mode -->
+                    <div v-else-if="isUserMember" class="task-edit-form">
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Task Title</label>
+                        <input
+                          v-model="editingTask.title"
+                          type="text"
+                          class="form-input"
+                          placeholder="Enter task title..."
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Description</label>
+                        <textarea
+                          v-model="editingTask.description"
+                          class="form-textarea"
+                          rows="2"
+                          placeholder="Enter task description..."
+                        ></textarea>
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Phase</label>
+                        <select v-model="editingTask.phase" class="form-input">
+                          <option :value="1">Phase 1: Planning</option>
+                          <option :value="2">Phase 2: Development</option>
+                          <option :value="3">Phase 3: Testing & Launch</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Due Date</label>
+                        <input
+                          v-model="editingTask.dueDate"
+                          type="date"
+                          class="form-input"
+                        />
+                      </div>
+                      <div class="form-actions">
+                        <button @click="saveTaskEdit" class="btn btn-sm">Save</button>
+                        <button @click="cancelTaskEdit" class="btn-text text-xs">Cancel</button>
+                        <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
+                      </div>
+                    </div>
+
+                    <!-- Expandable Notes Section -->
+                    <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
+                      <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
+                        Implementation Notes
+                      </label>
+                      <textarea
+                        v-model="taskNotes[task.id]"
+                        @input="saveTaskNotes(task.id)"
+                        class="task-notes-textarea"
+                        rows="3"
+                        placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Phase 3: Testing & Launch -->
+                <div v-if="tasksByPhase.testing.length > 0" class="phase-section">
+                  <h3 class="phase-title text-xs text-tertiary">PHASE 3: TESTING & LAUNCH</h3>
+                  <div
+                    v-for="task in tasksByPhase.testing"
+                    :key="task.id"
+                    class="task-item"
+                    data-accent="3"
+                  >
+                    <!-- Task Display Mode -->
+                    <div v-if="editingTaskId !== task.id" class="task-main">
+                      <div class="task-header-row">
+                        <div v-if="isUserMember" class="task-checkbox-wrapper">
+                          <input
+                            type="checkbox"
+                            :checked="task.completed"
+                            @change="toggleTask(task.id)"
+                            class="task-checkbox"
+                          />
+                        </div>
+                        <div class="task-title-wrapper">
+                          <div class="task-title text-sm" :class="{ completed: task.completed }">
+                            {{ task.title }}
+                          </div>
+                        </div>
+                        <div v-if="isUserMember" class="task-actions">
+                          <button
+                            @click="selectedTask = task; showTaskDetailsModal = true"
+                            class="task-action-btn text-xs"
+                            type="button"
+                          >
+                            View
+                          </button>
+                          <button
+                            @click="startEditingTask(task)"
+                            class="task-action-btn text-xs"
+                            type="button"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            @click="toggleTaskNotes(task.id)"
+                            class="task-action-btn text-xs"
+                            :class="{ active: expandedTaskNotes[task.id] }"
+                            type="button"
+                          >
+                            {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
+                          </button>
+                        </div>
+                      </div>
+                      <div class="task-content">
+                        <p class="task-description text-xs text-secondary">
+                          {{ task.description }}
+                        </p>
+                        <div class="task-meta text-xs text-tertiary">
+                          <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
+                          <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Task Edit Mode -->
+                    <div v-else-if="isUserMember" class="task-edit-form">
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Task Title</label>
+                        <input
+                          v-model="editingTask.title"
+                          type="text"
+                          class="form-input"
+                          placeholder="Enter task title..."
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Description</label>
+                        <textarea
+                          v-model="editingTask.description"
+                          class="form-textarea"
+                          rows="2"
+                          placeholder="Enter task description..."
+                        ></textarea>
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Phase</label>
+                        <select v-model="editingTask.phase" class="form-input">
+                          <option :value="1">Phase 1: Planning</option>
+                          <option :value="2">Phase 2: Development</option>
+                          <option :value="3">Phase 3: Testing & Launch</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label class="text-xs text-tertiary">Due Date</label>
+                        <input
+                          v-model="editingTask.dueDate"
+                          type="date"
+                          class="form-input"
+                        />
+                      </div>
+                      <div class="form-actions">
+                        <button @click="saveTaskEdit" class="btn btn-sm">Save</button>
+                        <button @click="cancelTaskEdit" class="btn-text text-xs">Cancel</button>
+                        <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
+                      </div>
+                    </div>
+
+                    <!-- Expandable Notes Section -->
+                    <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
+                      <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
+                        Implementation Notes
+                      </label>
+                      <textarea
+                        v-model="taskNotes[task.id]"
+                        @input="saveTaskNotes(task.id)"
+                        class="task-notes-textarea"
+                        rows="3"
+                        placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Ungrouped Tasks (legacy tasks without phase) -->
+                <div v-if="tasksByPhase.ungrouped.length > 0" class="phase-section">
+                  <h3 class="phase-title text-xs text-tertiary">UNGROUPED TASKS</h3>
+                  <div
+                    v-for="(task, index) in tasksByPhase.ungrouped"
+                    :key="task.id"
+                    class="task-item"
+                    :data-accent="((index % 3) + 1)"
+                  >
+                    <!-- Task Display Mode -->
+                    <div v-if="editingTaskId !== task.id" class="task-main">
+                      <div class="task-header-row">
+                        <div v-if="isUserMember" class="task-checkbox-wrapper">
+                          <input
+                            type="checkbox"
+                            :checked="task.completed"
                           @change="toggleTask(task.id)"
                           class="task-checkbox"
                         />
@@ -386,6 +828,14 @@
                       ></textarea>
                     </div>
                     <div class="form-group">
+                      <label class="text-xs text-tertiary">Phase</label>
+                      <select v-model="editingTask.phase" class="form-input">
+                        <option :value="1">Phase 1: Planning</option>
+                        <option :value="2">Phase 2: Development</option>
+                        <option :value="3">Phase 3: Testing & Launch</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
                       <label class="text-xs text-tertiary">Due Date</label>
                       <input
                         v-model="editingTask.dueDate"
@@ -398,7 +848,8 @@
                     <button @click="cancelTaskEdit" class="btn-text text-xs">Cancel</button>
                     <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
                   </div>
-                </div>                  <!-- Expandable Notes Section -->
+                </div>
+                  <!-- Expandable Notes Section -->
                   <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
                     <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
                       Implementation Notes
@@ -413,6 +864,7 @@
                   </div>
                 </div>
               </div>
+            </div>
             </div>
 
             <!-- Notes & Learnings -->
@@ -796,6 +1248,70 @@ const formatKpiCategory = (category: string) => {
   }
 }
 
+// KPI management
+const editingKpiId = ref<string | null>(null)
+const editingKpi = ref({
+  target: '',
+  currentProgress: ''
+})
+
+const startEditingKpi = (kpi: any) => {
+  editingKpiId.value = kpi.id
+  editingKpi.value = {
+    target: kpi.target || '',
+    currentProgress: kpi.currentProgress || ''
+  }
+}
+
+const cancelKpiEdit = () => {
+  editingKpiId.value = null
+  editingKpi.value = { target: '', currentProgress: '' }
+}
+
+const saveKpiEdit = () => {
+  if (!playbook.value || !editingKpiId.value) return
+  
+  const updatedKpis = playbook.value.kpis?.map((kpi: any) => 
+    kpi.id === editingKpiId.value
+      ? {
+          ...kpi,
+          target: editingKpi.value.target.trim(),
+          currentProgress: editingKpi.value.currentProgress.trim()
+        }
+      : kpi
+  )
+  
+  playbooksStore.updatePlaybook(playbook.value.id, { kpis: updatedKpis })
+  toastMessage.value = 'KPI updated successfully'
+  showToast.value = true
+  cancelKpiEdit()
+}
+
+const calculateKpiProgress = (kpi: any): number => {
+  if (!kpi.target || !kpi.currentProgress) return 0
+  
+  const target = kpi.target.toString()
+  const current = kpi.currentProgress.toString()
+  
+  // Handle fraction format (e.g., "3/10")
+  if (current.includes('/')) {
+    const [numerator, denominator] = current.split('/').map(s => parseFloat(s.trim()))
+    if (denominator && denominator > 0) {
+      return Math.min(100, Math.round((numerator / denominator) * 100))
+    }
+  }
+  
+  // Handle percentage target (e.g., target: "100", current: "75")
+  const targetNum = parseFloat(target.replace(/[^\d.]/g, ''))
+  const currentNum = parseFloat(current.replace(/[^\d.]/g, ''))
+  
+  if (!isNaN(targetNum) && !isNaN(currentNum) && targetNum > 0) {
+    return Math.min(100, Math.round((currentNum / targetNum) * 100))
+  }
+  
+  return 0
+}
+
 // Success story generation
 const isGenerating = ref(false)
 
@@ -805,22 +1321,60 @@ const editingTaskId = ref<string | null>(null)
 const newTask = ref({
   title: '',
   description: '',
-  dueDate: ''
+  dueDate: '',
+  phase: 1
 })
 const editingTask = ref({
   title: '',
   description: '',
-  dueDate: ''
+  dueDate: '',
+  phase: 1
 })
+
+// Computed properties for task grouping by phase
+const tasksByPhase = computed(() => {
+  if (!playbook.value) return { planning: [], development: [], testing: [], ungrouped: [] }
+  
+  const grouped = {
+    planning: [] as any[],
+    development: [] as any[],
+    testing: [] as any[],
+    ungrouped: [] as any[]
+  }
+  
+  playbook.value.tasks.forEach((task: any) => {
+    if (task.phase === 1) {
+      grouped.planning.push(task)
+    } else if (task.phase === 2) {
+      grouped.development.push(task)
+    } else if (task.phase === 3) {
+      grouped.testing.push(task)
+    } else {
+      // Tasks without phase (legacy tasks)
+      grouped.ungrouped.push(task)
+    }
+  })
+  
+  return grouped
+})
+
+const phaseName = (phase: number) => {
+  switch (phase) {
+    case 1: return 'Planning Phase'
+    case 2: return 'Development Phase'
+    case 3: return 'Testing & Launch Phase'
+    default: return 'Ungrouped'
+  }
+}
 
 const startAddingTask = () => {
   isAddingTask.value = true
-  newTask.value = { title: '', description: '', dueDate: '' }
+  newTask.value = { title: '', description: '', dueDate: '', phase: 1 }
 }
 
 const cancelAddingTask = () => {
   isAddingTask.value = false
-  newTask.value = { title: '', description: '', dueDate: '' }
+  newTask.value = { title: '', description: '', dueDate: '', phase: 1 }
 }
 
 const saveNewTask = () => {
@@ -832,7 +1386,8 @@ const saveNewTask = () => {
     description: newTask.value.description.trim(),
     completed: false,
     dueDate: newTask.value.dueDate || null,
-    completedDate: null
+    completedDate: null,
+    phase: newTask.value.phase
   }
   
   const updatedTasks = [...playbook.value.tasks, task]
@@ -846,13 +1401,14 @@ const startEditingTask = (task: any) => {
   editingTask.value = {
     title: task.title,
     description: task.description,
-    dueDate: task.dueDate || ''
+    dueDate: task.dueDate || '',
+    phase: task.phase || 1
   }
 }
 
 const cancelTaskEdit = () => {
   editingTaskId.value = null
-  editingTask.value = { title: '', description: '', dueDate: '' }
+  editingTask.value = { title: '', description: '', dueDate: '', phase: 1 }
 }
 
 const saveTaskEdit = () => {
@@ -864,7 +1420,8 @@ const saveTaskEdit = () => {
           ...task,
           title: editingTask.value.title.trim(),
           description: editingTask.value.description.trim(),
-          dueDate: editingTask.value.dueDate || null
+          dueDate: editingTask.value.dueDate || null,
+          phase: editingTask.value.phase
         }
       : task
   )
@@ -1456,8 +2013,23 @@ const getResourceLink = (resource: any) => {
 .tasks-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2.5rem;
   border: 1px solid rgba(42, 42, 42, 0.08);
+  padding: 1.5rem 0 0;
+}
+
+.phase-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.phase-title {
+  padding: 0 1.5rem 1rem;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.06);
+  margin-bottom: 0;
 }
 
 .task-item {
@@ -1466,12 +2038,12 @@ const getResourceLink = (resource: any) => {
   transition: all var(--transition-base);
 }
 
-.task-item:hover {
-  background: var(--color-bg-secondary);
+.phase-section .task-item:last-child {
+  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
-.task-item:last-child {
-  border-bottom: none;
+.task-item:hover {
+  background: var(--color-bg-secondary);
 }
 
 .task-item[data-accent="1"] {
@@ -2097,12 +2669,29 @@ const getResourceLink = (resource: any) => {
 
 .kpi-header {
   margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .kpi-category {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 500;
+}
+
+.kpi-edit-btn {
+  padding: 0.25rem 0.75rem;
+  background: transparent;
+  border: 1px solid rgba(42, 42, 42, 0.12);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border-radius: 2px;
+}
+
+.kpi-edit-btn:hover {
+  background: rgba(42, 42, 42, 0.04);
+  border-color: rgba(42, 42, 42, 0.24);
 }
 
 .kpi-title {
@@ -2113,10 +2702,56 @@ const getResourceLink = (resource: any) => {
 
 .kpi-description {
   line-height: 1.6;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.kpi-target {
+.kpi-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(42, 42, 42, 0.08);
+}
+
+.kpi-target-row,
+.kpi-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kpi-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(42, 42, 42, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.kpi-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2));
+  transition: width 0.3s ease;
+}
+
+.kpi-progress-text {
   margin-top: 0.5rem;
+  text-align: right;
+}
+
+.kpi-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.kpi-edit-form .form-group {
+  margin-top: 0.75rem;
+}
+
+.kpi-edit-form .form-actions {
+  margin-top: 1rem;
 }
 </style>

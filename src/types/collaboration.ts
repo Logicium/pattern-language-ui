@@ -64,6 +64,7 @@ export interface Task {
   completedDate: string | null
   dueDate?: string | null
   assignedTo?: number[]
+  phase?: number // 1 = Planning, 2 = Development, 3 = Testing & Launch
   subtasks?: Subtask[]
 }
 

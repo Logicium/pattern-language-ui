@@ -10,6 +10,7 @@ export interface PlaybookTask {
   completed: boolean
   dueDate: string | null
   completedDate: string | null
+  phase?: number // 1 = Planning, 2 = Development, 3 = Testing & Launch
 }
 
 export interface Playbook {
@@ -30,6 +31,7 @@ export interface Playbook {
     title: string
     description: string
     target?: string
+    currentProgress?: string // Can be a number or fraction (e.g., "5/10")
   }>
   location: string
   status: 'active' | 'completed' | 'paused'
