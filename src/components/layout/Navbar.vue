@@ -8,6 +8,7 @@
         <router-link to="/about">About</router-link>
         <router-link to="/patterns">Patterns</router-link>
         <router-link to="/stories">Stories</router-link>
+        <router-link to="/cities">Cities</router-link>
         <router-link v-if="isAuthenticated" to="/dashboard" class="btn">Dashboard</router-link>
         <router-link v-else to="/signup" class="btn">Start</router-link>
       </div>
@@ -32,6 +33,7 @@
       <router-link to="/about" @click="closeMobileMenu">About</router-link>
       <router-link to="/patterns" @click="closeMobileMenu">Patterns</router-link>
       <router-link to="/stories" @click="closeMobileMenu">Stories</router-link>
+      <router-link to="/cities" @click="closeMobileMenu">Cities</router-link>
       <router-link v-if="isAuthenticated" to="/dashboard" class="btn" @click="closeMobileMenu">Dashboard</router-link>
       <router-link v-else to="/signup" class="btn" @click="closeMobileMenu">Start</router-link>
     </div>

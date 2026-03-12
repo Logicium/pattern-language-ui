@@ -20,6 +20,8 @@ import ResourcesPage from '@/views/dashboard/ResourcesPage.vue'
 import SettingsPage from '@/views/dashboard/SettingsPage.vue'
 import ProfilePageWrapper from '@/views/dashboard/ProfilePageWrapper.vue'
 import InvitationsPage from '@/views/dashboard/InvitationsPage.vue'
+import AllCitiesPage from '@/views/AllCitiesPage.vue'
+import FullCityPage from '@/views/FullCityPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,6 +50,16 @@ const router = createRouter({
       path: '/challenges/:id',
       name: 'challenge-detail',
       component: FullChallengePage
+    },
+    {
+      path: '/cities',
+      name: 'cities',
+      component: AllCitiesPage
+    },
+    {
+      path: '/cities/:id',
+      name: 'city-detail',
+      component: FullCityPage
     },
     {
       path: '/stories',

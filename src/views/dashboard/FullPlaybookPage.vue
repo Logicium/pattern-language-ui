@@ -1295,7 +1295,7 @@ const calculateKpiProgress = (kpi: any): number => {
   
   // Handle fraction format (e.g., "3/10")
   if (current.includes('/')) {
-    const [numerator, denominator] = current.split('/').map(s => parseFloat(s.trim()))
+    const [numerator, denominator] = current.split('/').map((s: string) => parseFloat(s.trim()))
     if (denominator && denominator > 0) {
       return Math.min(100, Math.round((numerator / denominator) * 100))
     }

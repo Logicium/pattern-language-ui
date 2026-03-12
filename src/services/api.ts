@@ -290,3 +290,12 @@ export const invitationsApi = {
   reject: (id: number) => authFetch(`/invitations/${id}/reject`, { method: 'POST' }),
 }
 
+// Cities API
+export const citiesApi = {
+  getAll: () => authFetch('/cities'),
+  getById: (id: number) => authFetch(`/cities/${id}`),
+  create: (data: { name: string; state?: string; country?: string }) =>
+    authFetch('/cities', { method: 'POST', body: JSON.stringify(data) }),
+  generateInfo: (id: number) => authFetch(`/cities/${id}/generate`, { method: 'POST' }),
+}
+
