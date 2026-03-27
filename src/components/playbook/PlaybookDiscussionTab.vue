@@ -21,12 +21,12 @@
             'message-pal': message.type === 'pal_response',
             'message-pal-query': message.type === 'pal_query',
             'message-file': message.type === 'file',
-            'message-grouped': index > 0 && isSameAuthorGroup(messages[index - 1], message)
+            'message-grouped': index > 0 && isSameAuthorGroup(messages[index - 1]!, message)
           }"
         >
           <!-- Avatar (not shown for grouped messages) -->
           <div
-            v-if="!(index > 0 && isSameAuthorGroup(messages[index - 1], message))"
+            v-if="!(index > 0 && isSameAuthorGroup(messages[index - 1]!, message))"
             class="message-avatar"
             :class="{
               'avatar-pal': message.type === 'pal_response',
@@ -48,7 +48,7 @@
           <div class="message-body">
             <!-- Author + Timestamp (not shown for grouped messages) -->
             <div
-              v-if="!(index > 0 && isSameAuthorGroup(messages[index - 1], message))"
+              v-if="!(index > 0 && isSameAuthorGroup(messages[index - 1]!, message))"
               class="message-meta"
             >
               <span class="message-author text-xs">
@@ -269,7 +269,7 @@ function extractMentionIds(content: string): number[] {
   const regex = /@(\w+(?:\s\w+)*)/g
   let match
   while ((match = regex.exec(content)) !== null) {
-    const name = match[1].toLowerCase()
+    const name = match[1]!.toLowerCase()
     const member = props.members.find(m =>
       m.user.name.toLowerCase() === name
     )

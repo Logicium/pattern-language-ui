@@ -11,7 +11,7 @@ export function useTaskPage(
     members: PlaybookMember[]
     userRole?: 'creator' | 'collaborator' | null
   },
-  emit: (event: string, ...args: any[]) => void
+  emit: (event: any, ...args: any[]) => void
 ) {
   const authStore = useAuthStore()
   const loading = ref(false)

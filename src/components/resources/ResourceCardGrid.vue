@@ -81,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ResourceTab } from '@/composables/useResourcesPage'
+import type { ResourceTab, ResourceType } from '@/composables/useResourcesPage'
 
 defineProps<{
   items: any[]
@@ -89,10 +89,10 @@ defineProps<{
 }>()
 
 defineEmits<{
-  add: [resource: any, type: string]
+  add: [resource: any, type: ResourceType]
 }>()
 
-const typeMap: Record<ResourceTab, string> = {
+const typeMap: Record<ResourceTab, ResourceType> = {
   patterns: 'pattern',
   stories: 'story',
   challenges: 'challenge',
