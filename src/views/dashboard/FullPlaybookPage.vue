@@ -2,972 +2,144 @@
   <div class="full-playbook-page">
     <div v-if="playbook">
       <!-- Hero -->
-      <section class="playbook-hero gradient-bg">
+      <PlaybookHero :playbook="playbook" />
+
+      <!-- Tab Navigation -->
+      <div class="playbook-tabs-bar">
         <div class="container">
-          <div class="hero-meta">
-            <span class="pattern-number text-xs text-tertiary">Pattern {{ String(playbook.patternId).padStart(2, '0') }}</span>
-            <span 
-              class="status-badge text-xs" 
-              :class="`status-${playbook.status}`"
+          <nav class="playbook-tabs">
+            <button
+              v-for="tab in tabs"
+              :key="tab.id"
+              class="playbook-tab text-xs"
+              :class="{ 'tab-active': activeTab === tab.id }"
+              @click="activeTab = tab.id"
             >
-              {{ playbook.status }}
-            </span>
-          </div>
-          <h1 class="hero-title">{{ playbook.patternTitle }}</h1>
-          <p class="hero-location text-secondary">
-            {{ playbook.location }}
-          </p>
-          <div class="hero-progress">
-            <div class="progress-info">
-              <span class="progress-percentage">{{ playbook.progress }}%</span>
-              <span class="text-xs text-tertiary">Complete</span>
-            </div>
-            <div class="progress-bar">
-              <div 
-                class="progress-fill" 
-                :class="{ 'progress-complete': playbook.progress >= 100 }"
-                :style="{ 
-                  width: `${playbook.progress}%`,
-                  backgroundSize: playbook.progress >= 100 ? '200% 100%' : `${100 / (playbook.progress || 1) * 100}% 100%`
-                }"
-              ></div>
-            </div>
-          </div>
+              {{ tab.label }}
+            </button>
+          </nav>
         </div>
-      </section>
+      </div>
 
       <!-- Content -->
       <section class="section playbook-content">
         <div class="container">
           <div class="content-layout">
-            <!-- Overview -->
-            <div class="content-block">
-              <h2 class="section-subtitle">Overview</h2>
-              <div class="overview-content">
-                <!-- Pattern & Challenge Grid -->
-                <div class="overview-grid">
-                  <div class="overview-item">
-                    <span class="section-label text-xs text-tertiary">Original Pattern</span>
-                    <button 
-                      @click="openPatternModal(playbook.patternId)" 
-                      class="badge badge-pattern text-xs clickable-badge"
-                    >
-                      {{ playbook.patternTitle }}
-                    </button>
-                  </div>
-                  <div class="overview-item">
-                    <span class="section-label text-xs text-tertiary">{{ playbook.challenges && playbook.challenges.length > 0 ? 'Related Wicked Problems' : 'Challenge' }}</span>
-                    <div class="challenges-list">
-                      <!-- New format: multiple challenges -->
-                      <button
-                        v-if="playbook.challenges && playbook.challenges.length > 0"
-                        v-for="challenge in playbook.challenges"
-                        :key="challenge.id"
-                        @click="openChallengeModal(challenge.id)"
-                        class="badge badge-challenge text-xs clickable-badge"
-                      >
-                        {{ challenge.title }}
-                      </button>
-                      <!-- Old format: single challenge string -->
-                      <div v-else class="badge badge-challenge text-xs">
-                        {{ playbook.challenge }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                <!-- Timeline with dots -->
-                <div class="overview-section">
-                  <div class="timeline">
-                    <div class="timeline-item">
-                      <span class="timeline-label text-xs text-tertiary">STARTED</span>
-                      <div class="timeline-value">
-                        <div class="timeline-marker" data-accent="1"></div>
-                        <p class="timeline-date text-sm">{{ formatDate(playbook.startDate) }}</p>
-                      </div>
-                    </div>
-                    <div class="timeline-item">
-                      <span class="timeline-label text-xs text-tertiary">TARGET COMPLETION</span>
-                      <div class="timeline-value">
-                        <div class="timeline-marker" data-accent="2"></div>
-                        <p class="timeline-date text-sm">{{ formatDate(playbook.targetCompletionDate) }}</p>
-                      </div>
-                    </div>
-                    <div v-if="playbook.completedDate" class="timeline-item">
-                      <span class="timeline-label text-xs text-tertiary">COMPLETED</span>
-                      <div class="timeline-value">
-                        <div class="timeline-marker" data-accent="3"></div>
-                        <p class="timeline-date text-sm">{{ formatDate(playbook.completedDate) }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <!-- TAB: Playbook (Main) -->
+            <template v-if="activeTab === 'playbook'">
+              <!-- Overview -->
+              <PlaybookOverview
+                :playbook="playbook"
+                :members="members"
+                :user-role="userRole"
+                :is-user-member="isUserMember"
+                :is-generating="isGenerating"
+                :loading="loading"
+                @open-pattern="openPatternModal"
+                @open-challenge="openChallengeModal"
+              />
 
-                <!-- Collaboration -->
-                <div class="overview-section">
-                  <div class="section-header-with-actions">
-                    <span class="section-label text-xs text-tertiary">Collaboration</span>
-                    <div class="section-actions">
-                      <button 
-                        v-if="userRole === 'creator'"
-                        @click="showInviteMemberModal = true"
-                        :disabled="loading"
-                        class="btn-text text-xs"
-                      >
-                        + Invite Member
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div class="members-grid">
-                    <router-link 
-                      v-for="member in members" 
-                      :key="member.id"
-                      :to="`/dashboard/profile/${member.user.id}`"
-                      class="member-card"
-                      :class="{ 'member-creator': member.role === 'creator' }"
-                    >
-                      <div class="member-circle">
-                        {{ getInitials(member.user.name) }}
-                      </div>
-                      <div class="member-name text-xs">{{ member.user.name }}</div>
-                      <div v-if="member.role === 'creator'" class="member-role text-xs text-tertiary">Creator</div>
-                      <div v-else class="member-role text-xs text-tertiary">Member</div>
-                    </router-link>
-                    <p v-if="members.length === 0" class="text-xs text-tertiary">No members yet</p>
-                  </div>
+              <!-- Summary -->
+              <PlaybookSummary :playbook="playbook" />
 
-                  <div v-if="playbook.isPublic" class="public-indicator">
-                    <span class="text-xs text-tertiary">
-                      This playbook is visible to your local community
-                    </span>
-                  </div>
-                </div>
+              <!-- KPIs -->
+              <PlaybookKpis
+                :playbook="playbook"
+                :is-user-member="isUserMember"
+                :editing-kpi-id="editingKpiId"
+                :editing-kpi="editingKpi"
+                :format-kpi-category="formatKpiCategory"
+                :calculate-kpi-progress="calculateKpiProgress"
+                @start-edit="startEditingKpi"
+                @save-edit="saveKpiEdit"
+                @cancel-edit="cancelKpiEdit"
+                @update:editing-kpi="editingKpi = $event"
+              />
 
-                <!-- Actions -->
-                <div class="overview-section">
-                  <span class="section-label text-xs text-tertiary">Actions</span>
-                  <div class="overview-actions">
-                    <!-- Actions for members -->
-                    <template v-if="isUserMember">
-                      <button 
-                        v-if="playbook.status === 'active'"
-                        @click="markComplete"
-                        class="btn btn-sm"
-                      >
-                        Mark Complete
-                      </button>
-                      <button 
-                        v-if="playbook.status === 'completed'"
-                        @click="generateSuccessStory"
-                        :disabled="isGenerating"
-                        class="btn btn-sm"
-                      >
-                        {{ isGenerating ? 'Generating...' : 'Generate Success Story' }}
-                      </button>
-                      <button 
-                        v-if="userRole === 'creator'"
-                        @click="togglePublishState"
-                        :disabled="loading"
-                        class="btn-secondary btn-sm"
-                      >
-                        {{ playbook.isPublic ? 'Unpublish' : 'Publish' }}
-                      </button>
-                      <button 
-                        @click="togglePause"
-                        class="btn-secondary btn-sm"
-                      >
-                        {{ playbook.status === 'paused' ? 'Resume' : 'Pause' }}
-                      </button>
-                      <button 
-                        @click="showDeleteModal = true"
-                        class="btn-secondary btn-sm btn-danger"
-                      >
-                        Delete
-                      </button>
-                    </template>
-                    
-                    <!-- Action for non-members viewing a public playbook -->
-                    <template v-else>
-                      <button 
-                        @click="requestToJoin"
-                        :disabled="loading"
-                        class="btn btn-sm"
-                      >
-                        Request to Join
-                      </button>
-                    </template>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <!-- Tasks -->
+              <PlaybookTasks
+                :playbook="playbook"
+                :is-user-member="isUserMember"
+                :is-adding-task="isAddingTask"
+                :new-task="newTask"
+                :editing-task-id="editingTaskId"
+                :editing-task="editingTask"
+                :expanded-task-notes="expandedTaskNotes"
+                :task-notes="taskNotes"
+                :completed-tasks-count="completedTasksCount"
+                :tasks-by-phase="tasksByPhase"
+                @start-adding-task="startAddingTask"
+                @update:new-task="newTask = $event"
+                @save-new-task="saveNewTask"
+                @cancel-adding-task="cancelAddingTask"
+                @toggle-task="toggleTask"
+                @view-task="onViewTask"
+                @start-edit-task="startEditingTask"
+                @toggle-notes="toggleTaskNotes"
+                @save-task-edit="saveTaskEdit"
+                @cancel-task-edit="cancelTaskEdit"
+                @delete-task="confirmDeleteTask"
+                @update-notes="onUpdateNotes"
+                @update:editing-task="editingTask = $event"
+              />
 
-            <!-- Summary -->
-            <div class="content-block">
-              <div class="block-header">
-                <h2 class="section-subtitle">Summary</h2>
-              </div>
-              <!-- New format: structured summary -->
-              <div v-if="playbook.summary" class="summary-content">
-                <div class="summary-item">
-                  <h3 class="summary-label text-xs text-tertiary">THE PROBLEM</h3>
-                  <p class="text-secondary">{{ playbook.summary.problem }}</p>
-                </div>
-                <div class="summary-item">
-                  <h3 class="summary-label text-xs text-tertiary">OUR APPROACH</h3>
-                  <p class="text-secondary">{{ playbook.summary.approach }}</p>
-                </div>
-                <div class="summary-item">
-                  <h3 class="summary-label text-xs text-tertiary">SUCCESS IN 90 DAYS</h3>
-                  <p class="text-secondary">{{ playbook.summary.success90Days }}</p>
-                </div>
-              </div>
-              <!-- Old format: simple solution text -->
-              <div v-else class="solution-display">
-                <p class="text-secondary">{{ playbook.solution }}</p>
-              </div>
-            </div>
+              <!-- Notes & Learnings -->
+              <PlaybookNotes
+                :playbook="playbook"
+                :is-user-member="isUserMember"
+                :is-editing-notes="isEditingNotes"
+                :editable-notes="editableNotes"
+                @start-editing-notes="startEditingNotes"
+                @update:editable-notes="editableNotes = $event"
+                @save-notes="saveNotes"
+                @cancel-editing-notes="cancelEditingNotes"
+              />
 
-            <!-- Key Performance Indicators -->
-            <div v-if="playbook.kpis && playbook.kpis.length > 0" class="content-block">
-              <div class="block-header">
-                <h2 class="section-subtitle">Key Performance Indicators</h2>
-              </div>
-              <div class="kpis-grid">
-                <div 
-                  v-for="(kpi, index) in playbook.kpis" 
-                  :key="kpi.id"
-                  class="kpi-card"
-                  :data-accent="((index % 3) + 1)"
-                >
-                  <!-- Display Mode -->
-                  <div v-if="editingKpiId !== kpi.id">
-                    <div class="kpi-header">
-                      <span class="kpi-category text-xs text-tertiary">
-                        {{ formatKpiCategory(kpi.category) }}
-                      </span>
-                      <button
-                        v-if="isUserMember"
-                        @click="startEditingKpi(kpi)"
-                        class="kpi-edit-btn text-xs"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                    <h3 class="kpi-title text-sm">{{ kpi.title }}</h3>
-                    <p class="kpi-description text-xs text-secondary">{{ kpi.description }}</p>
-                    
-                    <div class="kpi-metrics">
-                      <div class="kpi-target-row">
-                        <span class="text-xs text-tertiary">Target:</span>
-                        <span class="text-xs">{{ kpi.target || 'Not set' }}</span>
-                      </div>
-                      <div v-if="kpi.target" class="kpi-progress-row">
-                        <span class="text-xs text-tertiary">Progress:</span>
-                        <span class="text-xs">{{ kpi.currentProgress || '0' }}</span>
-                      </div>
-                    </div>
+              <!-- Resources -->
+              <PlaybookResources
+                :playbook="playbook"
+                :is-user-member="isUserMember"
+                :is-editing-resources="isEditingResources"
+                @start-editing-resources="startEditingResources"
+                @cancel-editing-resources="cancelEditingResources"
+                @confirm-delete-resource="confirmDeleteResource"
+              />
+            </template>
 
-                    <!-- Progress Bar -->
-                    <div v-if="kpi.target && kpi.currentProgress" class="kpi-progress-bar">
-                      <div 
-                        class="kpi-progress-fill"
-                        :style="{ width: calculateKpiProgress(kpi) + '%' }"
-                      ></div>
-                    </div>
-                    <div v-if="kpi.target && kpi.currentProgress" class="kpi-progress-text text-xs text-tertiary">
-                      {{ calculateKpiProgress(kpi) }}% complete
-                    </div>
-                  </div>
+            <!-- TAB: Collaboration -->
+            <template v-if="activeTab === 'collaboration'">
+              <PlaybookCollaborationTab
+                :playbook="playbook"
+                :members="members"
+                :user-role="userRole"
+                :is-user-member="isUserMember"
+                :is-generating="isGenerating"
+                :loading="loading"
+                @invite-member="showInviteMemberModal = true"
+                @remove-member="removeMember"
+                @toggle-publish="togglePublishState"
+                @mark-complete="markComplete"
+                @generate-story="generateSuccessStory"
+                @toggle-pause="togglePause"
+                @show-delete="showDeleteModal = true"
+                @request-join="requestToJoin"
+              />
+            </template>
 
-                  <!-- Edit Mode -->
-                  <div v-else-if="isUserMember" class="kpi-edit-form">
-                    <div class="kpi-header">
-                      <span class="kpi-category text-xs text-tertiary">
-                        {{ formatKpiCategory(kpi.category) }}
-                      </span>
-                    </div>
-                    <h3 class="kpi-title text-sm">{{ kpi.title }}</h3>
-                    <p class="kpi-description text-xs text-secondary">{{ kpi.description }}</p>
-                    
-                    <div class="form-group" style="margin-top: 1rem;">
-                      <label class="text-xs text-tertiary">Target Value</label>
-                      <input
-                        v-model="editingKpi.target"
-                        type="text"
-                        class="form-input"
-                        placeholder="e.g., '20 members' or '80%'"
-                      />
-                      <p class="text-xs text-tertiary" style="margin-top: 0.25rem; font-style: italic;">
-                        For percentage goals, enter the target as a number (e.g., "100" for 100%)
-                      </p>
-                    </div>
-                    
-                    <div class="form-group">
-                      <label class="text-xs text-tertiary">Current Progress</label>
-                      <input
-                        v-model="editingKpi.currentProgress"
-                        type="text"
-                        class="form-input"
-                        placeholder="e.g., '15' or '3/10'"
-                      />
-                      <p class="text-xs text-tertiary" style="margin-top: 0.25rem; font-style: italic;">
-                        For numerical targets: enter a number. For percentage goals: enter as "current/total" (e.g., "3/10")
-                      </p>
-                    </div>
+            <!-- TAB: Discussion -->
+            <template v-if="activeTab === 'discussion'">
+              <PlaybookDiscussionTab
+                :playbook="playbook"
+                :members="members"
+                :is-user-member="isUserMember"
+              />
+            </template>
 
-                    <div class="form-actions">
-                      <button @click="saveKpiEdit" class="btn btn-sm">Save</button>
-                      <button @click="cancelKpiEdit" class="btn-text text-xs">Cancel</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tasks -->
-            <div class="content-block">
-              <div class="block-header">
-                <h2 class="section-subtitle">Implementation Tasks</h2>
-                <div class="header-actions">
-                  <span class="text-xs text-tertiary">
-                    {{ completedTasksCount }} of {{ playbook.tasks.length }} complete
-                  </span>
-                  <button 
-                    v-if="isUserMember"
-                    @click="startAddingTask" 
-                    class="btn-text text-xs"
-                  >
-                    + Add Task
-                  </button>
-                </div>
-              </div>
-
-              <!-- Add New Task Form -->
-              <div v-if="isAddingTask && isUserMember" class="task-form">
-                <div class="form-group">
-                  <label class="text-xs text-tertiary">Task Title</label>
-                  <input
-                    v-model="newTask.title"
-                    type="text"
-                    class="form-input"
-                    placeholder="Enter task title..."
-                  />
-                </div>
-                <div class="form-group">
-                  <label class="text-xs text-tertiary">Description</label>
-                  <textarea
-                    v-model="newTask.description"
-                    class="form-textarea"
-                    rows="2"
-                    placeholder="Enter task description..."
-                  ></textarea>
-                </div>
-                <div class="form-group">
-                  <label class="text-xs text-tertiary">Phase</label>
-                  <select v-model="newTask.phase" class="form-input">
-                    <option :value="1">Phase 1: Planning</option>
-                    <option :value="2">Phase 2: Development</option>
-                    <option :value="3">Phase 3: Testing & Launch</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="text-xs text-tertiary">Due Date</label>
-                  <input
-                    v-model="newTask.dueDate"
-                    type="date"
-                    class="form-input"
-                  />
-                </div>
-                <div class="form-actions">
-                  <button @click="saveNewTask" class="btn btn-sm">Add Task</button>
-                  <button @click="cancelAddingTask" class="btn-text text-xs">Cancel</button>
-                </div>
-              </div>
-
-              <div class="tasks-list">
-                <!-- Phase 1: Planning -->
-                <div v-if="tasksByPhase.planning.length > 0" class="phase-section">
-                  <h3 class="phase-title text-xs text-tertiary">PHASE 1: PLANNING</h3>
-                  <div
-                    v-for="task in tasksByPhase.planning"
-                    :key="task.id"
-                    class="task-item"
-                    data-accent="1"
-                  >
-                    <!-- Task Display Mode -->
-                    <div v-if="editingTaskId !== task.id" class="task-main">
-                      <div class="task-header-row">
-                        <div v-if="isUserMember" class="task-checkbox-wrapper">
-                          <input
-                            type="checkbox"
-                            :checked="task.completed"
-                            @change="toggleTask(task.id)"
-                            class="task-checkbox"
-                          />
-                        </div>
-                        <div class="task-title-wrapper">
-                          <div class="task-title text-sm" :class="{ completed: task.completed }">
-                            {{ task.title }}
-                          </div>
-                        </div>
-                        <div v-if="isUserMember" class="task-actions">
-                          <button
-                            @click="selectedTask = task; showTaskDetailsModal = true"
-                            class="task-action-btn text-xs"
-                            type="button"
-                          >
-                            View
-                          </button>
-                          <button
-                            @click="startEditingTask(task)"
-                            class="task-action-btn text-xs"
-                            type="button"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            @click="toggleTaskNotes(task.id)"
-                            class="task-action-btn text-xs"
-                            :class="{ active: expandedTaskNotes[task.id] }"
-                            type="button"
-                          >
-                            {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
-                          </button>
-                        </div>
-                      </div>
-                      <div class="task-content">
-                        <p class="task-description text-xs text-secondary">
-                          {{ task.description }}
-                        </p>
-                        <div class="task-meta text-xs text-tertiary">
-                          <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
-                          <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Task Edit Mode -->
-                    <div v-else-if="isUserMember" class="task-edit-form">
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Task Title</label>
-                        <input
-                          v-model="editingTask.title"
-                          type="text"
-                          class="form-input"
-                          placeholder="Enter task title..."
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Description</label>
-                        <textarea
-                          v-model="editingTask.description"
-                          class="form-textarea"
-                          rows="2"
-                          placeholder="Enter task description..."
-                        ></textarea>
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Phase</label>
-                        <select v-model="editingTask.phase" class="form-input">
-                          <option :value="1">Phase 1: Planning</option>
-                          <option :value="2">Phase 2: Development</option>
-                          <option :value="3">Phase 3: Testing & Launch</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Due Date</label>
-                        <input
-                          v-model="editingTask.dueDate"
-                          type="date"
-                          class="form-input"
-                        />
-                      </div>
-                      <div class="form-actions">
-                        <button @click="saveTaskEdit" class="btn btn-sm">Save</button>
-                        <button @click="cancelTaskEdit" class="btn-text text-xs">Cancel</button>
-                        <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
-                      </div>
-                    </div>
-
-                    <!-- Expandable Notes Section -->
-                    <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
-                      <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
-                        Implementation Notes
-                      </label>
-                      <textarea
-                        v-model="taskNotes[task.id]"
-                        @input="saveTaskNotes(task.id)"
-                        class="task-notes-textarea"
-                        rows="3"
-                        placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Phase 2: Development -->
-                <div v-if="tasksByPhase.development.length > 0" class="phase-section">
-                  <h3 class="phase-title text-xs text-tertiary">PHASE 2: DEVELOPMENT</h3>
-                  <div
-                    v-for="task in tasksByPhase.development"
-                    :key="task.id"
-                    class="task-item"
-                    data-accent="2"
-                  >
-                    <!-- Task Display Mode -->
-                    <div v-if="editingTaskId !== task.id" class="task-main">
-                      <div class="task-header-row">
-                        <div v-if="isUserMember" class="task-checkbox-wrapper">
-                          <input
-                            type="checkbox"
-                            :checked="task.completed"
-                            @change="toggleTask(task.id)"
-                            class="task-checkbox"
-                          />
-                        </div>
-                        <div class="task-title-wrapper">
-                          <div class="task-title text-sm" :class="{ completed: task.completed }">
-                            {{ task.title }}
-                          </div>
-                        </div>
-                        <div v-if="isUserMember" class="task-actions">
-                          <button
-                            @click="selectedTask = task; showTaskDetailsModal = true"
-                            class="task-action-btn text-xs"
-                            type="button"
-                          >
-                            View
-                          </button>
-                          <button
-                            @click="startEditingTask(task)"
-                            class="task-action-btn text-xs"
-                            type="button"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            @click="toggleTaskNotes(task.id)"
-                            class="task-action-btn text-xs"
-                            :class="{ active: expandedTaskNotes[task.id] }"
-                            type="button"
-                          >
-                            {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
-                          </button>
-                        </div>
-                      </div>
-                      <div class="task-content">
-                        <p class="task-description text-xs text-secondary">
-                          {{ task.description }}
-                        </p>
-                        <div class="task-meta text-xs text-tertiary">
-                          <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
-                          <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Task Edit Mode -->
-                    <div v-else-if="isUserMember" class="task-edit-form">
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Task Title</label>
-                        <input
-                          v-model="editingTask.title"
-                          type="text"
-                          class="form-input"
-                          placeholder="Enter task title..."
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Description</label>
-                        <textarea
-                          v-model="editingTask.description"
-                          class="form-textarea"
-                          rows="2"
-                          placeholder="Enter task description..."
-                        ></textarea>
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Phase</label>
-                        <select v-model="editingTask.phase" class="form-input">
-                          <option :value="1">Phase 1: Planning</option>
-                          <option :value="2">Phase 2: Development</option>
-                          <option :value="3">Phase 3: Testing & Launch</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Due Date</label>
-                        <input
-                          v-model="editingTask.dueDate"
-                          type="date"
-                          class="form-input"
-                        />
-                      </div>
-                      <div class="form-actions">
-                        <button @click="saveTaskEdit" class="btn btn-sm">Save</button>
-                        <button @click="cancelTaskEdit" class="btn-text text-xs">Cancel</button>
-                        <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
-                      </div>
-                    </div>
-
-                    <!-- Expandable Notes Section -->
-                    <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
-                      <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
-                        Implementation Notes
-                      </label>
-                      <textarea
-                        v-model="taskNotes[task.id]"
-                        @input="saveTaskNotes(task.id)"
-                        class="task-notes-textarea"
-                        rows="3"
-                        placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Phase 3: Testing & Launch -->
-                <div v-if="tasksByPhase.testing.length > 0" class="phase-section">
-                  <h3 class="phase-title text-xs text-tertiary">PHASE 3: TESTING & LAUNCH</h3>
-                  <div
-                    v-for="task in tasksByPhase.testing"
-                    :key="task.id"
-                    class="task-item"
-                    data-accent="3"
-                  >
-                    <!-- Task Display Mode -->
-                    <div v-if="editingTaskId !== task.id" class="task-main">
-                      <div class="task-header-row">
-                        <div v-if="isUserMember" class="task-checkbox-wrapper">
-                          <input
-                            type="checkbox"
-                            :checked="task.completed"
-                            @change="toggleTask(task.id)"
-                            class="task-checkbox"
-                          />
-                        </div>
-                        <div class="task-title-wrapper">
-                          <div class="task-title text-sm" :class="{ completed: task.completed }">
-                            {{ task.title }}
-                          </div>
-                        </div>
-                        <div v-if="isUserMember" class="task-actions">
-                          <button
-                            @click="selectedTask = task; showTaskDetailsModal = true"
-                            class="task-action-btn text-xs"
-                            type="button"
-                          >
-                            View
-                          </button>
-                          <button
-                            @click="startEditingTask(task)"
-                            class="task-action-btn text-xs"
-                            type="button"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            @click="toggleTaskNotes(task.id)"
-                            class="task-action-btn text-xs"
-                            :class="{ active: expandedTaskNotes[task.id] }"
-                            type="button"
-                          >
-                            {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
-                          </button>
-                        </div>
-                      </div>
-                      <div class="task-content">
-                        <p class="task-description text-xs text-secondary">
-                          {{ task.description }}
-                        </p>
-                        <div class="task-meta text-xs text-tertiary">
-                          <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
-                          <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Task Edit Mode -->
-                    <div v-else-if="isUserMember" class="task-edit-form">
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Task Title</label>
-                        <input
-                          v-model="editingTask.title"
-                          type="text"
-                          class="form-input"
-                          placeholder="Enter task title..."
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Description</label>
-                        <textarea
-                          v-model="editingTask.description"
-                          class="form-textarea"
-                          rows="2"
-                          placeholder="Enter task description..."
-                        ></textarea>
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Phase</label>
-                        <select v-model="editingTask.phase" class="form-input">
-                          <option :value="1">Phase 1: Planning</option>
-                          <option :value="2">Phase 2: Development</option>
-                          <option :value="3">Phase 3: Testing & Launch</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label class="text-xs text-tertiary">Due Date</label>
-                        <input
-                          v-model="editingTask.dueDate"
-                          type="date"
-                          class="form-input"
-                        />
-                      </div>
-                      <div class="form-actions">
-                        <button @click="saveTaskEdit" class="btn btn-sm">Save</button>
-                        <button @click="cancelTaskEdit" class="btn-text text-xs">Cancel</button>
-                        <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
-                      </div>
-                    </div>
-
-                    <!-- Expandable Notes Section -->
-                    <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
-                      <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
-                        Implementation Notes
-                      </label>
-                      <textarea
-                        v-model="taskNotes[task.id]"
-                        @input="saveTaskNotes(task.id)"
-                        class="task-notes-textarea"
-                        rows="3"
-                        placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Ungrouped Tasks (legacy tasks without phase) -->
-                <div v-if="tasksByPhase.ungrouped.length > 0" class="phase-section">
-                  <h3 class="phase-title text-xs text-tertiary">UNGROUPED TASKS</h3>
-                  <div
-                    v-for="(task, index) in tasksByPhase.ungrouped"
-                    :key="task.id"
-                    class="task-item"
-                    :data-accent="((index % 3) + 1)"
-                  >
-                    <!-- Task Display Mode -->
-                    <div v-if="editingTaskId !== task.id" class="task-main">
-                      <div class="task-header-row">
-                        <div v-if="isUserMember" class="task-checkbox-wrapper">
-                          <input
-                            type="checkbox"
-                            :checked="task.completed"
-                          @change="toggleTask(task.id)"
-                          class="task-checkbox"
-                        />
-                      </div>
-                      <div class="task-title-wrapper">
-                        <div class="task-title text-sm" :class="{ completed: task.completed }">
-                          {{ task.title }}
-                        </div>
-                      </div>
-                      <div v-if="isUserMember" class="task-actions">
-                        <button
-                          @click="selectedTask = task; showTaskDetailsModal = true"
-                          class="task-action-btn text-xs"
-                          type="button"
-                        >
-                          View
-                        </button>
-                        <button
-                          @click="startEditingTask(task)"
-                          class="task-action-btn text-xs"
-                          type="button"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          @click="toggleTaskNotes(task.id)"
-                          class="task-action-btn text-xs"
-                          :class="{ active: expandedTaskNotes[task.id] }"
-                          type="button"
-                        >
-                          {{ expandedTaskNotes[task.id] ? '− Notes' : '+ Notes' }}
-                        </button>
-                      </div>
-                    </div>
-                    <div class="task-content">
-                      <p class="task-description text-xs text-secondary">
-                        {{ task.description }}
-                      </p>
-                      <div class="task-meta text-xs text-tertiary">
-                        <span v-if="task.dueDate">Due {{ formatDate(task.dueDate) }}</span>
-                        <span v-if="task.completedDate"> · Completed {{ formatDate(task.completedDate) }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Task Edit Mode -->
-                  <div v-else-if="isUserMember" class="task-edit-form">
-                    <div class="form-group">
-                      <label class="text-xs text-tertiary">Task Title</label>
-                      <input
-                        v-model="editingTask.title"
-                        type="text"
-                        class="form-input"
-                        placeholder="Enter task title..."
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label class="text-xs text-tertiary">Description</label>
-                      <textarea
-                        v-model="editingTask.description"
-                        class="form-textarea"
-                        rows="2"
-                        placeholder="Enter task description..."
-                      ></textarea>
-                    </div>
-                    <div class="form-group">
-                      <label class="text-xs text-tertiary">Phase</label>
-                      <select v-model="editingTask.phase" class="form-input">
-                        <option :value="1">Phase 1: Planning</option>
-                        <option :value="2">Phase 2: Development</option>
-                        <option :value="3">Phase 3: Testing & Launch</option>
-                      </select>
-                    </div>
-                    <div class="form-group">
-                      <label class="text-xs text-tertiary">Due Date</label>
-                      <input
-                        v-model="editingTask.dueDate"
-                        type="date"
-                        class="form-input"
-                      />
-                    </div>
-                  <div class="form-actions">
-                    <button @click="saveTaskEdit" class="btn btn-sm">Save</button>
-                    <button @click="cancelTaskEdit" class="btn-text text-xs">Cancel</button>
-                    <button @click="confirmDeleteTask(task.id)" class="btn-text text-xs text-danger">Delete Task</button>
-                  </div>
-                </div>
-                  <!-- Expandable Notes Section -->
-                  <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
-                    <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
-                      Implementation Notes
-                    </label>
-                    <textarea
-                      v-model="taskNotes[task.id]"
-                      @input="saveTaskNotes(task.id)"
-                      class="task-notes-textarea"
-                      rows="3"
-                      placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-            </div>
-
-            <!-- Notes & Learnings -->
-            <div class="content-block">
-              <div class="block-header">
-                <h2 class="section-subtitle">Notes & Learnings</h2>
-                <button 
-                  v-if="!isEditingNotes && isUserMember"
-                  @click="startEditingNotes"
-                  class="btn-text text-xs"
-                >
-                  Edit
-                </button>
-              </div>
-              
-              <!-- Display Mode -->
-              <div v-if="!isEditingNotes" class="notes-display">
-                <p v-if="playbook.notes" class="text-secondary">{{ playbook.notes }}</p>
-                <p v-else class="text-tertiary" style="font-style: italic;">
-                  {{ isUserMember ? 'No notes added yet. Click Edit to add your learnings and insights.' : 'No notes added yet.' }}
-                </p>
-              </div>
-
-              <!-- Edit Mode -->
-              <div v-else-if="isUserMember" class="notes-edit">
-                <textarea
-                  v-model="editableNotes"
-                  class="notes-textarea"
-                  rows="6"
-                  placeholder="Document your overall learnings, insights, challenges overcome, and advice for others implementing this pattern..."
-                ></textarea>
-                <div class="form-actions" style="margin-top: 1rem;">
-                  <button @click="saveNotes" class="btn btn-sm">Save</button>
-                  <button @click="cancelEditingNotes" class="btn-text text-xs">Cancel</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Resources -->
-            <div v-if="playbook.resources.length > 0" class="content-block">
-              <div class="block-header">
-                <h2 class="section-subtitle">Resources</h2>
-                <button 
-                  v-if="!isEditingResources && isUserMember"
-                  @click="startEditingResources"
-                  class="btn-text text-xs"
-                >
-                  Edit
-                </button>
-              </div>
-              
-              <!-- Display Mode -->
-              <div v-if="!isEditingResources" class="resources-grid">
-                <!-- Link Resources (external) -->
-                <a
-                  v-for="resource in playbook.resources.filter((r: any) => r.type === 'link')"
-                  :key="`${resource.type}-${resource.id}`"
-                  :href="resource.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="resource-card resource-card-link text-sm"
-                >
-                  <span class="resource-type text-xs text-tertiary">{{ resource.type }}</span>
-                  <span>{{ resource.title }}</span>
-                  <span class="link-indicator">↗</span>
-                </a>
-                
-                <!-- Internal Resources (patterns, challenges, stories) -->
-                <router-link
-                  v-for="resource in playbook.resources.filter((r: any) => r.type !== 'link')"
-                  :key="`${resource.type}-${resource.id}`"
-                  :to="getResourceLink(resource)"
-                  class="resource-card text-sm"
-                >
-                  <span class="resource-type text-xs text-tertiary">{{ resource.type }}</span>
-                  <span>{{ resource.title }}</span>
-                </router-link>
-              </div>
-
-              <!-- Edit Mode -->
-              <div v-else>
-                <div class="resources-grid">
-                  <div
-                    v-for="resource in playbook.resources"
-                    :key="`${resource.type}-${resource.id}`"
-                    class="resource-card resource-card-editable text-sm"
-                  >
-                    <div class="resource-card-content">
-                      <div class="resource-card-info">
-                        <span class="resource-type text-xs text-tertiary">{{ resource.type }}</span>
-                        <span>{{ resource.title }}</span>
-                      </div>
-                      <button @click="confirmDeleteResource(resource.id)" class="delete-resource-btn">×</button>
-                    </div>
-                  </div>
-                </div>
-                <div style="margin-top: 1.5rem;">
-                  <button @click="cancelEditingResources" class="btn-secondary">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
+            <!-- TAB: Activity -->
+            <template v-if="activeTab === 'activity'">
+              <PlaybookActivityTab :playbook="playbook" />
+            </template>
 
             <!-- Navigation -->
             <div class="content-nav">
@@ -1010,7 +182,7 @@
       confirm-text="Delete"
       cancel-text="Cancel"
       :danger="true"
-      @confirm="handleDeleteTask"
+      @confirm="handleDeleteTask(refreshPlaybook)"
     />
 
     <!-- Delete Resource Confirmation Modal -->
@@ -1042,61 +214,15 @@
     />
 
     <!-- Invite Member Slide-In Modal -->
-    <SlideInModal v-model="showInviteMemberModal" title="Invite Member">
-      <div class="invite-member-content">
-        <!-- Back Button -->
-        <button class="close-button" @click="showInviteMemberModal = false" title="Close">
-          ← Back
-        </button>
-
-        <h2 class="modal-title">Invite Member</h2>
-        
-        <p class="text-sm text-secondary" style="margin-bottom: 20px;">
-          Invite users from your local community to collaborate on this playbook.
-        </p>
-        
-        <!-- Search Input -->
-        <div class="form-group">
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="form-input"
-            placeholder="Search by name..."
-            @input="searchUsers"
-          />
-        </div>
-
-        <!-- All Available Users -->
-        <div class="users-list">
-          <div
-            v-for="user in filteredAvailableUsers"
-            :key="user.id"
-            class="user-result"
-          >
-            <div 
-              class="user-avatar" 
-              :style="{ backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none' }"
-            >
-              {{ !user.profileImage ? getInitials(user.name) : '' }}
-            </div>
-            <div class="user-info-result">
-              <div class="user-name-result">{{ user.name }}</div>
-              <div class="text-xs text-tertiary">{{ user.location }}, {{ user.state }}</div>
-            </div>
-            <button
-              @click="inviteUser(user)"
-              :disabled="loading || invitedUserIds.includes(user.id)"
-              class="btn-sm"
-            >
-              {{ invitedUserIds.includes(user.id) ? 'Invited' : 'Invite' }}
-            </button>
-          </div>
-        </div>
-        <p v-if="filteredAvailableUsers.length === 0" class="text-xs text-tertiary">
-          {{ searchQuery ? 'No users found matching your search' : 'No users available to invite' }}
-        </p>
-      </div>
-    </SlideInModal>
+    <InviteMemberPanel
+      v-model="showInviteMemberModal"
+      :search-query="searchQuery"
+      :filtered-available-users="filteredAvailableUsers"
+      :invited-user-ids="invitedUserIds"
+      :loading="loading"
+      @update:search-query="searchQuery = $event"
+      @invite-user="inviteUser"
+    />
 
     <!-- Pattern Slide-In Modal -->
     <SlideInModal v-model="showPatternModal">
@@ -1121,773 +247,185 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { usePlaybooksStore } from '@/stores/playbooks'
-import { useAuthStore } from '@/stores/auth'
-import { useChallenges } from '@/composables/useChallenges'
-import { usePatterns } from '@/composables/usePatterns'
-import { userStoriesApi, playbooksApi, usersApi } from '@/services/api'
+import { ref } from 'vue'
 import { ConfirmModal, Toast } from '@/components'
 import FullTaskPage from '@/components/FullTaskPage.vue'
 import SlideInModal from '@/components/SlideInModal.vue'
 import FullPatternPage from '@/views/FullPatternPage.vue'
 import FullChallengePage from '@/views/FullChallengePage.vue'
-import type { PlaybookMember, SearchedUser, Task } from '@/types/collaboration'
+import PlaybookHero from '@/components/playbook/PlaybookHero.vue'
+import PlaybookOverview from '@/components/playbook/PlaybookOverview.vue'
+import PlaybookSummary from '@/components/playbook/PlaybookSummary.vue'
+import PlaybookKpis from '@/components/playbook/PlaybookKpis.vue'
+import PlaybookTasks from '@/components/playbook/PlaybookTasks.vue'
+import PlaybookNotes from '@/components/playbook/PlaybookNotes.vue'
+import PlaybookResources from '@/components/playbook/PlaybookResources.vue'
+import InviteMemberPanel from '@/components/playbook/InviteMemberPanel.vue'
+import PlaybookCollaborationTab from '@/components/playbook/PlaybookCollaborationTab.vue'
+import PlaybookDiscussionTab from '@/components/playbook/PlaybookDiscussionTab.vue'
+import PlaybookActivityTab from '@/components/playbook/PlaybookActivityTab.vue'
 
-const route = useRoute()
-const router = useRouter()
-const playbooksStore = usePlaybooksStore()
-const authStore = useAuthStore()
-const { challenges: allChallenges } = useChallenges()
-const { patterns: allPatterns } = usePatterns()
-const loading = ref(false)
-const localPlaybookData = ref<any>(null)
-const allLocalPlaybooks = ref<any[]>([])
+import { usePlaybookData } from '@/composables/usePlaybookData'
+import { usePlaybookTasks } from '@/composables/usePlaybookTasks'
+import { usePlaybookKpis } from '@/composables/usePlaybookKpis'
+import { usePlaybookCollaboration } from '@/composables/usePlaybookCollaboration'
+import { usePlaybookNotes } from '@/composables/usePlaybookNotes'
+import type { Task } from '@/types/collaboration'
 
-const playbookId = computed(() => route.params.id as string)
+// Tabs
+const activeTab = ref<'playbook' | 'collaboration' | 'discussion' | 'activity'>('playbook')
+const tabs = [
+  { id: 'playbook' as const, label: 'Playbook' },
+  { id: 'collaboration' as const, label: 'Team' },
+  { id: 'discussion' as const, label: 'Discussion' },
+  { id: 'activity' as const, label: 'Activity' },
+]
 
-// Fetch playbooks on mount
-onMounted(async () => {
-  // Force refresh to ensure we have the latest data including public playbooks
-  await playbooksStore.fetchPlaybooks(true)
-  
-  // Check if playbook exists in user's playbooks
-  const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === playbookId.value)
-  
-  if (!userPlaybook) {
-    // Not in user's playbooks, try loading from local published playbooks
-    await loadPublicPlaybook()
-  }
-  
-  loadMembers()
-})
+// Core playbook data
+const {
+  loading,
+  playbook,
+  members,
+  userRole,
+  isUserMember,
+  completedTasksCount,
+  showToast,
+  toastMessage,
+  isGenerating,
+  showPatternModal,
+  showChallengeModal,
+  selectedPattern,
+  selectedChallenge,
+  openPatternModal,
+  openChallengeModal,
+  markComplete,
+  togglePause,
+  generateSuccessStory,
+  handleDelete,
+  refreshPlaybook,
+} = usePlaybookData()
 
-// Watch for route changes (navigating between different playbooks)
-watch(() => route.params.id, async (newId) => {
-  if (newId) {
-    localPlaybookData.value = null // Reset
-    const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === newId)
-    if (!userPlaybook) {
-      await loadPublicPlaybook()
-    }
-    loadMembers()
-  }
-})
+// Tasks
+const {
+  isAddingTask,
+  editingTaskId,
+  newTask,
+  editingTask,
+  showDeleteTaskModal,
+  expandedTaskNotes,
+  taskNotes,
+  tasksByPhase,
+  startAddingTask,
+  cancelAddingTask,
+  saveNewTask,
+  startEditingTask,
+  cancelTaskEdit,
+  saveTaskEdit,
+  confirmDeleteTask,
+  handleDeleteTask,
+  toggleTask,
+  toggleTaskNotes,
+  saveTaskNotes,
+} = usePlaybookTasks(playbook, showToast, toastMessage)
 
-const playbook = computed(() => {
-  // First check user's own playbooks
-  const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === playbookId.value)
-  if (userPlaybook) return userPlaybook
-  
-  // Otherwise return the loaded public playbook
-  return localPlaybookData.value
-})
+// KPIs
+const {
+  editingKpiId,
+  editingKpi,
+  formatKpiCategory,
+  startEditingKpi,
+  cancelKpiEdit,
+  saveKpiEdit,
+  calculateKpiProgress,
+} = usePlaybookKpis(playbook, showToast, toastMessage)
 
-// Load public playbook data (for local playbooks from other users)
-const loadPublicPlaybook = async () => {
-  try {
-    loading.value = true
-    console.log('Loading public playbook with ID:', playbookId.value)
-    
-    // First try to get all local published playbooks
-    allLocalPlaybooks.value = await playbooksApi.getLocalPublished()
-    console.log('All local playbooks:', allLocalPlaybooks.value)
-    
-    // Find the specific playbook by ID
-    const foundPlaybook = allLocalPlaybooks.value.find(p => p.id.toString() === playbookId.value)
-    
-    if (foundPlaybook) {
-      localPlaybookData.value = foundPlaybook
-      console.log('Found public playbook:', localPlaybookData.value)
-    } else {
-      console.error('Playbook not found in local published playbooks')
-    }
-  } catch (error) {
-    console.error('Failed to load public playbook:', error)
-  } finally {
-    loading.value = false
-  }
-}
+// Collaboration
+const {
+  showInviteMemberModal,
+  searchQuery,
+  invitedUserIds,
+  filteredAvailableUsers,
+  inviteUser,
+  togglePublishState,
+  requestToJoin,
+  removeMember,
+} = usePlaybookCollaboration(playbook, members, loading, showToast, toastMessage, refreshPlaybook)
 
-const completedTasksCount = computed(() => {
-  if (!playbook.value) return 0
-  return playbook.value.tasks.filter((t: any) => t.completed).length
-})
+// Notes & Resources
+const {
+  isEditingNotes,
+  editableNotes,
+  startEditingNotes,
+  cancelEditingNotes,
+  saveNotes,
+  isEditingResources,
+  showDeleteResourceModal,
+  startEditingResources,
+  cancelEditingResources,
+  confirmDeleteResource,
+  handleDeleteResource,
+} = usePlaybookNotes(playbook, showToast, toastMessage)
 
-// Pattern and Challenge Modals
-const showPatternModal = ref(false)
-const showChallengeModal = ref(false)
-const selectedPattern = ref<any>(null)
-const selectedChallenge = ref<any>(null)
-
-const openPatternModal = (patternId: number) => {
-  selectedPattern.value = allPatterns.value.find(p => p.id === patternId)
-  if (selectedPattern.value) {
-    showPatternModal.value = true
-  }
-}
-
-const openChallengeModal = (challengeId: number) => {
-  selectedChallenge.value = allChallenges.value.find(c => c.id === challengeId)
-  if (selectedChallenge.value) {
-    showChallengeModal.value = true
-  }
-}
-
-const formatKpiCategory = (category: string) => {
-  switch (category) {
-    case 'participation':
-      return 'Participation'
-    case 'diversity-collaboration':
-      return 'Diversity & Collaboration'
-    case 'pattern-specific':
-      return 'Pattern-Specific'
-    default:
-      return category
-  }
-}
-
-// KPI management
-const editingKpiId = ref<string | null>(null)
-const editingKpi = ref({
-  target: '',
-  currentProgress: ''
-})
-
-const startEditingKpi = (kpi: any) => {
-  editingKpiId.value = kpi.id
-  editingKpi.value = {
-    target: kpi.target || '',
-    currentProgress: kpi.currentProgress || ''
-  }
-}
-
-const cancelKpiEdit = () => {
-  editingKpiId.value = null
-  editingKpi.value = { target: '', currentProgress: '' }
-}
-
-const saveKpiEdit = () => {
-  if (!playbook.value || !editingKpiId.value) return
-  
-  const updatedKpis = playbook.value.kpis?.map((kpi: any) => 
-    kpi.id === editingKpiId.value
-      ? {
-          ...kpi,
-          target: editingKpi.value.target.trim(),
-          currentProgress: editingKpi.value.currentProgress.trim()
-        }
-      : kpi
-  )
-  
-  playbooksStore.updatePlaybook(playbook.value.id, { kpis: updatedKpis })
-  toastMessage.value = 'KPI updated successfully'
-  showToast.value = true
-  cancelKpiEdit()
-}
-
-const calculateKpiProgress = (kpi: any): number => {
-  if (!kpi.target || !kpi.currentProgress) return 0
-  
-  const target = kpi.target.toString()
-  const current = kpi.currentProgress.toString()
-  
-  // Handle fraction format (e.g., "3/10")
-  if (current.includes('/')) {
-    const [numerator, denominator] = current.split('/').map((s: string) => parseFloat(s.trim()))
-    if (denominator && denominator > 0) {
-      return Math.min(100, Math.round((numerator / denominator) * 100))
-    }
-  }
-  
-  // Handle percentage target (e.g., target: "100", current: "75")
-  const targetNum = parseFloat(target.replace(/[^\d.]/g, ''))
-  const currentNum = parseFloat(current.replace(/[^\d.]/g, ''))
-  
-  if (!isNaN(targetNum) && !isNaN(currentNum) && targetNum > 0) {
-    return Math.min(100, Math.round((currentNum / targetNum) * 100))
-  }
-  
-  return 0
-}
-
-// Success story generation
-const isGenerating = ref(false)
-
-// Task management
-const isAddingTask = ref(false)
-const editingTaskId = ref<string | null>(null)
-const newTask = ref({
-  title: '',
-  description: '',
-  dueDate: '',
-  phase: 1
-})
-const editingTask = ref({
-  title: '',
-  description: '',
-  dueDate: '',
-  phase: 1
-})
-
-// Computed properties for task grouping by phase
-const tasksByPhase = computed(() => {
-  if (!playbook.value) return { planning: [], development: [], testing: [], ungrouped: [] }
-  
-  const grouped = {
-    planning: [] as any[],
-    development: [] as any[],
-    testing: [] as any[],
-    ungrouped: [] as any[]
-  }
-  
-  playbook.value.tasks.forEach((task: any) => {
-    if (task.phase === 1) {
-      grouped.planning.push(task)
-    } else if (task.phase === 2) {
-      grouped.development.push(task)
-    } else if (task.phase === 3) {
-      grouped.testing.push(task)
-    } else {
-      // Tasks without phase (legacy tasks)
-      grouped.ungrouped.push(task)
-    }
-  })
-  
-  return grouped
-})
-
-const phaseName = (phase: number) => {
-  switch (phase) {
-    case 1: return 'Planning Phase'
-    case 2: return 'Development Phase'
-    case 3: return 'Testing & Launch Phase'
-    default: return 'Ungrouped'
-  }
-}
-
-const startAddingTask = () => {
-  isAddingTask.value = true
-  newTask.value = { title: '', description: '', dueDate: '', phase: 1 }
-}
-
-const cancelAddingTask = () => {
-  isAddingTask.value = false
-  newTask.value = { title: '', description: '', dueDate: '', phase: 1 }
-}
-
-const saveNewTask = () => {
-  if (!playbook.value || !newTask.value.title.trim()) return
-  
-  const task = {
-    id: `task_${Date.now()}`,
-    title: newTask.value.title.trim(),
-    description: newTask.value.description.trim(),
-    completed: false,
-    dueDate: newTask.value.dueDate || null,
-    completedDate: null,
-    phase: newTask.value.phase
-  }
-  
-  const updatedTasks = [...playbook.value.tasks, task]
-  playbooksStore.updatePlaybook(playbook.value.id, { tasks: updatedTasks })
-  
-  cancelAddingTask()
-}
-
-const startEditingTask = (task: any) => {
-  editingTaskId.value = task.id
-  editingTask.value = {
-    title: task.title,
-    description: task.description,
-    dueDate: task.dueDate || '',
-    phase: task.phase || 1
-  }
-}
-
-const cancelTaskEdit = () => {
-  editingTaskId.value = null
-  editingTask.value = { title: '', description: '', dueDate: '', phase: 1 }
-}
-
-const saveTaskEdit = () => {
-  if (!playbook.value || !editingTaskId.value || !editingTask.value.title.trim()) return
-  
-  const updatedTasks = playbook.value.tasks.map((task: any) => 
-    task.id === editingTaskId.value
-      ? {
-          ...task,
-          title: editingTask.value.title.trim(),
-          description: editingTask.value.description.trim(),
-          dueDate: editingTask.value.dueDate || null,
-          phase: editingTask.value.phase
-        }
-      : task
-  )
-  
-  playbooksStore.updatePlaybook(playbook.value.id, { tasks: updatedTasks })
-  toastMessage.value = 'Task saved successfully'
-  showToast.value = true
-  cancelTaskEdit()
-}
-
-// Task deletion with modal
-const showDeleteTaskModal = ref(false)
-const taskToDelete = ref<string | null>(null)
-
-const confirmDeleteTask = (taskId: string) => {
-  taskToDelete.value = taskId
-  showDeleteTaskModal.value = true
-}
-
-const handleDeleteTask = async () => {
-  if (!playbook.value || !taskToDelete.value) return
-  
-  try {
-    // Call API to delete task
-    await playbooksApi.deleteTask(playbook.value.id, taskToDelete.value)
-    
-    // Clean up task notes from localStorage
-    const storageKey = `task-notes-${playbook.value.id}-${taskToDelete.value}`
-    localStorage.removeItem(storageKey)
-    delete taskNotes.value[taskToDelete.value]
-    delete expandedTaskNotes.value[taskToDelete.value]
-    
-    // Refresh playbook data
-    await refreshPlaybook()
-    
-    showDeleteTaskModal.value = false
-    taskToDelete.value = null
-    toastMessage.value = 'Task deleted successfully'
-    showToast.value = true
-    cancelTaskEdit()
-  } catch (error) {
-    console.error('Failed to delete task:', error)
-    toastMessage.value = 'Failed to delete task'
-    showToast.value = true
-  }
-}
-
-// Task notes
-const expandedTaskNotes = ref<Record<string, boolean>>({})
-const taskNotes = ref<Record<string, string>>({})
-
-const toggleTaskNotes = (taskId: string) => {
-  expandedTaskNotes.value[taskId] = !expandedTaskNotes.value[taskId]
-}
-
-const saveTaskNotes = (taskId: string) => {
-  // Save to localStorage immediately
-  if (playbook.value) {
-    const storageKey = `task-notes-${playbook.value.id}-${taskId}`
-    localStorage.setItem(storageKey, taskNotes.value[taskId] || '')
-  }
-}
-
-// Load task notes from localStorage
-watch(() => playbook.value, (newPlaybook) => {
-  if (newPlaybook) {
-    newPlaybook.tasks.forEach((task: any) => {
-      const storageKey = `task-notes-${newPlaybook.id}-${task.id}`
-      const savedNotes = localStorage.getItem(storageKey)
-      if (savedNotes) {
-        taskNotes.value[task.id] = savedNotes
-      }
-    })
-  }
-}, { immediate: true })
-
-// Notes editing
-const isEditingNotes = ref(false)
-const editableNotes = ref('')
-const showToast = ref(false)
-const toastMessage = ref('')
-
-const startEditingNotes = () => {
-  editableNotes.value = playbook.value?.notes || ''
-  isEditingNotes.value = true
-}
-
-const cancelEditingNotes = () => {
-  editableNotes.value = playbook.value?.notes || ''
-  isEditingNotes.value = false
-}
-
-const saveNotes = () => {
-  if (playbook.value) {
-    playbooksStore.updatePlaybookNotes(playbook.value.id, editableNotes.value)
-    isEditingNotes.value = false
-    toastMessage.value = 'Notes saved successfully'
-    showToast.value = true
-  }
-}
-
-// Initialize editable notes
-watch(() => playbook.value?.notes, (newNotes) => {
-  if (newNotes !== undefined && !isEditingNotes.value) {
-    editableNotes.value = newNotes
-  }
-}, { immediate: true })
-
-// Resources editing
-const isEditingResources = ref(false)
-const showDeleteResourceModal = ref(false)
-const resourceToDelete = ref<number | null>(null)
-
-const startEditingResources = () => {
-  isEditingResources.value = true
-}
-
-const cancelEditingResources = () => {
-  isEditingResources.value = false
-}
-
-const confirmDeleteResource = (resourceId: number) => {
-  resourceToDelete.value = resourceId
-  showDeleteResourceModal.value = true
-}
-
-const handleDeleteResource = () => {
-  if (!playbook.value || !resourceToDelete.value) return
-  
-  const updatedResources = playbook.value.resources.filter(
-    (resource: any) => resource.id !== resourceToDelete.value
-  )
-  
-  playbooksStore.updatePlaybook(playbook.value.id, { resources: updatedResources })
-  
-  showDeleteResourceModal.value = false
-  resourceToDelete.value = null
-  toastMessage.value = 'Resource deleted successfully'
-  showToast.value = true
-  
-  // Exit edit mode if no resources left
-  if (updatedResources.length === 0) {
-    isEditingResources.value = false
-  }
-}
-
-const toggleTask = (taskId: string) => {
-  if (playbook.value) {
-    playbooksStore.toggleTaskCompletion(playbook.value.id, taskId)
-  }
-}
-
-const markComplete = () => {
-  if (playbook.value) {
-    playbooksStore.updatePlaybook(playbook.value.id, {
-      status: 'completed',
-      completedDate: new Date().toISOString().split('T')[0]
-    })
-  }
-}
-
-const togglePause = () => {
-  if (playbook.value) {
-    const newStatus = playbook.value.status === 'paused' ? 'active' : 'paused'
-    playbooksStore.updatePlaybook(playbook.value.id, {
-      status: newStatus as 'active' | 'paused'
-    })
-  }
-}
-
-const generateSuccessStory = async () => {
-  if (!playbook.value || typeof playbook.value.id !== 'number') return
-  
-  isGenerating.value = true
-  try {
-    const story = await userStoriesApi.generateFromPlaybook(playbook.value.id)
-    toastMessage.value = 'Success story generated!'
-    showToast.value = true
-    
-    // Navigate to the generated story after a brief delay
-    setTimeout(() => {
-      router.push(`/dashboard/success-stories/${story.id}`)
-    }, 1000)
-  } catch (error) {
-    console.error('Failed to generate success story:', error)
-    toastMessage.value = 'Failed to generate success story'
-    showToast.value = true
-  } finally {
-    isGenerating.value = false
-  }
-}
-
-// Delete modal
-const showDeleteModal = ref(false)
-
-const handleDelete = () => {
-  if (playbook.value) {
-    playbooksStore.deletePlaybook(playbook.value.id)
-    router.push('/dashboard/playbooks')
-  }
-}
-
-// ========== PART II: COLLABORATION ==========
-
-// Members
-const members = ref<PlaybookMember[]>([])
-
-const userRole = computed(() => {
-  if (!authStore.user || !playbook.value) return null
-  const member = members.value.find(m => String(m.user.id) === String(authStore.user?.id))
-  return member?.role || null
-})
-
-// Check if user is a member of this playbook
-const isUserMember = computed(() => {
-  if (!authStore.user || !playbook.value) return false
-  return members.value.some(m => String(m.user.id) === String(authStore.user?.id))
-})
-
-const loadMembers = async () => {
-  if (!playbook.value || typeof playbook.value.id !== 'number') return
-  try {
-    members.value = await playbooksApi.getMembers(playbook.value.id)
-  } catch (error) {
-    console.error('Failed to load members:', error)
-    // If it's a local playbook we're not a member of, members might return empty
-    members.value = []
-  }
-}
-
-const removeMember = async (userId: number) => {
-  if (!playbook.value || typeof playbook.value.id !== 'number' || !confirm('Remove this member from the playbook?')) return
-  
-  loading.value = true
-  try {
-    await playbooksApi.removeMember(playbook.value.id, userId)
-    await loadMembers()
-    toastMessage.value = 'Member removed'
-    showToast.value = true
-  } catch (error) {
-    console.error('Failed to remove member:', error)
-    toastMessage.value = 'Failed to remove member'
-    showToast.value = true
-  } finally {
-    loading.value = false
-  }
-}
-
-// Publish/Unpublish
-const togglePublishState = async () => {
-  if (!playbook.value || typeof playbook.value.id !== 'number' || loading.value) return
-  
-  loading.value = true
-  try {
-    if (playbook.value.isPublic) {
-      await playbooksApi.unpublish(playbook.value.id)
-      toastMessage.value = 'Playbook unpublished'
-    } else {
-      await playbooksApi.publish(playbook.value.id)
-      toastMessage.value = 'Playbook published to local community'
-    }
-    showToast.value = true
-    await refreshPlaybook()
-  } catch (error) {
-    console.error('Failed to toggle publish state:', error)
-    toastMessage.value = 'Failed to update playbook'
-    showToast.value = true
-  } finally {
-    loading.value = false
-  }
-}
-
-// Request to Join (for non-members viewing a public playbook)
-const requestToJoin = async () => {
-  if (!playbook.value || typeof playbook.value.id !== 'number' || !authStore.user) return
-  
-  loading.value = true
-  try {
-    // Find the creator from members list or playbook data
-    const creator = members.value.find(m => m.role === 'creator')
-    if (creator) {
-      // Convert user id from string to number for the API
-      const userId = parseInt(authStore.user.id, 10)
-      await playbooksApi.invite(playbook.value.id, userId, 'Request to join this playbook')
-      toastMessage.value = 'Join request sent to playbook creator'
-      showToast.value = true
-    } else {
-      toastMessage.value = 'Unable to send request - creator not found'
-      showToast.value = true
-    }
-  } catch (error) {
-    console.error('Failed to request join:', error)
-    toastMessage.value = 'Failed to send request'
-    showToast.value = true
-  } finally {
-    loading.value = false
-  }
-}
-
-// Task Details Modal
+// Task details modal
 const showTaskDetailsModal = ref(false)
 const selectedTask = ref<Task | null>(null)
+const showDeleteModal = ref(false)
 
-const refreshPlaybook = async () => {
-  const currentTaskId = selectedTask.value?.id
-  await playbooksStore.fetchPlaybooks()
-  await loadMembers()
-  
-  // Update selectedTask with fresh data if it was open
-  if (currentTaskId && playbook.value?.tasks) {
-    const updatedTask = playbook.value.tasks.find((t: Task) => t.id === currentTaskId)
-    if (updatedTask) {
-      selectedTask.value = updatedTask
-    }
-  }
+const onViewTask = (task: any) => {
+  selectedTask.value = task
+  showTaskDetailsModal.value = true
 }
 
-// Invite Member Modal
-const showInviteMemberModal = ref(false)
-const searchQuery = ref('')
-const allAvailableUsers = ref<SearchedUser[]>([])
-const invitedUserIds = ref<number[]>([])
-
-// Computed property to filter users based on search
-const filteredAvailableUsers = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return allAvailableUsers.value
-  }
-  return allAvailableUsers.value.filter((u: SearchedUser) => 
-    u.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
-
-// Load all available users when modal opens
-watch(showInviteMemberModal, async (isOpen) => {
-  if (isOpen && allAvailableUsers.value.length === 0) {
-    await loadAvailableUsers()
-  }
-  // Clear search when closing
-  if (!isOpen) {
-    searchQuery.value = ''
-  }
-})
-
-const loadAvailableUsers = async () => {
-  try {
-    const users = await usersApi.search()
-    // Filter out users who are already members
-    const memberIds = members.value.map(m => m.user.id)
-    allAvailableUsers.value = users.filter((u: SearchedUser) => 
-      !memberIds.includes(u.id)
-    )
-  } catch (error) {
-    console.error('Failed to load users:', error)
-  }
-}
-
-const searchUsers = async () => {
-  // The filtering is now handled by the computed property
-  // This function can be kept for potential future enhancements
-}
-
-const inviteUser = async (user: SearchedUser) => {
-  if (!playbook.value || typeof playbook.value.id !== 'number' || loading.value) return
-  
-  loading.value = true
-  try {
-    await playbooksApi.invite(playbook.value.id, user.id)
-    invitedUserIds.value.push(user.id)
-    toastMessage.value = `Invitation sent to ${user.name}`
-    showToast.value = true
-  } catch (error: any) {
-    console.error('Failed to invite user:', error)
-    toastMessage.value = error.message || 'Failed to send invitation'
-    showToast.value = true
-  } finally {
-    loading.value = false
-  }
-}
-
-const getInitials = (name: string) => {
-  if (!name) return '?'
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
-
-// Watch for playbook changes to reload members
-watch(() => playbook.value?.id, (newId) => {
-  if (newId) {
-    loadMembers()
-  }
-})
-
-// ========== END COLLABORATION ==========
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(date)
-}
-
-const getResourceLink = (resource: any) => {
-  if (resource.type === 'pattern') {
-    return `/patterns/${resource.id}`
-  } else if (resource.type === 'challenge') {
-    return `/challenges/${resource.id}`
-  } else if (resource.type === 'story') {
-    return `/stories/${resource.id}`
-  }
-  // For links, we handle them with href directly
-  return '#'
+const onUpdateNotes = (taskId: string, value: string) => {
+  taskNotes.value[taskId] = value
+  saveTaskNotes(taskId)
 }
 </script>
 
 <style scoped>
-/* Page-specific styles for FullPlaybookPage */
-/* Common styles now imported from global files: buttons.css, forms.css, layouts.css, components.css */
-
 .full-playbook-page {
   min-height: 100vh;
   background: var(--color-bg-primary);
 }
 
-/* Hero */
-.playbook-hero {
-  padding: 4rem 0;
+/* Tab Navigation */
+.playbook-tabs-bar {
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid rgba(42, 42, 42, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
-.hero-meta {
+.playbook-tabs {
   display: flex;
-  gap: 2rem;
-  align-items: center;
-  margin-bottom: 2rem;
+  gap: 0;
 }
 
-.pattern-number {
-  letter-spacing: 0.1em;
+.playbook-tab {
+  padding: 1.25rem 2rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  transition: all var(--transition-base);
+  white-space: nowrap;
 }
 
-.hero-title {
-  font-size: 4rem;
-  font-weight: var(--font-weight-light);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  margin-bottom: 1rem;
+.playbook-tab:hover {
+  color: var(--color-text-secondary);
 }
 
-.hero-location {
-  font-size: 1.25rem;
-  line-height: 1.7;
-  margin-bottom: 3rem;
+.playbook-tab.tab-active {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-text-primary);
 }
 
-.hero-progress {
-  max-width: 600px;
-}
-
-/* Content Section with distinct background */
 .playbook-content {
   background: var(--color-bg-secondary);
   padding: 4rem var(--container-padding);
@@ -1897,418 +435,6 @@ const getResourceLink = (resource: any) => {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-}
-
-.save-status {
-  font-style: italic;
-}
-
-/* Overview */
-.overview-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
-  padding-top: 2.5rem;
-}
-
-.overview-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.overview-badges {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.overview-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-}
-
-.overview-item {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.overview-item .badge {
-  align-self: flex-start;
-}
-
-.overview-item p {
-  line-height: 1.7;
-}
-
-/* Timeline Section */
-.timeline-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Overview Actions */
-.overview-actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-/* Solution */
-.solution-display {
-  padding-top: 2.5rem;
-}
-
-.solution-display p {
-  line-height: 1.8;
-  font-size: 1rem;
-}
-
-.solution-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.solution-textarea {
-  width: 100%;
-  padding: 1.25rem;
-  font-family: var(--font-family);
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--color-text-primary);
-  background: var(--color-bg-secondary);
-  border: 1px solid rgba(42, 42, 42, 0.15);
-  resize: vertical;
-  transition: border-color var(--transition-base);
-}
-
-.solution-textarea:focus {
-  outline: none;
-  border-color: var(--color-accent-2);
-}
-
-.edit-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-/* Task Forms - specific styling */
-.task-form,
-.task-edit-form {
-  padding: 2rem;
-  background: var(--color-bg-secondary);
-  border: 1px solid rgba(42, 42, 42, 0.08);
-  margin-bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-/* Tasks List - page-specific */
-.tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
-  border: 1px solid rgba(42, 42, 42, 0.08);
-  padding: 1.5rem 0 0;
-}
-
-.phase-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.phase-title {
-  padding: 0 1.5rem 1rem;
-  letter-spacing: 0.08em;
-  font-weight: 500;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.06);
-  margin-bottom: 0;
-}
-
-.task-item {
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
-  border-left: 3px solid transparent;
-  transition: all var(--transition-base);
-}
-
-.phase-section .task-item:last-child {
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
-}
-
-.task-item:hover {
-  background: var(--color-bg-secondary);
-}
-
-.task-item[data-accent="1"] {
-  border-left-color: var(--color-accent-1);
-}
-
-.task-item[data-accent="2"] {
-  border-left-color: var(--color-accent-2);
-}
-
-.task-item[data-accent="3"] {
-  border-left-color: var(--color-accent-3);
-}
-
-.task-main {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.task-header-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.5rem 1.5rem 0.75rem;
-}
-
-.task-title-wrapper {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.task-checkbox-wrapper {
-  display: flex;
-  align-items: flex-start;
-  padding: 0;
-}
-
-.task-checkbox {
-  margin-top: 0.25rem;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--color-accent-2);
-  flex-shrink: 0;
-  border-radius: 0;
-}
-
-.task-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0 1.5rem 1.5rem 1.5rem;
-}
-
-/* When checkbox is present, add left padding to align with title */
-.task-header-row + .task-content {
-  padding-left: calc(1.5rem + 18px + 1rem);
-}
-
-.task-title {
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-  transition: opacity var(--transition-base);
-}
-
-.task-title.completed {
-  text-decoration: line-through;
-  opacity: 0.5;
-}
-
-.task-description {
-  line-height: 1.6;
-}
-
-.task-meta {
-  letter-spacing: 0.05em;
-}
-
-.task-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.task-action-btn {
-  padding: 0.5rem 1rem;
-  background: transparent;
-  border: 1px solid rgba(42, 42, 42, 0.15);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-normal);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: all var(--transition-base);
-  white-space: nowrap;
-}
-
-.task-action-btn:hover,
-.task-action-btn.active {
-  color: var(--color-text-primary);
-  border-color: var(--color-text-primary);
-}
-
-.task-notes-section {
-  padding: 0 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid rgba(42, 42, 42, 0.08);
-  background: var(--color-bg-secondary);
-}
-
-.task-notes-textarea {
-  width: 100%;
-  padding: 1rem;
-  font-family: var(--font-family);
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--color-text-primary);
-  background: var(--color-bg-primary);
-  border: 1px solid rgba(42, 42, 42, 0.15);
-  resize: vertical;
-  transition: border-color var(--transition-base);
-}
-
-.task-notes-textarea:focus {
-  outline: none;
-  border-color: var(--color-accent-2);
-}
-
-.task-notes-textarea::placeholder {
-  color: var(--color-text-tertiary);
-  opacity: 0.6;
-}
-
-/* Notes & Learnings */
-.notes-display {
-  padding: 2rem;
-  background: var(--color-bg-secondary);
-  border-left: 3px solid var(--color-accent-3);
-  line-height: 1.8;
-  padding-top: 2.5rem;
-}
-
-.notes-edit {
-  padding-top: 2.5rem;
-}
-
-.notes-textarea {
-  width: 100%;
-  padding: 1.5rem;
-  font-family: var(--font-family);
-  font-size: 1rem;
-  line-height: 1.8;
-  color: var(--color-text-primary);
-  background: var(--color-bg-secondary);
-  border: 1px solid rgba(42, 42, 42, 0.15);
-  resize: vertical;
-  transition: border-color var(--transition-base);
-}
-
-.notes-textarea:focus {
-  outline: none;
-  border-color: var(--color-accent-2);
-}
-
-.notes-textarea::placeholder {
-  color: var(--color-text-tertiary);
-  opacity: 0.6;
-}
-
-/* Resources */
-.resources-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.resource-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  padding: 1.25rem;
-  color: var(--color-text-primary);
-  text-decoration: none;
-  transition: all var(--transition-base);
-  border: 1px solid rgba(42, 42, 42, 0.08);
-  position: relative;
-}
-
-.resource-card:hover {
-  background: var(--color-bg-secondary);
-  border-color: var(--color-accent-2);
-}
-
-.resource-card-link {
-  position: relative;
-}
-
-.link-indicator {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  font-size: 1rem;
-  color: var(--color-text-tertiary);
-  transition: all var(--transition-base);
-}
-
-.resource-card-link:hover .link-indicator {
-  color: var(--color-text-primary);
-  transform: translateX(2px) translateY(-2px);
-}
-
-.resource-card-editable {
-  cursor: default;
-}
-
-.resource-card-editable:hover {
-  background: var(--color-bg-primary);
-  border-color: rgba(42, 42, 42, 0.08);
-}
-
-.resource-card-content {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.resource-card-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  flex: 1;
-}
-
-.delete-resource-btn {
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid rgba(232, 180, 160, 0.3);
-  background: transparent;
-  color: var(--color-accent-warm);
-  cursor: pointer;
-  font-size: 1.5rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-base);
-  padding: 0;
-  font-weight: var(--font-weight-normal);
-  flex-shrink: 0;
-}
-
-.delete-resource-btn:hover {
-  background: rgba(232, 180, 160, 0.1);
-  border-color: var(--color-accent-1);
-  color: var(--color-accent-1);
-}
-
-.resource-type {
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 /* Navigation */
@@ -2330,236 +456,6 @@ const getResourceLink = (resource: any) => {
 
 .nav-link:hover {
   color: var(--color-text-primary);
-}
-
-.action-btn {
-  padding: 0.75rem 1.25rem;
-  background: transparent;
-  border: 1px solid rgba(42, 42, 42, 0.15);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-normal);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: all var(--transition-base);
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.action-btn:hover {
-  border-color: var(--color-text-primary);
-  color: var(--color-text-primary);
-  background: rgba(42, 42, 42, 0.02);
-}
-
-.action-btn-danger {
-  border-color: rgba(232, 180, 160, 0.3);
-  color: var(--color-accent-warm);
-}
-
-.action-btn-danger:hover {
-  border-color: var(--color-accent-1);
-  background: rgba(232, 180, 160, 0.05);
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .overview-grid,
-  .timeline {
-    grid-template-columns: 1fr;
-  }
-
-  .timeline {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .playbook-hero {
-    padding: 3rem 0;
-  }
-
-  .hero-title {
-    font-size: 2.5rem;
-  }
-
-  .hero-location {
-    font-size: 1rem;
-  }
-
-  .content-block {
-    padding: 2rem;
-  }
-
-  .task-header-row {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .task-actions {
-    align-self: flex-start;
-    width: 100%;
-  }
-
-  .task-action-btn {
-    flex: 1;
-  }
-
-  .content-nav {
-    padding: 1.5rem 2rem;
-  }
-
-  .resources-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .overview-badges,
-  .overview-actions {
-    flex-direction: column;
-  }
-
-  .badge,
-  .btn-sm,
-  .btn-secondary {
-    width: 100%;
-    text-align: center;
-  }
-
-  .header-actions {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.75rem;
-  }
-}
-
-/* PART II: Collaboration Styles */
-.section-header-with-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.section-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn-text-small {
-  background: none;
-  border: none;
-  color: #999;
-  font-weight: 400;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s;
-}
-
-.btn-text-small:hover {
-  color: #e74c3c;
-}
-
-.btn-text-small:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.public-indicator {
-  padding: 0.75rem;
-  background: #f0f8f0;
-  margin-top: 1rem;
-}
-
-/* Invite Modal - page-specific */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-/* Invite Member Styles */
-.invite-member-content {
-  padding: 3rem;
-  position: relative;
-}
-
-.invite-member-content .close-button {
-  background: transparent;
-  border: none;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 300;
-  padding: 0;
-  margin-bottom: 2rem;
-  transition: color 0.2s;
-}
-
-.invite-member-content .close-button:hover {
-  color: var(--color-text-primary);
-}
-
-.invite-member-content .modal-title {
-  font-size: 28px;
-  font-weight: 300;
-  margin: 0 0 16px 0;
-  color: #2c2c2c;
-}
-
-.users-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-height: 500px;
-  overflow-y: auto;
-  margin-top: 1rem;
-}
-
-.user-result {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: #fafafa;
-  transition: background 0.2s;
-}
-
-.user-result:hover {
-  background: #f5f5f5;
-}
-
-.user-avatar {
-  width: 50px;
-  height: 50px;
-  background: #b8d4c8;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 400;
-  font-size: 16px;
-  background-size: cover;
-  background-position: center;
-  flex-shrink: 0;
-}
-
-.user-info-result {
-  flex: 1;
-}
-
-.user-name-result {
-  font-weight: 400;
-  font-size: 15px;
-  margin-bottom: 2px;
 }
 
 /* Pattern and Challenge Modal Styles */
@@ -2593,165 +489,18 @@ const getResourceLink = (resource: any) => {
   border-color: #2c2c2c;
 }
 
-/* Clickable Badge Styles */
-.clickable-badge {
-  cursor: pointer;
-}
+@media (max-width: 768px) {
+  .content-nav {
+    padding: 1.5rem 2rem;
+  }
 
-.badge.clickable-badge:hover {
-  border-color: var(--color-accent-2);
-}
+  .playbook-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
-.challenges-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-/* Summary Grid */
-.summary-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.summary-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.summary-label {
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 500;
-}
-
-/* KPIs Grid */
-.kpis-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  border: 1px solid rgba(42, 42, 42, 0.08);
-}
-
-.kpi-card {
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
-  border-right: 1px solid rgba(42, 42, 42, 0.08);
-  border-left: 3px solid transparent;
-  transition: all var(--transition-base);
-}
-
-.kpi-card:hover {
-  background: var(--color-bg-secondary);
-}
-
-.kpi-card:nth-child(2n) {
-  border-right: none;
-}
-
-.kpi-card:nth-last-child(-n+2) {
-  border-bottom: none;
-}
-
-.kpi-card[data-accent="1"] {
-  border-left-color: var(--color-accent-1);
-}
-
-.kpi-card[data-accent="2"] {
-  border-left-color: var(--color-accent-2);
-}
-
-.kpi-card[data-accent="3"] {
-  border-left-color: var(--color-accent-3);
-}
-
-.kpi-header {
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.kpi-category {
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 500;
-}
-
-.kpi-edit-btn {
-  padding: 0.25rem 0.75rem;
-  background: transparent;
-  border: 1px solid rgba(42, 42, 42, 0.12);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  border-radius: 2px;
-}
-
-.kpi-edit-btn:hover {
-  background: rgba(42, 42, 42, 0.04);
-  border-color: rgba(42, 42, 42, 0.24);
-}
-
-.kpi-title {
-  font-weight: 500;
-  margin-bottom: 0.75rem;
-  color: #2c2c2c;
-}
-
-.kpi-description {
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.kpi-metrics {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(42, 42, 42, 0.08);
-}
-
-.kpi-target-row,
-.kpi-progress-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.kpi-progress-bar {
-  width: 100%;
-  height: 6px;
-  background: rgba(42, 42, 42, 0.08);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 1rem;
-}
-
-.kpi-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2));
-  transition: width 0.3s ease;
-}
-
-.kpi-progress-text {
-  margin-top: 0.5rem;
-  text-align: right;
-}
-
-.kpi-edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.kpi-edit-form .form-group {
-  margin-top: 0.75rem;
-}
-
-.kpi-edit-form .form-actions {
-  margin-top: 1rem;
+  .playbook-tab {
+    padding: 1rem 1.25rem;
+  }
 }
 </style>

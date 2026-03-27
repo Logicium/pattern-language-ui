@@ -2,7 +2,6 @@
   <div class="about-page">
     <Navbar />
     
-    <!-- Hero -->
     <section class="about-hero gradient-bg">
       <RibbonCanvas />
       <div class="container">
@@ -14,7 +13,6 @@
       </div>
     </section>
 
-    <!-- Mission -->
     <section class="section mission-section">
       <div class="container">
         <div class="mission-grid">
@@ -38,41 +36,9 @@
       </div>
     </section>
 
-    <!-- Principles -->
-    <section class="section principles-section">
-      <div class="container">
-        <h2 class="section-title mb-md">How We Work</h2>
-        <div class="principles-grid">
-          <div v-for="principle in principles" :key="principle.id" class="principle-card">
-            <div class="principle-number text-xs text-tertiary">
-              {{ String(principle.id).padStart(2, '0') }}
-            </div>
-            <h3>{{ principle.title }}</h3>
-            <p class="text-sm text-secondary">{{ principle.description }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <AboutPrinciples />
+    <AboutTeam />
 
-    <!-- Team -->
-    <section class="section team-section">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-number">Team</span>
-          <h2 class="section-title">Who We Are</h2>
-        </div>
-        <div class="team-grid">
-          <div v-for="member in team" :key="member.id" class="team-card">
-            <div class="team-avatar"></div>
-            <h3>{{ member.name }}</h3>
-            <span class="team-role text-xs text-tertiary">{{ member.role }}</span>
-            <p class="text-sm text-secondary">{{ member.bio }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Inspiration -->
     <section class="section inspiration-section">
       <div class="container inspiration-content">
         <div class="inspiration-text">
@@ -110,15 +76,12 @@
 
 <script setup lang="ts">
 import { Navbar, Footer, CTASection, RibbonCanvas } from '@/components'
-import { teamMembers, principles } from '@/utils/data'
-
-const team = teamMembers
+import AboutPrinciples from '@/components/about/AboutPrinciples.vue'
+import AboutTeam from '@/components/about/AboutTeam.vue'
 </script>
 
 <style scoped>
-.about-page {
-  min-height: 100vh;
-}
+.about-page { min-height: 100vh; }
 
 .about-hero {
   padding: 12rem var(--container-padding) 8rem;
@@ -144,9 +107,7 @@ const team = teamMembers
   z-index: 1;
 }
 
-.mission-section {
-  background: var(--color-bg-primary);
-}
+.mission-section { background: var(--color-bg-primary); }
 
 .mission-grid {
   display: grid;
@@ -162,107 +123,10 @@ const team = teamMembers
   margin-bottom: 1.5rem;
 }
 
-.mission-content p {
-  margin-bottom: 1.5rem;
-  line-height: 1.8;
-}
+.mission-content p { margin-bottom: 1.5rem; line-height: 1.8; }
+.mission-content p:last-child { margin-bottom: 0; }
 
-.mission-content p:last-child {
-  margin-bottom: 0;
-}
-
-.principles-section {
-  background: var(--color-bg-secondary);
-}
-
-.principles-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 3rem;
-}
-
-.principle-card {
-  padding: 3rem;
-  background: var(--color-bg-primary);
-  border-left: 3px solid var(--color-accent-1);
-  transition: all var(--transition-base);
-}
-
-.principle-card:nth-child(2) {
-  border-left-color: var(--color-accent-2);
-}
-
-.principle-card:nth-child(3) {
-  border-left-color: var(--color-accent-3);
-}
-
-.principle-card:nth-child(4) {
-  border-left-color: var(--color-accent-1);
-}
-
-.principle-card:hover {
-  transform: translateX(8px);
-}
-
-.principle-number {
-  display: block;
-  margin-bottom: 1rem;
-  letter-spacing: 0.1em;
-}
-
-.principle-card h3 {
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-normal);
-  margin-bottom: 1rem;
-  letter-spacing: -0.01em;
-}
-
-.principle-card p {
-  line-height: 1.7;
-}
-
-.team-section {
-  background: var(--color-bg-primary);
-}
-
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 4rem;
-}
-
-.team-card {
-  text-align: center;
-}
-
-.team-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-accent-1), var(--color-accent-2));
-  margin: 0 auto 2rem;
-}
-
-.team-card h3 {
-  font-size: 1.25rem;
-  font-weight: var(--font-weight-normal);
-  margin-bottom: 0.5rem;
-}
-
-.team-role {
-  display: block;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-}
-
-.team-card p {
-  line-height: 1.7;
-}
-
-.inspiration-section {
-  background: var(--color-bg-secondary);
-}
+.inspiration-section { background: var(--color-bg-secondary); }
 
 .inspiration-content {
   display: grid;
@@ -270,10 +134,7 @@ const team = teamMembers
   gap: 6rem;
 }
 
-.inspiration-text p {
-  margin-bottom: 1.5rem;
-  line-height: 1.8;
-}
+.inspiration-text p { margin-bottom: 1.5rem; line-height: 1.8; }
 
 .inspiration-text em {
   font-style: italic;
@@ -305,21 +166,10 @@ const team = teamMembers
     grid-template-columns: 1fr;
     gap: 3rem;
   }
-
-  .principles-grid,
-  .team-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
-  }
-
-  .about-hero {
-    padding: 10rem var(--container-padding) 6rem;
-  }
+  .hero-title { font-size: 2.5rem; }
+  .about-hero { padding: 10rem var(--container-padding) 6rem; }
 }
 </style>

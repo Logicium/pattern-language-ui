@@ -80,3 +80,34 @@ export interface SearchedUser {
   interests?: string[]
   createdAt: string
 }
+
+export interface DiscussionMessage {
+  id: number
+  playbook: number
+  author: {
+    id: number
+    name: string
+    profileImage?: string
+  }
+  content: string
+  type: 'message' | 'pal_query' | 'pal_response' | 'file'
+  fileUrl?: string
+  fileName?: string
+  mentions?: number[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PlaybookActivity {
+  id: number
+  playbook: number
+  user: {
+    id: number
+    name: string
+    profileImage?: string
+  }
+  action: 'task_created' | 'task_completed' | 'task_comment' | 'member_joined' | 'member_invited' | 'playbook_published' | 'playbook_completed' | 'playbook_paused' | 'playbook_resumed' | 'note_updated' | 'kpi_updated' | 'discussion_message'
+  details?: string
+  targetTitle?: string
+  createdAt: string
+}

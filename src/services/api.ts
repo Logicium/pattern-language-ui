@@ -203,6 +203,57 @@ export const playbooksApi = {
     authFetch(`/playbooks/${playbookId}/tasks/${taskId}/comments/${commentId}`, { 
       method: 'DELETE' 
     }),
+
+  // ========== PART III: DISCUSSION ENDPOINTS ==========
+
+  // Discussion messages
+  getDiscussionMessages: (playbookId: number) =>
+    authFetch(`/playbooks/${playbookId}/discussions`),
+  sendDiscussionMessage: (playbookId: number, content: string, mentions?: number[]) =>
+    authFetch(`/playbooks/${playbookId}/discussions`, {
+      method: 'POST',
+      body: JSON.stringify({ content, mentions })
+    }),
+  sendPalQuery: (playbookId: number, content: string) =>
+    authFetch(`/playbooks/${playbookId}/discussions/pal`, {
+      method: 'POST',
+      body: JSON.stringify({ content })
+    }),
+  uploadDiscussionFile: async (playbookId: number, file: File): Promise<any> => {
+    const token = getAuthToken()
+    if (token && isTokenExpired(token)) {
+      handleAuthError()
+      throw new Error('Session expired. Please login again.')
+    }
+    const formData = new FormData()
+    formData.append('file', file)
+    const headers: Record<string, string> = {}
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    const response = await fetch(`${API_URL}/playbooks/${playbookId}/discussions/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    })
+    if (response.status === 401) {
+      handleAuthError()
+      throw new Error('Session expired. Please login again.')
+    }
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: response.statusText }))
+      throw new Error(error.message || 'Failed to upload file')
+    }
+    return response.json()
+  },
+  deleteDiscussionMessage: (playbookId: number, messageId: number) =>
+    authFetch(`/playbooks/${playbookId}/discussions/${messageId}`, {
+      method: 'DELETE'
+    }),
+
+  // Activity feed
+  getActivities: (playbookId: number) =>
+    authFetch(`/playbooks/${playbookId}/activities`),
 }
 
 // User Stories API

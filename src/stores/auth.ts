@@ -33,13 +33,9 @@ export const useAuthStore = defineStore('auth', () => {
   // Getters
   const isAuthenticated = computed(() => {
     if (!token.value) return false
-    // Double-check token hasn't expired
     if (isTokenExpired(token.value)) {
-      // Clear expired token
-      token.value = null
-      user.value = null
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('user')
+      // Schedule cleanup outside the computed to avoid reactive loops
+      queueMicrotask(() => logout())
       return false
     }
     return true
@@ -122,6 +118,73 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function googleLogin(googleToken: string) {
+    try {
+      const response = await fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: googleToken }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.message || 'Google authentication failed'
+        throw new Error(`${response.status}: ${errorMessage}`)
+      }
+
+      const data = await response.json()
+
+      token.value = data.access_token
+      user.value = data.user
+
+      localStorage.setItem('auth_token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+
+      return data
+    } catch (error) {
+      console.error('Google login error:', error)
+      throw error
+    }
+  }
+
+  async function googleSignup(signupData: {
+    token: string
+    name: string
+    email: string
+    location?: string
+    state?: string
+    currentWork?: string
+    goals?: string
+    interests?: string[]
+  }) {
+    try {
+      const response = await fetch(`${API_URL}/auth/google-signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signupData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.message || 'Google signup failed'
+        throw new Error(`${response.status}: ${errorMessage}`)
+      }
+
+      const data = await response.json()
+
+      token.value = data.access_token
+      user.value = data.user
+
+      localStorage.setItem('auth_token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+
+      return data
+    } catch (error) {
+      console.error('Google signup error:', error)
+      throw error
+    }
+  }
+
   function logout() {
     token.value = null
     user.value = null
@@ -175,6 +238,8 @@ export const useAuthStore = defineStore('auth', () => {
     currentUser,
     login,
     signup,
+    googleLogin,
+    googleSignup,
     logout,
     updateUser,
     checkTokenValidity
