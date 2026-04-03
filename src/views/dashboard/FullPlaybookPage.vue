@@ -68,7 +68,13 @@
                 :expanded-task-notes="expandedTaskNotes"
                 :task-notes="taskNotes"
                 :completed-tasks-count="completedTasksCount"
-                :tasks-by-phase="tasksByPhase"
+                :sections="sections"
+                :ungrouped-tasks="ungroupedTasks"
+                :get-tasks-for-section="getTasksForSection"
+                :is-adding-section="isAddingSection"
+                :new-section-title="newSectionTitle"
+                :editing-section-id="editingSectionId"
+                :editing-section-title="editingSectionTitle"
                 @start-adding-task="startAddingTask"
                 @update:new-task="newTask = $event"
                 @save-new-task="saveNewTask"
@@ -82,6 +88,17 @@
                 @delete-task="confirmDeleteTask"
                 @update-notes="onUpdateNotes"
                 @update:editing-task="editingTask = $event"
+                @start-adding-section="startAddingSection"
+                @cancel-adding-section="cancelAddingSection"
+                @save-new-section="saveNewSection"
+                @update:new-section-title="newSectionTitle = $event"
+                @start-editing-section="startEditingSection"
+                @cancel-section-edit="cancelSectionEdit"
+                @save-section-edit="saveSectionEdit"
+                @update:editing-section-title="editingSectionTitle = $event"
+                @delete-section="deleteSection"
+                @sections-reorder="onSectionsReorder"
+                @tasks-reorder="onTasksReorder"
               />
 
               <!-- Notes & Learnings -->
@@ -104,6 +121,14 @@
                 @start-editing-resources="startEditingResources"
                 @cancel-editing-resources="cancelEditingResources"
                 @confirm-delete-resource="confirmDeleteResource"
+              />
+            </template>
+
+            <!-- TAB: Calendar -->
+            <template v-if="activeTab === 'calendar'">
+              <PlaybookCalendarTab
+                :playbook="playbook"
+                :is-user-member="isUserMember"
               />
             </template>
 
@@ -264,6 +289,7 @@ import InviteMemberPanel from '@/components/playbook/InviteMemberPanel.vue'
 import PlaybookCollaborationTab from '@/components/playbook/PlaybookCollaborationTab.vue'
 import PlaybookDiscussionTab from '@/components/playbook/PlaybookDiscussionTab.vue'
 import PlaybookActivityTab from '@/components/playbook/PlaybookActivityTab.vue'
+import PlaybookCalendarTab from '@/components/playbook/PlaybookCalendarTab.vue'
 
 import { usePlaybookData } from '@/composables/usePlaybookData'
 import { usePlaybookTasks } from '@/composables/usePlaybookTasks'
@@ -273,9 +299,10 @@ import { usePlaybookNotes } from '@/composables/usePlaybookNotes'
 import type { Task } from '@/types/collaboration'
 
 // Tabs
-const activeTab = ref<'playbook' | 'collaboration' | 'discussion' | 'activity'>('playbook')
+const activeTab = ref<'playbook' | 'calendar' | 'collaboration' | 'discussion' | 'activity'>('playbook')
 const tabs = [
   { id: 'playbook' as const, label: 'Playbook' },
+  { id: 'calendar' as const, label: 'Calendar' },
   { id: 'collaboration' as const, label: 'Team' },
   { id: 'discussion' as const, label: 'Discussion' },
   { id: 'activity' as const, label: 'Activity' },
@@ -314,7 +341,13 @@ const {
   showDeleteTaskModal,
   expandedTaskNotes,
   taskNotes,
-  tasksByPhase,
+  sections,
+  ungroupedTasks,
+  getTasksForSection,
+  isAddingSection,
+  newSectionTitle,
+  editingSectionId,
+  editingSectionTitle,
   startAddingTask,
   cancelAddingTask,
   saveNewTask,
@@ -326,6 +359,15 @@ const {
   toggleTask,
   toggleTaskNotes,
   saveTaskNotes,
+  startAddingSection,
+  cancelAddingSection,
+  saveNewSection,
+  startEditingSection,
+  cancelSectionEdit,
+  saveSectionEdit,
+  deleteSection,
+  onSectionsReorder,
+  onTasksReorder,
 } = usePlaybookTasks(playbook, showToast, toastMessage)
 
 // KPIs

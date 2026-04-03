@@ -10,7 +10,13 @@ export interface PlaybookTask {
   completed: boolean
   dueDate: string | null
   completedDate: string | null
-  phase?: number // 1 = Planning, 2 = Development, 3 = Testing & Launch
+  phase?: number // backward compat: 1 = Planning, 2 = Development, 3 = Testing & Launch
+  sectionId?: string // references sections[].id
+}
+
+export interface PlaybookSection {
+  id: string
+  title: string
 }
 
 export interface Playbook {
@@ -39,6 +45,7 @@ export interface Playbook {
   startDate: string
   targetCompletionDate: string
   completedDate: string | null
+  sections?: PlaybookSection[]
   tasks: PlaybookTask[]
   resources: Array<{ type: 'pattern' | 'story' | 'challenge' | 'link'; id: number; title: string; url?: string }>
   notes: string

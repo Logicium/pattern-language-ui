@@ -54,6 +54,7 @@
               <span class="message-author text-xs">
                 {{ message.type === 'pal_response' ? 'PAL' : message.author?.name }}
               </span>
+              <span v-if="message.type === 'pal_response'" class="pal-label text-xs text-tertiary">Pattern Language Assistant</span>
               <span class="message-time text-xs text-tertiary">{{ formatMessageTime(message.createdAt) }}</span>
             </div>
 
@@ -66,7 +67,9 @@
               <p v-if="message.content" class="text-sm message-text" v-html="renderContent(message.content)"></p>
             </div>
             <div v-else-if="message.type === 'pal_response'" class="message-pal-content">
-              <p class="text-sm message-text" v-html="renderContent(message.content)"></p>
+              <div class="text-sm message-text pal-markdown">
+                <VueMarkdownRender :source="message.content" />
+              </div>
             </div>
             <div v-else-if="message.type === 'pal_query'" class="message-query-content">
               <span class="pal-tag text-xs">@PAL</span>
@@ -139,6 +142,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import VueMarkdownRender from 'vue-markdown-render'
 import { useAuthStore } from '@/stores/auth'
 import { playbooksApi } from '@/services/api'
 import { getInitials } from '@/utils/formatters'
@@ -173,6 +177,7 @@ const filteredMentionUsers = computed(() => {
 })
 
 function isOwnMessage(message: DiscussionMessage): boolean {
+  if (message.type === 'pal_response') return false
   return String(message.author?.id) === String(authStore.user?.id)
 }
 
@@ -184,6 +189,9 @@ function isCreatorMessage(message: DiscussionMessage): boolean {
 function isSameAuthorGroup(prev: DiscussionMessage, curr: DiscussionMessage): boolean {
   if (!prev.author || !curr.author) return false
   if (prev.author.id !== curr.author.id) return false
+  // Never group PAL responses with user messages (they share the same author ID)
+  if (prev.type === 'pal_response' || curr.type === 'pal_response') return false
+  if (prev.type === 'pal_query' && curr.type !== 'pal_query') return false
   const prevTime = new Date(prev.createdAt).getTime()
   const currTime = new Date(curr.createdAt).getTime()
   return (currTime - prevTime) < 5 * 60 * 1000 // 5 minute grouping
@@ -485,6 +493,17 @@ watch(() => props.playbook?.id, () => {
   color: var(--color-text-primary);
 }
 
+.message-pal .message-author {
+  background: linear-gradient(135deg, var(--color-accent-1), var(--color-accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pal-label {
+  font-style: italic;
+}
+
 .message-text {
   line-height: 1.6;
   color: var(--color-text-primary);
@@ -519,6 +538,80 @@ watch(() => props.playbook?.id, () => {
   padding: 1rem 1.25rem;
   background: rgba(184, 212, 200, 0.08);
   border-left: 2px solid var(--color-accent-2);
+}
+
+.pal-markdown :deep(p) {
+  margin: 0.25rem 0;
+  line-height: 1.6;
+}
+
+.pal-markdown :deep(p:first-child) {
+  margin-top: 0;
+}
+
+.pal-markdown :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.pal-markdown :deep(ul),
+.pal-markdown :deep(ol) {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.pal-markdown :deep(li) {
+  margin: 0.25rem 0;
+  line-height: 1.6;
+}
+
+.pal-markdown :deep(strong) {
+  font-weight: var(--font-weight-medium);
+}
+
+.pal-markdown :deep(code) {
+  font-size: 0.85em;
+  padding: 0.15rem 0.4rem;
+  background: rgba(42, 42, 42, 0.06);
+  border-radius: 3px;
+}
+
+.pal-markdown :deep(pre) {
+  margin: 0.5rem 0;
+  padding: 0.75rem 1rem;
+  background: rgba(42, 42, 42, 0.04);
+  overflow-x: auto;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.pal-markdown :deep(pre code) {
+  padding: 0;
+  background: none;
+}
+
+.pal-markdown :deep(h1),
+.pal-markdown :deep(h2),
+.pal-markdown :deep(h3),
+.pal-markdown :deep(h4) {
+  margin: 0.75rem 0 0.25rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+}
+
+.pal-markdown :deep(h1) { font-size: 1.1em; }
+.pal-markdown :deep(h2) { font-size: 1.05em; }
+.pal-markdown :deep(h3) { font-size: 1em; }
+
+.pal-markdown :deep(blockquote) {
+  margin: 0.5rem 0;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(42, 42, 42, 0.15);
+  color: var(--color-text-secondary);
+}
+
+.pal-markdown :deep(a) {
+  color: var(--color-accent-2);
+  text-decoration: underline;
 }
 
 .message-query-content {

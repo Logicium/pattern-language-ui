@@ -254,6 +254,39 @@ export const playbooksApi = {
   // Activity feed
   getActivities: (playbookId: number) =>
     authFetch(`/playbooks/${playbookId}/activities`),
+
+  // ========== PART IV: CALENDAR EVENT ENDPOINTS ==========
+
+  getCalendarEvents: (playbookId: number) =>
+    authFetch(`/playbooks/${playbookId}/events`),
+  createCalendarEvent: (playbookId: number, data: {
+    title: string;
+    description?: string;
+    startTime: string;
+    endTime: string;
+    isRecurring?: boolean;
+    recurrenceRule?: string;
+  }) =>
+    authFetch(`/playbooks/${playbookId}/events`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateCalendarEvent: (playbookId: number, eventId: number, data: {
+    title?: string;
+    description?: string;
+    startTime?: string;
+    endTime?: string;
+    isRecurring?: boolean;
+    recurrenceRule?: string;
+  }) =>
+    authFetch(`/playbooks/${playbookId}/events/${eventId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteCalendarEvent: (playbookId: number, eventId: number) =>
+    authFetch(`/playbooks/${playbookId}/events/${eventId}`, {
+      method: 'DELETE',
+    }),
 }
 
 // User Stories API

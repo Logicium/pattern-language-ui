@@ -106,8 +106,29 @@ export interface PlaybookActivity {
     name: string
     profileImage?: string
   }
-  action: 'task_created' | 'task_completed' | 'task_comment' | 'member_joined' | 'member_invited' | 'playbook_published' | 'playbook_completed' | 'playbook_paused' | 'playbook_resumed' | 'note_updated' | 'kpi_updated' | 'discussion_message'
+  action: 'task_created' | 'task_completed' | 'task_comment' | 'member_joined' | 'member_invited' | 'playbook_published' | 'playbook_completed' | 'playbook_paused' | 'playbook_resumed' | 'note_updated' | 'kpi_updated' | 'discussion_message' | 'event_created'
   details?: string
   targetTitle?: string
   createdAt: string
+}
+
+export interface CalendarEvent {
+  id: number
+  playbook: number
+  createdBy: {
+    id: number
+    name: string
+    profileImage?: string
+  }
+  title: string
+  description?: string
+  startTime: string
+  endTime: string
+  googleEventId?: string
+  googleCalendarId?: string
+  meetLink?: string
+  isRecurring: boolean
+  recurrenceRule?: string
+  createdAt: string
+  updatedAt: string
 }

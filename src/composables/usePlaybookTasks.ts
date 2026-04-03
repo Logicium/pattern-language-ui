@@ -1,44 +1,201 @@
 import { ref, computed, watch } from 'vue'
 import { usePlaybooksStore } from '@/stores/playbooks'
+import type { PlaybookSection } from '@/stores/playbooks'
 import { playbooksApi } from '@/services/api'
+
+const DEFAULT_SECTIONS: PlaybookSection[] = [
+  { id: 'section_1', title: 'Planning' },
+  { id: 'section_2', title: 'Development' },
+  { id: 'section_3', title: 'Testing & Launch' },
+]
+
+const PHASE_TO_SECTION: Record<number, string> = {
+  1: 'section_1',
+  2: 'section_2',
+  3: 'section_3',
+}
 
 export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: any) {
   const playbooksStore = usePlaybooksStore()
 
   const isAddingTask = ref(false)
   const editingTaskId = ref<string | null>(null)
-  const newTask = ref({ title: '', description: '', dueDate: '', phase: 1 })
-  const editingTask = ref({ title: '', description: '', dueDate: '', phase: 1 })
+  const newTask = ref({ title: '', description: '', dueDate: '', sectionId: '' })
+  const editingTask = ref({ title: '', description: '', dueDate: '', sectionId: '' })
   const showDeleteTaskModal = ref(false)
   const taskToDelete = ref<string | null>(null)
   const expandedTaskNotes = ref<Record<string, boolean>>({})
   const taskNotes = ref<Record<string, string>>({})
+  const isAddingSection = ref(false)
+  const newSectionTitle = ref('')
+  const editingSectionId = ref<string | null>(null)
+  const editingSectionTitle = ref('')
 
-  const tasksByPhase = computed(() => {
-    if (!playbook.value) return { planning: [], development: [], testing: [], ungrouped: [] }
-    const grouped = {
-      planning: [] as any[],
-      development: [] as any[],
-      testing: [] as any[],
-      ungrouped: [] as any[]
+  // Get resolved sections — migrate old phase-based playbooks to sections
+  const sections = computed<PlaybookSection[]>(() => {
+    if (!playbook.value) return []
+    if (playbook.value.sections && playbook.value.sections.length > 0) {
+      return playbook.value.sections
     }
-    playbook.value.tasks.forEach((task: any) => {
-      if (task.phase === 1) grouped.planning.push(task)
-      else if (task.phase === 2) grouped.development.push(task)
-      else if (task.phase === 3) grouped.testing.push(task)
-      else grouped.ungrouped.push(task)
-    })
-    return grouped
+    // Backward compat: generate sections from hardcoded phases
+    return [...DEFAULT_SECTIONS]
   })
 
-  const startAddingTask = () => {
+  // Get tasks for a specific section
+  const getTasksForSection = (sectionId: string) => {
+    if (!playbook.value) return []
+    return playbook.value.tasks.filter((task: any) => {
+      if (task.sectionId) return task.sectionId === sectionId
+      // Backward compat: map phase to sectionId
+      if (task.phase && PHASE_TO_SECTION[task.phase]) {
+        return PHASE_TO_SECTION[task.phase] === sectionId
+      }
+      return false
+    })
+  }
+
+  // Get ungrouped tasks (no section or phase)
+  const ungroupedTasks = computed(() => {
+    if (!playbook.value) return []
+    const sectionIds = new Set(sections.value.map(s => s.id))
+    return playbook.value.tasks.filter((task: any) => {
+      if (task.sectionId) return !sectionIds.has(task.sectionId)
+      if (task.phase && PHASE_TO_SECTION[task.phase]) return false
+      return true
+    })
+  })
+
+  // Persist sections and tasks to the store/backend
+  const persistSectionsAndTasks = (updatedSections: PlaybookSection[], updatedTasks?: any[]) => {
+    if (!playbook.value) return
+    const updates: any = { sections: updatedSections }
+    if (updatedTasks !== undefined) {
+      updates.tasks = updatedTasks
+    }
+    playbooksStore.updatePlaybook(playbook.value.id, updates)
+  }
+
+  // Ensure tasks have sectionId (migrate from phase)
+  const migrateTasksToSections = () => {
+    if (!playbook.value) return
+    let needsMigration = false
+    const migrated = playbook.value.tasks.map((task: any) => {
+      if (!task.sectionId && task.phase && PHASE_TO_SECTION[task.phase]) {
+        needsMigration = true
+        return { ...task, sectionId: PHASE_TO_SECTION[task.phase] }
+      }
+      return task
+    })
+    if (needsMigration || !playbook.value.sections || playbook.value.sections.length === 0) {
+      persistSectionsAndTasks(sections.value, migrated)
+    }
+  }
+
+  // --- Section CRUD ---
+
+  const startAddingSection = () => {
+    isAddingSection.value = true
+    newSectionTitle.value = ''
+  }
+
+  const cancelAddingSection = () => {
+    isAddingSection.value = false
+    newSectionTitle.value = ''
+  }
+
+  const saveNewSection = () => {
+    if (!newSectionTitle.value.trim()) return
+    const newSection: PlaybookSection = {
+      id: `section_${Date.now()}`,
+      title: newSectionTitle.value.trim(),
+    }
+    const updatedSections = [...sections.value, newSection]
+    persistSectionsAndTasks(updatedSections)
+    cancelAddingSection()
+    toastMessage.value = 'Section added'
+    showToast.value = true
+  }
+
+  const startEditingSection = (sectionId: string) => {
+    const section = sections.value.find(s => s.id === sectionId)
+    if (!section) return
+    editingSectionId.value = sectionId
+    editingSectionTitle.value = section.title
+  }
+
+  const cancelSectionEdit = () => {
+    editingSectionId.value = null
+    editingSectionTitle.value = ''
+  }
+
+  const saveSectionEdit = () => {
+    if (!editingSectionId.value || !editingSectionTitle.value.trim()) return
+    const updatedSections = sections.value.map(s =>
+      s.id === editingSectionId.value
+        ? { ...s, title: editingSectionTitle.value.trim() }
+        : s
+    )
+    persistSectionsAndTasks(updatedSections)
+    cancelSectionEdit()
+    toastMessage.value = 'Section renamed'
+    showToast.value = true
+  }
+
+  const deleteSection = (sectionId: string) => {
+    if (!playbook.value) return
+    const updatedSections = sections.value.filter(s => s.id !== sectionId)
+    // Move tasks from deleted section to ungrouped (clear sectionId)
+    const updatedTasks = playbook.value.tasks.map((task: any) =>
+      task.sectionId === sectionId ? { ...task, sectionId: undefined } : task
+    )
+    persistSectionsAndTasks(updatedSections, updatedTasks)
+    toastMessage.value = 'Section deleted'
+    showToast.value = true
+  }
+
+  // --- Section reordering ---
+
+  const onSectionsReorder = (reorderedSections: PlaybookSection[]) => {
+    persistSectionsAndTasks(reorderedSections)
+  }
+
+  // --- Task reordering / moving between sections ---
+
+  const onTasksReorder = (sectionId: string, reorderedTasks: any[]) => {
+    if (!playbook.value) return
+    // Build a new full tasks array maintaining order
+    const otherTasks = playbook.value.tasks.filter((t: any) => {
+      if (!sectionId) {
+        // Ungrouped: keep tasks that DO have a section assignment
+        return !!(t.sectionId || (t.phase && PHASE_TO_SECTION[t.phase]))
+      }
+      const taskSection = t.sectionId || (t.phase && PHASE_TO_SECTION[t.phase])
+      return taskSection !== sectionId
+    })
+    // Ensure all reordered tasks have the correct sectionId
+    const updatedSectionTasks = reorderedTasks.map((t: any) => ({
+      ...t,
+      sectionId: sectionId || undefined,
+    }))
+    const allTasks = [...otherTasks, ...updatedSectionTasks]
+    playbooksStore.updatePlaybook(playbook.value.id, { tasks: allTasks, sections: sections.value })
+  }
+
+  // --- Task CRUD ---
+
+  const startAddingTask = (sectionId?: string) => {
     isAddingTask.value = true
-    newTask.value = { title: '', description: '', dueDate: '', phase: 1 }
+    newTask.value = {
+      title: '',
+      description: '',
+      dueDate: '',
+      sectionId: sectionId || (sections.value.length > 0 ? sections.value[0]!.id : ''),
+    }
   }
 
   const cancelAddingTask = () => {
     isAddingTask.value = false
-    newTask.value = { title: '', description: '', dueDate: '', phase: 1 }
+    newTask.value = { title: '', description: '', dueDate: '', sectionId: '' }
   }
 
   const saveNewTask = () => {
@@ -50,10 +207,10 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
       completed: false,
       dueDate: newTask.value.dueDate || null,
       completedDate: null,
-      phase: newTask.value.phase
+      sectionId: newTask.value.sectionId,
     }
     const updatedTasks = [...playbook.value.tasks, task]
-    playbooksStore.updatePlaybook(playbook.value.id, { tasks: updatedTasks })
+    playbooksStore.updatePlaybook(playbook.value.id, { tasks: updatedTasks, sections: sections.value })
     cancelAddingTask()
   }
 
@@ -63,13 +220,13 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
       title: task.title,
       description: task.description,
       dueDate: task.dueDate || '',
-      phase: task.phase || 1
+      sectionId: task.sectionId || (task.phase && PHASE_TO_SECTION[task.phase]) || '',
     }
   }
 
   const cancelTaskEdit = () => {
     editingTaskId.value = null
-    editingTask.value = { title: '', description: '', dueDate: '', phase: 1 }
+    editingTask.value = { title: '', description: '', dueDate: '', sectionId: '' }
   }
 
   const saveTaskEdit = () => {
@@ -81,11 +238,11 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
             title: editingTask.value.title.trim(),
             description: editingTask.value.description.trim(),
             dueDate: editingTask.value.dueDate || null,
-            phase: editingTask.value.phase
+            sectionId: editingTask.value.sectionId,
           }
         : task
     )
-    playbooksStore.updatePlaybook(playbook.value.id, { tasks: updatedTasks })
+    playbooksStore.updatePlaybook(playbook.value.id, { tasks: updatedTasks, sections: sections.value })
     toastMessage.value = 'Task saved successfully'
     showToast.value = true
     cancelTaskEdit()
@@ -144,6 +301,8 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
           taskNotes.value[task.id] = savedNotes
         }
       })
+      // Auto-migrate old phase-based playbooks
+      migrateTasksToSections()
     }
   }, { immediate: true })
 
@@ -156,7 +315,13 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
     taskToDelete,
     expandedTaskNotes,
     taskNotes,
-    tasksByPhase,
+    sections,
+    ungroupedTasks,
+    getTasksForSection,
+    isAddingSection,
+    newSectionTitle,
+    editingSectionId,
+    editingSectionTitle,
     startAddingTask,
     cancelAddingTask,
     saveNewTask,
@@ -168,5 +333,14 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
     toggleTask,
     toggleTaskNotes,
     saveTaskNotes,
+    startAddingSection,
+    cancelAddingSection,
+    saveNewSection,
+    startEditingSection,
+    cancelSectionEdit,
+    saveSectionEdit,
+    deleteSection,
+    onSectionsReorder,
+    onTasksReorder,
   }
 }

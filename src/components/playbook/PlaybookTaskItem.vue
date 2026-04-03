@@ -3,6 +3,13 @@
     <!-- Task Display Mode -->
     <div v-if="editingTaskId !== task.id" class="task-main">
       <div class="task-header-row">
+        <div class="task-drag-handle" title="Drag to reorder">
+          <svg class="drag-icon" width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
+            <circle cx="2" cy="2" r="1.5" /><circle cx="8" cy="2" r="1.5" />
+            <circle cx="2" cy="8" r="1.5" /><circle cx="8" cy="8" r="1.5" />
+            <circle cx="2" cy="14" r="1.5" /><circle cx="8" cy="14" r="1.5" />
+          </svg>
+        </div>
         <div v-if="isUserMember" class="task-checkbox-wrapper">
           <input
             type="checkbox"
@@ -75,15 +82,15 @@
         ></textarea>
       </div>
       <div class="form-group">
-        <label class="text-xs text-tertiary">Phase</label>
-        <select 
-          :value="editingTask.phase" 
-          @change="$emit('update:editingTask', { ...editingTask, phase: Number(($event.target as HTMLSelectElement).value) })"
+        <label class="text-xs text-tertiary">Section</label>
+        <select
+          :value="editingTask.sectionId"
+          @change="$emit('update:editingTask', { ...editingTask, sectionId: ($event.target as HTMLSelectElement).value })"
           class="form-input"
         >
-          <option :value="1">Phase 1: Planning</option>
-          <option :value="2">Phase 2: Development</option>
-          <option :value="3">Phase 3: Testing & Launch</option>
+          <option v-for="section in sections" :key="section.id" :value="section.id">
+            {{ section.title }}
+          </option>
         </select>
       </div>
       <div class="form-group">
@@ -120,15 +127,17 @@
 
 <script setup lang="ts">
 import { formatDate } from '@/utils/formatters'
+import type { PlaybookSection } from '@/stores/playbooks'
 
 const props = defineProps<{
   task: any
   accentColor: string | number
   isUserMember: boolean
   editingTaskId: string | null
-  editingTask: { title: string; description: string; dueDate: string; phase: number }
+  editingTask: { title: string; description: string; dueDate: string; sectionId: string }
   expandedTaskNotes: Record<string, boolean>
   taskNotes: Record<string, string>
+  sections: PlaybookSection[]
 }>()
 
 const emit = defineEmits<{
@@ -140,7 +149,7 @@ const emit = defineEmits<{
   cancelEdit: []
   deleteTask: [taskId: string]
   updateNotes: [taskId: string, value: string]
-  'update:editingTask': [value: { title: string; description: string; dueDate: string; phase: number }]
+  'update:editingTask': [value: { title: string; description: string; dueDate: string; sectionId: string }]
 }>()
 
 const onNotesInput = (taskId: string, value: string) => {
@@ -172,8 +181,38 @@ const onNotesInput = (taskId: string, value: string) => {
 .task-header-row {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 1.5rem 1.5rem 0.75rem;
+}
+
+.task-drag-handle {
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.125rem;
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+  transition: opacity var(--transition-base);
+  flex-shrink: 0;
+  min-width: 14px;
+}
+
+.task-drag-handle:hover {
+  opacity: 1;
+  color: var(--color-text-secondary);
+}
+
+.task-drag-handle:active {
+  cursor: grabbing;
+  opacity: 1;
+}
+
+.drag-icon {
+  display: block;
+  width: 10px;
+  height: 16px;
 }
 
 .task-title-wrapper {
@@ -208,7 +247,7 @@ const onNotesInput = (taskId: string, value: string) => {
 }
 
 .task-header-row + .task-content {
-  padding-left: calc(1.5rem + 18px + 1rem);
+  padding-left: calc(1.5rem + 18px + 0.75rem);
 }
 
 .task-title {
