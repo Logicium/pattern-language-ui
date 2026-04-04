@@ -24,6 +24,8 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
   const editingTask = ref({ title: '', description: '', dueDate: '', sectionId: '' })
   const showDeleteTaskModal = ref(false)
   const taskToDelete = ref<string | null>(null)
+  const showDeleteSectionModal = ref(false)
+  const sectionToDelete = ref<string | null>(null)
   const expandedTaskNotes = ref<Record<string, boolean>>({})
   const taskNotes = ref<Record<string, string>>({})
   const isAddingSection = ref(false)
@@ -141,14 +143,22 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
     showToast.value = true
   }
 
-  const deleteSection = (sectionId: string) => {
-    if (!playbook.value) return
+  const confirmDeleteSection = (sectionId: string) => {
+    sectionToDelete.value = sectionId
+    showDeleteSectionModal.value = true
+  }
+
+  const handleDeleteSection = () => {
+    if (!playbook.value || !sectionToDelete.value) return
+    const sectionId = sectionToDelete.value
     const updatedSections = sections.value.filter(s => s.id !== sectionId)
     // Move tasks from deleted section to ungrouped (clear sectionId)
     const updatedTasks = playbook.value.tasks.map((task: any) =>
       task.sectionId === sectionId ? { ...task, sectionId: undefined } : task
     )
     persistSectionsAndTasks(updatedSections, updatedTasks)
+    showDeleteSectionModal.value = false
+    sectionToDelete.value = null
     toastMessage.value = 'Section deleted'
     showToast.value = true
   }
@@ -313,6 +323,8 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
     editingTask,
     showDeleteTaskModal,
     taskToDelete,
+    showDeleteSectionModal,
+    sectionToDelete,
     expandedTaskNotes,
     taskNotes,
     sections,
@@ -339,7 +351,8 @@ export function usePlaybookTasks(playbook: any, showToast: any, toastMessage: an
     startEditingSection,
     cancelSectionEdit,
     saveSectionEdit,
-    deleteSection,
+    confirmDeleteSection,
+    handleDeleteSection,
     onSectionsReorder,
     onTasksReorder,
   }

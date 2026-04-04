@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar">
+  <nav class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
     <div class="container navbar-container">
       <router-link to="/" class="logo">PATTERN_LANGUAGE.AI</router-link>
       
@@ -48,13 +48,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const isAuthenticated = authStore.isAuthenticated
 
 const isMobileMenuOpen = ref(false)
+const isScrolled = ref(false)
+
+const onScroll = () => {
+  isScrolled.value = window.scrollY > 10
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+})
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
@@ -72,10 +86,17 @@ const closeMobileMenu = () => {
   position: fixed;
   top: 0;
   width: 100%;
+  background: transparent;
+  backdrop-filter: none;
+  z-index: 1000;
+  border-bottom: 1px solid transparent;
+  transition: background 0.4s ease, backdrop-filter 0.4s ease, border-bottom-color 0.4s ease;
+}
+
+.navbar--scrolled {
   background: rgba(253, 251, 247, 0.8);
   backdrop-filter: blur(20px);
-  z-index: 1000;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  border-bottom-color: rgba(42, 42, 42, 0.08);
 }
 
 .navbar-container {

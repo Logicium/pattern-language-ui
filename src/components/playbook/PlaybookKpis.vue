@@ -19,9 +19,10 @@
             <button
               v-if="isUserMember"
               @click="$emit('startEdit', kpi)"
-              class="kpi-edit-btn text-xs"
+              class="kpi-edit-btn"
+              title="Edit KPI"
             >
-              Edit
+              <Pencil :size="14" />
             </button>
           </div>
           <h3 class="kpi-title text-sm">{{ kpi.title }}</h3>
@@ -99,6 +100,8 @@
 </template>
 
 <script setup lang="ts">
+import { Pencil } from 'lucide-vue-next'
+
 defineProps<{
   playbook: any
   isUserMember: boolean
@@ -162,17 +165,22 @@ defineEmits<{
 }
 
 .kpi-edit-btn {
-  padding: 0.25rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   background: transparent;
-  border: 1px solid rgba(42, 42, 42, 0.12);
+  border: none;
+  color: var(--color-text-tertiary);
   cursor: pointer;
+  border-radius: 4px;
   transition: all var(--transition-base);
-  border-radius: 2px;
 }
 
 .kpi-edit-btn:hover {
-  background: rgba(42, 42, 42, 0.04);
-  border-color: rgba(42, 42, 42, 0.24);
+  color: var(--color-text-primary);
+  background: rgba(42, 42, 42, 0.06);
 }
 
 .kpi-title {

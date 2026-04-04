@@ -96,7 +96,7 @@
                 @cancel-section-edit="cancelSectionEdit"
                 @save-section-edit="saveSectionEdit"
                 @update:editing-section-title="editingSectionTitle = $event"
-                @delete-section="deleteSection"
+                @delete-section="confirmDeleteSection"
                 @sections-reorder="onSectionsReorder"
                 @tasks-reorder="onTasksReorder"
               />
@@ -219,6 +219,17 @@
       cancel-text="Cancel"
       :danger="true"
       @confirm="handleDeleteResource"
+    />
+
+    <!-- Delete Section Confirmation Modal -->
+    <ConfirmModal
+      v-model="showDeleteSectionModal"
+      title="Delete Section"
+      message="Are you sure you want to delete this section? Tasks in this section will be moved to ungrouped."
+      confirm-text="Delete"
+      cancel-text="Cancel"
+      :danger="true"
+      @confirm="handleDeleteSection"
     />
 
     <!-- Toast Notification -->
@@ -365,7 +376,9 @@ const {
   startEditingSection,
   cancelSectionEdit,
   saveSectionEdit,
-  deleteSection,
+  confirmDeleteSection,
+  handleDeleteSection,
+  showDeleteSectionModal,
   onSectionsReorder,
   onTasksReorder,
 } = usePlaybookTasks(playbook, showToast, toastMessage)

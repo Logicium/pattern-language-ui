@@ -139,6 +139,9 @@ const {
   background: var(--color-bg-primary);
   padding: 0 var(--container-padding);
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .tabs-section .container { padding: 0; }

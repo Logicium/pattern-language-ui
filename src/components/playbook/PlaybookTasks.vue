@@ -128,17 +128,17 @@
           <div v-if="isUserMember && section.id !== '__ungrouped__' && editingSectionId !== section.id" class="section-actions">
             <button
               @click="$emit('startEditingSection', section.id)"
-              class="section-action-btn text-xs"
+              class="section-icon-btn"
               title="Rename section"
             >
-              Edit
+              <Pencil :size="14" />
             </button>
             <button
               @click="$emit('deleteSection', section.id)"
-              class="section-action-btn text-xs text-danger"
+              class="section-icon-btn section-icon-btn-danger"
               title="Delete section"
             >
-              Delete
+              <Trash2 :size="14" />
             </button>
           </div>
         </div>
@@ -189,6 +189,7 @@
 <script setup lang="ts">
 import { watch, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import Sortable from 'sortablejs'
+import { Pencil, Trash2 } from 'lucide-vue-next'
 import PlaybookTaskItem from './PlaybookTaskItem.vue'
 import type { PlaybookSection } from '@/stores/playbooks'
 
@@ -391,9 +392,7 @@ onBeforeUnmount(() => {
 .tasks-list {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
   border: 1px solid rgba(42, 42, 42, 0.08);
-  padding: 1.5rem 0 0;
 }
 .phase-section {
   display: flex;
@@ -405,7 +404,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0 1.5rem 1rem;
+  padding: 1rem 1.5rem 1rem;
+  margin-bottom: 0;
   border-bottom: 1px solid rgba(42, 42, 42, 0.06);
 }
 .section-drag-handle {
@@ -440,8 +440,29 @@ onBeforeUnmount(() => {
 }
 .section-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   flex-shrink: 0;
+}
+.section-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all var(--transition-base);
+}
+.section-icon-btn:hover {
+  color: var(--color-text-primary);
+  background: rgba(42, 42, 42, 0.06);
+}
+.section-icon-btn-danger:hover {
+  color: var(--color-accent-warm, #c44);
+  background: rgba(196, 68, 68, 0.06);
 }
 .section-action-btn {
   padding: 0.25rem 0.5rem;

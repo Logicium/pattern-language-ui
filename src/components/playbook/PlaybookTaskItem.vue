@@ -1,7 +1,7 @@
 <template>
   <div class="task-item" :data-accent="accentColor">
     <!-- Task Display Mode -->
-    <div v-if="editingTaskId !== task.id" class="task-main">
+    <div v-if="editingTaskId !== task.id" class="task-main" @click="onTaskClick">
       <div class="task-header-row">
         <div class="task-drag-handle" title="Drag to reorder">
           <svg class="drag-icon" width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
@@ -25,21 +25,14 @@
         </div>
         <div v-if="isUserMember" class="task-actions">
           <button
-            @click="$emit('viewTask', task)"
-            class="task-action-btn text-xs"
-            type="button"
-          >
-            View
-          </button>
-          <button
-            @click="$emit('startEdit', task)"
+            @click.stop="$emit('startEdit', task)"
             class="task-action-btn text-xs"
             type="button"
           >
             Edit
           </button>
           <button
-            @click="$emit('toggleNotes', task.id)"
+            @click.stop="$emit('toggleNotes', task.id)"
             class="task-action-btn text-xs"
             :class="{ active: expandedTaskNotes[task.id] }"
             type="button"
@@ -155,6 +148,12 @@ const emit = defineEmits<{
 const onNotesInput = (taskId: string, value: string) => {
   emit('updateNotes', taskId, value)
 }
+
+const onTaskClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (target.closest('.task-drag-handle') || target.closest('.task-checkbox-wrapper') || target.closest('.task-actions')) return
+  emit('viewTask', props.task)
+}
 </script>
 
 <style scoped>
@@ -176,6 +175,7 @@ const onNotesInput = (taskId: string, value: string) => {
   display: flex;
   flex-direction: column;
   gap: 0;
+  cursor: pointer;
 }
 
 .task-header-row {
