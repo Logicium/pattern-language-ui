@@ -22,16 +22,8 @@ const storiesStore = useStoriesStore()
 const challengesStore = useChallengesStore()
 const resourcesStore = useResourcesStore()
 
-// Fetch data if stores are empty - with error boundaries
-if (patternsStore.patterns.length === 0) {
-  patternsStore.fetchPatterns().catch((e) => console.error('Failed to load patterns:', e))
-}
-if (storiesStore.stories.length === 0) {
-  storiesStore.fetchStories().catch((e) => console.error('Failed to load stories:', e))
-}
-if (challengesStore.challenges.length === 0) {
-  challengesStore.fetchChallenges().catch((e) => console.error('Failed to load challenges:', e))
-}
-if (resourcesStore.resources.length === 0) {
-  resourcesStore.fetchResources().catch((e) => console.error('Failed to load resources:', e))
-}
+// Always fetch latest data - stores serve cached data immediately and refresh in background
+patternsStore.fetchPatterns().catch((e) => console.error('Failed to load patterns:', e))
+storiesStore.fetchStories().catch((e) => console.error('Failed to load stories:', e))
+challengesStore.fetchChallenges().catch((e) => console.error('Failed to load challenges:', e))
+resourcesStore.fetchResources().catch((e) => console.error('Failed to load resources:', e))
