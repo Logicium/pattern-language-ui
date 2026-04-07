@@ -43,13 +43,8 @@
     </div>
 
     <div class="form-group">
-      <label class="text-xs text-tertiary">Color (Hex)</label>
-      <input
-        v-model="editableStory.color"
-        type="text"
-        class="form-input"
-        placeholder="#b8d4c8"
-      />
+      <label class="text-xs text-tertiary">Color</label>
+      <ColorPicker v-model="editableStory.color" />
     </div>
 
     <div class="form-group">
@@ -92,6 +87,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import ColorPicker from '@/components/ColorPicker.vue'
 
 defineProps<{ editableStory: any }>()
 

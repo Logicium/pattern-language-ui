@@ -11,11 +11,9 @@
           </svg>
         </div>
         <div v-if="isUserMember" class="task-checkbox-wrapper">
-          <input
-            type="checkbox"
-            :checked="task.completed"
+          <AppCheckbox
+            :model-value="task.completed"
             @change="$emit('toggleTask', task.id)"
-            class="task-checkbox"
           />
         </div>
         <div class="task-title-wrapper">
@@ -76,15 +74,12 @@
       </div>
       <div class="form-group">
         <label class="text-xs text-tertiary">Section</label>
-        <select
-          :value="editingTask.sectionId"
-          @change="$emit('update:editingTask', { ...editingTask, sectionId: ($event.target as HTMLSelectElement).value })"
-          class="form-input"
-        >
-          <option v-for="section in sections" :key="section.id" :value="section.id">
-            {{ section.title }}
-          </option>
-        </select>
+        <AppDropdown
+          :model-value="editingTask.sectionId"
+          :options="sections.map(s => ({ value: s.id, label: s.title }))"
+          placeholder="Select section"
+          @update:model-value="$emit('update:editingTask', { ...editingTask, sectionId: String($event) })"
+        />
       </div>
       <div class="form-group">
         <label class="text-xs text-tertiary">Due Date</label>
@@ -121,6 +116,8 @@
 <script setup lang="ts">
 import { formatDate } from '@/utils/formatters'
 import type { PlaybookSection } from '@/stores/playbooks'
+import AppCheckbox from '@/components/AppCheckbox.vue'
+import AppDropdown from '@/components/AppDropdown.vue'
 
 const props = defineProps<{
   task: any
@@ -228,15 +225,7 @@ const onTaskClick = (e: MouseEvent) => {
   padding: 0;
 }
 
-.task-checkbox {
-  margin-top: 0.25rem;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--color-accent-2);
-  flex-shrink: 0;
-  border-radius: 0;
-}
+
 
 .task-content {
   flex: 1;

@@ -66,15 +66,12 @@
       </div>
       <div class="form-group">
         <label class="text-xs text-tertiary">Section</label>
-        <select
-          :value="newTask.sectionId"
-          @change="$emit('update:newTask', { ...newTask, sectionId: ($event.target as HTMLSelectElement).value })"
-          class="form-input"
-        >
-          <option v-for="section in sections" :key="section.id" :value="section.id">
-            {{ section.title }}
-          </option>
-        </select>
+        <AppDropdown
+          :model-value="newTask.sectionId"
+          :options="sections.map(s => ({ value: s.id, label: s.title }))"
+          placeholder="Select section"
+          @update:model-value="$emit('update:newTask', { ...newTask, sectionId: String($event) })"
+        />
       </div>
       <div class="form-group">
         <label class="text-xs text-tertiary">Due Date</label>
@@ -191,6 +188,7 @@ import { watch, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import Sortable from 'sortablejs'
 import { Pencil, Trash2 } from 'lucide-vue-next'
 import PlaybookTaskItem from './PlaybookTaskItem.vue'
+import AppDropdown from '@/components/AppDropdown.vue'
 import type { PlaybookSection } from '@/stores/playbooks'
 
 const props = defineProps<{

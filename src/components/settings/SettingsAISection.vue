@@ -3,27 +3,33 @@
     <h2 class="section-title">AI Assistant</h2>
     <div class="form-group">
       <label class="form-label text-xs text-tertiary">Conversation Style</label>
-      <select v-model="aiPreferences.conversationStyle" class="form-input">
-        <option value="concise">Concise & Direct</option>
-        <option value="detailed">Detailed & Explanatory</option>
-        <option value="collaborative">Collaborative & Exploratory</option>
-      </select>
+      <AppDropdown
+        v-model="aiPreferences.conversationStyle"
+        :options="[
+          { value: 'concise', label: 'Concise & Direct' },
+          { value: 'detailed', label: 'Detailed & Explanatory' },
+          { value: 'collaborative', label: 'Collaborative & Exploratory' },
+        ]"
+      />
     </div>
     <div class="form-group">
       <label class="form-label text-xs text-tertiary">Suggestion Frequency</label>
-      <select v-model="aiPreferences.suggestionFrequency" class="form-input">
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
+      <AppDropdown
+        v-model="aiPreferences.suggestionFrequency"
+        :options="[
+          { value: 'low', label: 'Low' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'high', label: 'High' },
+        ]"
+      />
     </div>
     <div class="checkbox-list">
       <label class="checkbox-label text-sm">
-        <input v-model="aiPreferences.autoSuggestions" type="checkbox" class="checkbox" />
+        <AppCheckbox v-model="aiPreferences.autoSuggestions" />
         <span>Enable automatic pattern suggestions</span>
       </label>
       <label class="checkbox-label text-sm">
-        <input v-model="aiPreferences.relatedPatterns" type="checkbox" class="checkbox" />
+        <AppCheckbox v-model="aiPreferences.relatedPatterns" />
         <span>Show related patterns in responses</span>
       </label>
     </div>
@@ -33,6 +39,8 @@
 
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
+import AppCheckbox from '@/components/AppCheckbox.vue'
+import AppDropdown from '@/components/AppDropdown.vue'
 
 const emit = defineEmits<{ 'saved': [message: string] }>()
 

@@ -43,26 +43,30 @@
       </div>
       <div class="form-group">
         <label class="form-label text-xs text-tertiary">State</label>
-        <select :value="formData.state" @change="update('state', ($event.target as HTMLSelectElement).value)" class="form-input" required>
-          <option value="">Select state</option>
-          <option v-for="state in usStates" :key="state.value" :value="state.value">
-            {{ state.label }}
-          </option>
-        </select>
+        <AppDropdown
+          :model-value="formData.state"
+          :options="usStates"
+          placeholder="Select state"
+          @update:model-value="update('state', $event)"
+        />
       </div>
     </div>
 
     <div class="form-group">
       <label class="form-label text-xs text-tertiary">Your Role</label>
-      <select :value="formData.role" @change="update('role', ($event.target as HTMLSelectElement).value)" class="form-input" required>
-        <option value="">Select your role</option>
-        <option value="civic-leader">Civic Leader / Elected Official</option>
-        <option value="nonprofit">Nonprofit / Community Organizer</option>
-        <option value="entrepreneur">Entrepreneur / Business Owner</option>
-        <option value="educator">Educator</option>
-        <option value="resident">Engaged Resident</option>
-        <option value="other">Other</option>
-      </select>
+      <AppDropdown
+        :model-value="formData.role"
+        :options="[
+          { value: 'civic-leader', label: 'Civic Leader / Elected Official' },
+          { value: 'nonprofit', label: 'Nonprofit / Community Organizer' },
+          { value: 'entrepreneur', label: 'Entrepreneur / Business Owner' },
+          { value: 'educator', label: 'Educator' },
+          { value: 'resident', label: 'Engaged Resident' },
+          { value: 'other', label: 'Other' },
+        ]"
+        placeholder="Select your role"
+        @update:model-value="update('role', $event)"
+      />
     </div>
 
     <div class="form-group">
@@ -75,12 +79,9 @@
           :key="challenge"
           class="checkbox-label text-sm"
         >
-          <input
-            type="checkbox"
-            :value="challenge"
-            :checked="formData.selectedChallenges.includes(challenge)"
+          <AppCheckbox
+            :model-value="formData.selectedChallenges.includes(challenge)"
             @change="toggleChallenge(challenge)"
-            class="checkbox-input"
           />
           <span>{{ challenge }}</span>
         </label>
@@ -129,6 +130,8 @@
 <script setup lang="ts">
 import { US_STATES, WICKED_CHALLENGES } from '@/utils/constants'
 import type { SignupFormData } from '@/composables/useSignupForm'
+import AppCheckbox from '@/components/AppCheckbox.vue'
+import AppDropdown from '@/components/AppDropdown.vue'
 
 const props = defineProps<{
   formData: SignupFormData
@@ -248,12 +251,7 @@ const toggleChallenge = (challenge: string) => {
 
 .checkbox-label:hover { background: var(--color-bg-secondary); }
 
-.checkbox-input {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--color-accent-1);
-}
+
 
 .form-actions {
   margin-top: 3rem;

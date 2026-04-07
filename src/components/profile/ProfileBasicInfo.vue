@@ -34,12 +34,11 @@
       </div>
       <div class="form-group">
         <label class="form-label text-xs text-tertiary">State</label>
-        <select v-model="formData.state" class="form-input">
-          <option value="">Select state</option>
-          <option v-for="state in usStates" :key="state.value" :value="state.value">
-            {{ state.label }}
-          </option>
-        </select>
+        <AppDropdown
+          v-model="formData.state"
+          :options="usStates"
+          placeholder="Select state"
+        />
       </div>
     </div>
   </div>
@@ -48,6 +47,7 @@
 <script setup lang="ts">
 import type { ProfileData } from '@/composables/useProfileEdit'
 import { US_STATES } from '@/utils/constants'
+import AppDropdown from '@/components/AppDropdown.vue'
 
 defineProps<{ formData: ProfileData }>()
 

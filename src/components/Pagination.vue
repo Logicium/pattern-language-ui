@@ -8,21 +8,12 @@
       </div>
       
       <div v-if="perPageOptions && perPageOptions.length > 1" class="per-page-selector">
-        <label for="per-page" class="text-xs text-tertiary">Per Page</label>
-        <select
-          id="per-page"
-          :value="itemsPerPage"
-          @change="handlePerPageChange"
-          class="per-page-select text-sm"
-        >
-          <option
-            v-for="option in perPageOptions"
-            :key="option"
-            :value="option"
-          >
-            {{ option }}
-          </option>
-        </select>
+        <label class="text-xs text-tertiary">Per Page</label>
+        <AppDropdown
+          :model-value="itemsPerPage"
+          :options="perPageOptions.map(opt => ({ value: opt, label: String(opt) }))"
+          @update:model-value="handlePerPageChange(Number($event))"
+        />
       </div>
     </div>
     
@@ -67,6 +58,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import AppDropdown from '@/components/AppDropdown.vue'
 
 interface Props {
   currentPage: number
@@ -160,9 +152,7 @@ const goToNext = () => {
   }
 }
 
-const handlePerPageChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  const newItemsPerPage = parseInt(target.value, 10)
+const handlePerPageChange = (newItemsPerPage: number) => {
   emit('update:itemsPerPage', newItemsPerPage)
   
   // Reset to first page when items per page changes

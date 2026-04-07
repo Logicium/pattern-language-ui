@@ -136,6 +136,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .section-compact {
   padding: 6rem var(--container-padding);
+  counter-increment: section-counter;
 }
 
 /* Buttons */
@@ -221,6 +222,10 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   letter-spacing: 0.1em;
+}
+
+.section-number::before {
+  content: counter(section-counter, decimal-leading-zero);
 }
 
 .section-title {

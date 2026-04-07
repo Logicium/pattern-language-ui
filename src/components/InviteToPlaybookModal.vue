@@ -24,16 +24,13 @@
         <!-- Select Playbook -->
         <div class="form-group">
           <label>Select Playbook</label>
-          <select v-model="selectedPlaybookId" :disabled="loading">
-            <option :value="null">Choose a playbook...</option>
-            <option 
-              v-for="playbook in myPlaybooks" 
-              :key="playbook.id"
-              :value="playbook.id"
-            >
-              {{ playbook.patternTitle }}
-            </option>
-          </select>
+          <AppDropdown
+            :model-value="selectedPlaybookId"
+            :options="myPlaybooks.map(p => ({ value: p.id, label: p.patternTitle }))"
+            placeholder="Choose a playbook..."
+            :disabled="loading"
+            @update:model-value="selectedPlaybookId = Number($event)"
+          />
         </div>
 
         <!-- Optional Message -->
@@ -77,6 +74,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { playbooksApi } from '../services/api'
+import AppDropdown from '@/components/AppDropdown.vue'
 
 interface Props {
   show: boolean

@@ -111,15 +111,12 @@
           </div>
           <div class="form-group">
             <label class="form-label text-xs">Repeat</label>
-            <select
+            <AppDropdown
               v-model="selectedRecurrence"
-              class="form-input"
-              @change="onRecurrenceChange"
-            >
-              <option v-for="opt in recurrenceOptions" :key="opt.value" :value="opt.value">
-                {{ opt.label }}
-              </option>
-            </select>
+              :options="recurrenceOptions"
+              placeholder="Select recurrence"
+              @update:model-value="onRecurrenceChange"
+            />
           </div>
         </div>
         <div class="modal-footer">
@@ -179,15 +176,12 @@
           </div>
           <div class="form-group">
             <label class="form-label text-xs">Repeat</label>
-            <select
+            <AppDropdown
               v-model="editRecurrence"
-              class="form-input"
-              @change="onEditRecurrenceChange"
-            >
-              <option v-for="opt in recurrenceOptions" :key="opt.value" :value="opt.value">
-                {{ opt.label }}
-              </option>
-            </select>
+              :options="recurrenceOptions"
+              placeholder="Select recurrence"
+              @update:model-value="onEditRecurrenceChange"
+            />
           </div>
           <div v-if="editingEvent.meetLink" class="form-group">
             <label class="form-label text-xs">Video Call</label>
@@ -222,6 +216,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { usePlaybookCalendar } from '@/composables/usePlaybookCalendar'
 import type { CalendarEvent } from '@/types/collaboration'
+import AppDropdown from '@/components/AppDropdown.vue'
 
 const props = defineProps<{
   playbook: any

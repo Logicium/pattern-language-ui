@@ -3,19 +3,19 @@
     <h2 class="section-title">Notifications</h2>
     <div class="checkbox-list">
       <label class="checkbox-label text-sm">
-        <input v-model="notifications.emailUpdates" type="checkbox" class="checkbox" />
+        <AppCheckbox v-model="notifications.emailUpdates" />
         <span>Email updates about new patterns</span>
       </label>
       <label class="checkbox-label text-sm">
-        <input v-model="notifications.playbookReminders" type="checkbox" class="checkbox" />
+        <AppCheckbox v-model="notifications.playbookReminders" />
         <span>Task due date reminders</span>
       </label>
       <label class="checkbox-label text-sm">
-        <input v-model="notifications.completionCelebrations" type="checkbox" class="checkbox" />
+        <AppCheckbox v-model="notifications.completionCelebrations" />
         <span>Celebrate completed playbooks</span>
       </label>
       <label class="checkbox-label text-sm">
-        <input v-model="notifications.weeklyDigest" type="checkbox" class="checkbox" />
+        <AppCheckbox v-model="notifications.weeklyDigest" />
         <span>Weekly digest</span>
       </label>
     </div>
@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
+import AppCheckbox from '@/components/AppCheckbox.vue'
 
 const emit = defineEmits<{ 'saved': [message: string] }>()
 
@@ -90,13 +91,7 @@ const save = () => {
   padding-left: 1rem;
 }
 
-.checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  flex-shrink: 0;
-  accent-color: var(--color-accent-2);
-}
+
 
 .checkbox-label span { line-height: 1.5; }
 
