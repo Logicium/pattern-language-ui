@@ -3,7 +3,7 @@
     <div class="info-card">
       <h3>Designing Thriving Rural Communities</h3>
       <p class="text-sm text-secondary info-description">
-        45 patterns for community-led regeneration, powered by proven 
+        50 patterns for community-led regeneration, powered by proven 
         strategies and AI-guided implementation.
       </p>
       

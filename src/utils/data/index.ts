@@ -4,7 +4,7 @@
  * This index file provides a single import point for all data modules:
  * - Links: External resources and organizations
  * - Challenges: Core rural community challenges
- * - Patterns: 45 regenerative patterns across 6 categories
+ * - Patterns: 50 regenerative patterns across 6 categories
  * - Stories: Case studies and real-world examples
  * - Static Content: Team info, principles, and UI text
  */
