@@ -3,8 +3,9 @@
     <div
       v-for="(item, index) in items"
       :key="item.id"
-      :class="['resource-card', { 'link-card': type === 'links' }]"
+      :class="['resource-card', { 'link-card': type === 'links', clickable: type !== 'links' }]"
       :data-accent="(index % 3) + 1"
+      @click="onCardClick(item)"
     >
       <div class="card-header">
         <div class="card-number text-xs text-tertiary">
@@ -48,22 +49,25 @@
         {{ getHostname(item.url) }}
       </div>
 
-      <div class="card-actions">
-        <router-link
+      <div class="card-actions" @click.stop>
+        <button
           v-if="type === 'patterns'"
-          :to="`/patterns/${item.id}`"
+          type="button"
           class="action-btn-primary text-xs"
-        >View Pattern</router-link>
-        <router-link
+          @click="$emit('view', item, type)"
+        >View Pattern</button>
+        <button
           v-else-if="type === 'stories'"
-          :to="`/stories/${item.id}`"
+          type="button"
           class="action-btn-primary text-xs"
-        >Read Story</router-link>
-        <router-link
+          @click="$emit('view', item, type)"
+        >Read Story</button>
+        <button
           v-else-if="type === 'challenges'"
-          :to="`/challenges/${item.id}`"
+          type="button"
           class="action-btn-primary action-btn-challenge text-xs"
-        >View Challenge</router-link>
+          @click="$emit('view', item, type)"
+        >View Challenge</button>
         <a
           v-else
           :href="item.url"
@@ -83,14 +87,20 @@
 <script setup lang="ts">
 import type { ResourceTab, ResourceType } from '@/composables/useResourcesPage'
 
-defineProps<{
+const props = defineProps<{
   items: any[]
   type: ResourceTab
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   add: [resource: any, type: ResourceType]
+  view: [resource: any, type: ResourceTab]
 }>()
+
+function onCardClick(item: any) {
+  if (props.type === 'links') return
+  emit('view', item, props.type)
+}
 
 const typeMap: Record<ResourceTab, ResourceType> = {
   patterns: 'pattern',
@@ -132,12 +142,20 @@ const formatDate = (dateString: string | undefined) => {
   transition: all var(--transition-base);
 }
 
+.resource-card.clickable {
+  cursor: pointer;
+}
+
 .resource-card[data-accent="1"] { border-left-color: var(--color-accent-1); }
 .resource-card[data-accent="2"] { border-left-color: var(--color-accent-2); }
 .resource-card[data-accent="3"] { border-left-color: var(--color-accent-3); }
 
 .resource-card:hover {
   box-shadow: 0 8px 24px rgba(42, 42, 42, 0.08);
+}
+
+.resource-card.clickable:hover {
+  transform: translateY(-2px);
 }
 
 .card-header { margin-bottom: 1rem; }

@@ -14,6 +14,7 @@ export interface SignupFormData {
   selectedChallenges: string[]
   currentWork: string
   goals: string
+  agreedToTerms: boolean
 }
 
 export function useSignupForm() {
@@ -40,7 +41,8 @@ export function useSignupForm() {
     password: '',
     selectedChallenges: [],
     currentWork: '',
-    goals: ''
+    goals: '',
+    agreedToTerms: false,
   })
 
   const prefillFromGoogle = (credential: string) => {
@@ -85,6 +87,13 @@ export function useSignupForm() {
   }
 
   const handleSubmit = async () => {
+    if (!formData.value.agreedToTerms) {
+      errorTitle.value = 'Please Agree to the Terms'
+      errorMessage.value = 'You must agree to the Terms of Service and Privacy Policy to create an account.'
+      showErrorModal.value = true
+      return
+    }
+
     isSubmitting.value = true
 
     try {

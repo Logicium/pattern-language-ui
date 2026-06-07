@@ -1,7 +1,7 @@
 <template>
   <Transition name="slide-in">
     <div v-if="isOpen" class="slide-in-modal-overlay">
-      <div class="slide-in-modal" :style="{ left: sidebarWidth }">
+      <div class="slide-in-modal" :style="{ left: resolvedSidebarWidth }">
         <div class="modal-container">
           <slot></slot>
         </div>
@@ -11,7 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
 
 interface Props {
   modelValue: boolean
@@ -19,7 +20,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  sidebarWidth: '220px'
+  sidebarWidth: undefined
 })
 
 const emit = defineEmits<{
@@ -27,6 +28,14 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(props.modelValue)
+
+// When the caller doesn't pin a sidebar width, track the dashboard sidebar's
+// collapsed state so the modal slides over the current main-content area.
+const { collapsed } = useSidebarCollapsed()
+const resolvedSidebarWidth = computed(() => {
+  if (props.sidebarWidth !== undefined) return props.sidebarWidth
+  return collapsed.value ? '72px' : '220px'
+})
 
 watch(() => props.modelValue, (newVal) => {
   isOpen.value = newVal

@@ -4,6 +4,7 @@
 
     <div v-if="pattern">
       <section class="pattern-hero gradient-bg">
+        <HeroBackdrop variant="lattice" />
         <div class="container">
           <div class="hero-meta">
             <span class="pattern-number text-xs text-tertiary">Pattern {{ String(pattern.id).padStart(2, '0') }}</span>
@@ -31,6 +32,29 @@
             <FullPatternContent :pattern="pattern" />
             <FullPatternSidebar :pattern="pattern" :get-pattern-route="getPatternRoute" />
           </div>
+        </div>
+      </section>
+
+      <section class="section pattern-network-section">
+        <div class="container">
+          <p class="section-label text-xs text-tertiary">Pattern Network</p>
+          <h2 class="section-heading">Patterns connected to this one</h2>
+          <p class="section-blurb text-secondary">
+            Explore how this pattern threads through the wider language.
+            Click a node to dive into a related pattern.
+          </p>
+          <PatternNetworkGraph :pattern="pattern" :all-patterns="allPatterns" />
+        </div>
+      </section>
+
+      <section class="section pattern-map-section">
+        <div class="container">
+          <p class="section-label text-xs text-tertiary">In the Field</p>
+          <h2 class="section-heading">Where this pattern lives</h2>
+          <p class="section-blurb text-secondary">
+            Documented communities and regions putting this pattern to work.
+          </p>
+          <PatternLocationMap :stories="mapStories" />
         </div>
       </section>
 
@@ -69,10 +93,15 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer } from '@/components'
+import { computed } from 'vue'
+import { Navbar, Footer, HeroBackdrop } from '@/components'
 import FullPatternContent from '@/components/full-pattern/FullPatternContent.vue'
 import FullPatternSidebar from '@/components/full-pattern/FullPatternSidebar.vue'
+import PatternNetworkGraph from '@/components/full-pattern/PatternNetworkGraph.vue'
+import PatternLocationMap from '@/components/full-pattern/PatternLocationMap.vue'
 import { useFullPattern } from '@/composables/useFullPattern'
+import { usePatterns } from '@/composables/usePatterns'
+import { useStories } from '@/composables/useStories'
 
 interface Props {
   patternData?: any
@@ -84,12 +113,29 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { pattern, relatedStories, getPatternRoute, getChallengeRoute } = useFullPattern(props.patternData)
+const { patterns: allPatterns } = usePatterns()
+const { stories: allStories } = useStories()
+
+// Map section uses every story whose patterns include this one, not capped at 3.
+const mapStories = computed(() => {
+  if (!pattern.value) return []
+  const patternTitle = pattern.value.title.toLowerCase()
+  return allStories.value.filter((story: any) =>
+    story.patterns.some((p: string) => p.toLowerCase() === patternTitle),
+  )
+})
 </script>
 
 <style scoped>
 .pattern-page { min-height: 100vh; }
 
-.pattern-hero { padding: 12rem var(--container-padding) 6rem; }
+.pattern-hero {
+  padding: 12rem var(--container-padding) 6rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.pattern-hero .container { position: relative; z-index: 1; }
 
 .hero-meta {
   display: flex;
@@ -145,7 +191,32 @@ const { pattern, relatedStories, getPatternRoute, getChallengeRoute } = useFullP
   gap: 4rem;
 }
 
-.related-stories-section { background: var(--color-bg-primary); }
+.pattern-network-section { background: var(--color-bg-primary); }
+.pattern-map-section { background: var(--color-bg-secondary); }
+
+.section-label {
+  display: block;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.section-heading {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.75rem;
+  line-height: 1.3;
+}
+
+.section-blurb {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  margin: 0 0 1.5rem;
+  max-width: 48ch;
+}
+
+.related-stories-section { background: var(--color-bg-secondary); }
 
 .stories-grid {
   display: grid;

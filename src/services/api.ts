@@ -287,6 +287,10 @@ export const playbooksApi = {
     authFetch(`/playbooks/${playbookId}/events/${eventId}`, {
       method: 'DELETE',
     }),
+
+  // Instant group call
+  startInstantCall: (playbookId: number): Promise<{ meetLink: string; eventId: number }> =>
+    authFetch(`/playbooks/${playbookId}/call`, { method: 'POST' }),
 }
 
 // User Stories API
@@ -381,5 +385,10 @@ export const citiesApi = {
   create: (data: { name: string; state?: string; country?: string }) =>
     authFetch('/cities', { method: 'POST', body: JSON.stringify(data) }),
   generateInfo: (id: number) => authFetch(`/cities/${id}/generate`, { method: 'POST' }),
+}
+
+// Config API — runtime-fetched values that should not be embedded in the build.
+export const configApi = {
+  getMapsKey: (): Promise<{ key: string }> => authFetch('/config/maps-key'),
 }
 

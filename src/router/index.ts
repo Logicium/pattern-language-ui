@@ -22,6 +22,12 @@ import ProfilePageWrapper from '@/views/dashboard/ProfilePageWrapper.vue'
 import InvitationsPage from '@/views/dashboard/InvitationsPage.vue'
 import AllCitiesPage from '@/views/AllCitiesPage.vue'
 import FullCityPage from '@/views/FullCityPage.vue'
+import TermsPage from '@/views/TermsPage.vue'
+import PrivacyPage from '@/views/PrivacyPage.vue'
+import BetaPage from '@/views/BetaPage.vue'
+import ShopPage from '@/views/ShopPage.vue'
+import LogoutPage from '@/views/LogoutPage.vue'
+import NotFoundPage from '@/views/NotFoundPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -72,6 +78,26 @@ const router = createRouter({
       component: FullStoryPage
     },
     {
+      path: '/shop',
+      name: 'shop',
+      component: ShopPage
+    },
+    {
+      path: '/beta',
+      name: 'beta',
+      component: BetaPage
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: TermsPage
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: PrivacyPage
+    },
+    {
       path: '/signup',
       name: 'signup',
       component: SignupPage,
@@ -82,6 +108,11 @@ const router = createRouter({
       name: 'login',
       component: LoginPage,
       meta: { guestOnly: true }
+    },
+    {
+      path: '/logout',
+      name: 'logout',
+      component: LogoutPage
     },
     {
       path: '/dashboard',
@@ -139,6 +170,11 @@ const router = createRouter({
           component: ProfilePageWrapper
         }
       ]
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundPage
     }
   ],
   scrollBehavior(to, from, savedPosition) {

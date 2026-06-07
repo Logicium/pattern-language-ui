@@ -26,8 +26,11 @@
         <div class="container">
           <div class="content-layout">
 
-            <!-- TAB: Playbook (Main) -->
-            <template v-if="activeTab === 'playbook'">
+            <Transition name="panel-blur" mode="out-in">
+              <div :key="activeTab" class="tab-panel">
+
+                <!-- TAB: Playbook (Main) -->
+                <template v-if="activeTab === 'playbook'">
               <!-- Overview -->
               <PlaybookOverview
                 :playbook="playbook"
@@ -165,6 +168,9 @@
             <template v-if="activeTab === 'activity'">
               <PlaybookActivityTab :playbook="playbook" />
             </template>
+
+              </div>
+            </Transition>
 
             <!-- Navigation -->
             <div class="content-nav">

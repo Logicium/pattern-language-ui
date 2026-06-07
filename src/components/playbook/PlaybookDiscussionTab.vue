@@ -1,17 +1,32 @@
 <template>
   <div class="discussion-tab">
+    <!-- Discussion Toolbar -->
+    <div v-if="isUserMember" class="discussion-toolbar">
+      <button
+        type="button"
+        class="call-group-btn text-xs"
+        :disabled="startingCall"
+        @click="startGroupCall"
+      >
+        <span class="call-icon">●</span>
+        {{ startingCall ? 'Starting call...' : 'Call Group' }}
+      </button>
+      <span v-if="callError" class="call-error text-xs">{{ callError }}</span>
+    </div>
+
     <!-- Messages Area -->
-    <div class="messages-area" ref="messagesContainer">
-      <div v-if="loadingMessages" class="messages-loading">
-        <span class="text-xs text-tertiary">Loading discussion...</span>
-      </div>
+    <div class="messages-wrapper">
+      <div class="messages-area" ref="messagesContainer">
+        <div v-if="loadingMessages" class="messages-loading">
+          <span class="text-xs text-tertiary">Loading discussion...</span>
+        </div>
 
-      <div v-else-if="messages.length === 0" class="messages-empty">
-        <p class="text-sm text-secondary">No messages yet</p>
-        <p class="text-xs text-tertiary">Start a conversation with your team or ask @PAL for help.</p>
-      </div>
+        <div v-else-if="messages.length === 0" class="messages-empty">
+          <p class="text-sm text-secondary">No messages yet</p>
+          <p class="text-xs text-tertiary">Start a conversation with your team or ask @PAL for help.</p>
+        </div>
 
-      <template v-else>
+        <template v-else>
         <div
           v-for="(message, index) in messages"
           :key="message.id"
@@ -88,6 +103,8 @@
           </div>
         </div>
       </template>
+      </div>
+      <JumpToBottomButton :visible="showJumpToBottom" @click="scrollToBottom(true)" />
     </div>
 
     <!-- Mentions Dropdown -->
@@ -141,11 +158,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import VueMarkdownRender from 'vue-markdown-render'
 import { useAuthStore } from '@/stores/auth'
 import { playbooksApi } from '@/services/api'
 import { getInitials } from '@/utils/formatters'
+import { useChatScroll } from '@/composables/useChatScroll'
+import JumpToBottomButton from '@/components/chat/JumpToBottomButton.vue'
 import type { DiscussionMessage, PlaybookMember } from '@/types/collaboration'
 
 const props = defineProps<{
@@ -165,6 +184,8 @@ const sending = ref(false)
 const loadingMessages = ref(false)
 const showMentions = ref(false)
 const mentionQuery = ref('')
+
+const { showJumpToBottom, scrollToBottom } = useChatScroll(messagesContainer)
 
 const filteredMentionUsers = computed(() => {
   if (!mentionQuery.value) {
@@ -222,14 +243,6 @@ function renderContent(content: string): string {
     .replace(/>/g, '&gt;')
   // Render @mentions
   return escaped.replace(/@(\w+(?:\s\w+)*)/g, '<span class="mention-highlight">@$1</span>')
-}
-
-function scrollToBottom() {
-  nextTick(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-    }
-  })
 }
 
 async function loadMessages() {
@@ -381,6 +394,25 @@ function resetTextareaHeight() {
   }
 }
 
+const startingCall = ref(false)
+const callError = ref('')
+
+async function startGroupCall() {
+  if (!props.playbook || startingCall.value) return
+  startingCall.value = true
+  callError.value = ''
+  try {
+    const { meetLink } = await playbooksApi.startInstantCall(props.playbook.id)
+    await loadMessages()
+    window.open(meetLink, '_blank', 'noopener,noreferrer')
+  } catch (error: any) {
+    console.error('Failed to start group call:', error)
+    callError.value = error?.message || 'Could not start the call. Try again later.'
+  } finally {
+    startingCall.value = false
+  }
+}
+
 onMounted(() => {
   loadMessages()
 })
@@ -399,9 +431,65 @@ watch(() => props.playbook?.id, () => {
   position: relative;
 }
 
+/* Toolbar */
+.discussion-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0 0.75rem;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.06);
+}
+
+.call-group-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.875rem;
+  background: transparent;
+  border: 1px solid rgba(42, 42, 42, 0.15);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.call-group-btn:hover:not(:disabled) {
+  border-color: var(--color-text-primary);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
+.call-group-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.call-icon {
+  color: var(--color-accent-warm);
+  font-size: 0.625rem;
+  line-height: 1;
+}
+
+.call-group-btn:hover:not(:disabled) .call-icon {
+  color: var(--color-bg-primary);
+}
+
+.call-error {
+  color: var(--color-accent-warm);
+}
+
 /* Messages Area */
-.messages-area {
+.messages-wrapper {
   flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+.messages-area {
+  position: absolute;
+  inset: 0;
   overflow-y: auto;
   padding: 2rem 0;
   display: flex;

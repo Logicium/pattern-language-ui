@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
     <div class="container navbar-container">
-      <router-link to="/" class="logo">PATTERN_LANGUAGE.AI</router-link>
+      <BrandLogo to="/" word="PATTERN LANGUAGE.AI" :size="65" word-size="1rem" class="logo" />
       
       <!-- Desktop Nav Links -->
       <div class="nav-links">
@@ -9,6 +9,7 @@
         <router-link to="/patterns">Patterns</router-link>
         <router-link to="/stories">Stories</router-link>
         <router-link to="/cities">Cities</router-link>
+        <router-link to="/shop">Shop</router-link>
         <router-link v-if="isAuthenticated" to="/dashboard" class="btn">Dashboard</router-link>
         <router-link v-else to="/signup" class="btn">Start</router-link>
       </div>
@@ -34,6 +35,7 @@
       <router-link to="/patterns" @click="closeMobileMenu">Patterns</router-link>
       <router-link to="/stories" @click="closeMobileMenu">Stories</router-link>
       <router-link to="/cities" @click="closeMobileMenu">Cities</router-link>
+      <router-link to="/shop" @click="closeMobileMenu">Shop</router-link>
       <router-link v-if="isAuthenticated" to="/dashboard" class="btn" @click="closeMobileMenu">Dashboard</router-link>
       <router-link v-else to="/signup" class="btn" @click="closeMobileMenu">Start</router-link>
     </div>
@@ -50,6 +52,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import BrandLogo from '@/components/layout/BrandLogo.vue'
 
 const authStore = useAuthStore()
 const isAuthenticated = authStore.isAuthenticated

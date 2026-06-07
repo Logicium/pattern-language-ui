@@ -17,6 +17,7 @@
             v-if="message.playbook"
             :playbook="message.playbook"
             @add-to-playbooks="$emit('addPlaybook', $event)"
+            @view-full="$emit('viewFullPlaybook', $event)"
           />
         </div>
         <div class="message-time text-xs text-tertiary">{{ formatTime(message.timestamp) }}</div>
@@ -48,6 +49,7 @@ defineProps<{
 
 defineEmits<{
   addPlaybook: [playbook: any]
+  viewFullPlaybook: [playbook: any]
 }>()
 </script>
 

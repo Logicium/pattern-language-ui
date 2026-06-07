@@ -34,63 +34,67 @@
 
     <section class="page-content">
       <div class="container">
-        <!-- Draft Stories -->
-        <div v-if="activeTab === 'drafts'">
-          <div v-if="draftStories.length > 0" class="stories-grid">
-            <DashboardStoryCard
-              v-for="story in draftStories"
-              :key="story.id"
-              :story="story"
-              :format-date="formatDate"
-            />
-          </div>
-          <div v-else class="empty-state">
-            <div class="empty-icon">∅</div>
-            <h3>No draft stories</h3>
-            <p class="text-secondary">Generate a success story from a completed playbook</p>
-            <button class="btn" @click="activeTab = 'completed'">View Completed Playbooks</button>
-          </div>
-        </div>
+        <Transition name="panel-blur" mode="out-in">
+          <div :key="activeTab">
+            <!-- Draft Stories -->
+            <div v-if="activeTab === 'drafts'">
+              <div v-if="draftStories.length > 0" class="stories-grid">
+                <DashboardStoryCard
+                  v-for="story in draftStories"
+                  :key="story.id"
+                  :story="story"
+                  :format-date="formatDate"
+                />
+              </div>
+              <div v-else class="empty-state">
+                <div class="empty-icon">∅</div>
+                <h3>No draft stories</h3>
+                <p class="text-secondary">Generate a success story from a completed playbook</p>
+                <button class="btn" @click="activeTab = 'completed'">View Completed Playbooks</button>
+              </div>
+            </div>
 
-        <!-- Published Stories -->
-        <div v-else-if="activeTab === 'published'">
-          <div v-if="publishedStories.length > 0" class="stories-grid">
-            <DashboardStoryCard
-              v-for="story in publishedStories"
-              :key="story.id"
-              :story="story"
-              :format-date="formatDate"
-            />
-          </div>
-          <div v-else class="empty-state">
-            <div class="empty-icon">∅</div>
-            <h3>No published stories yet</h3>
-            <p class="text-secondary">Publish a draft story to share it with the community</p>
-            <button class="btn" @click="activeTab = 'drafts'" v-if="draftStories.length > 0">View Draft Stories</button>
-          </div>
-        </div>
+            <!-- Published Stories -->
+            <div v-else-if="activeTab === 'published'">
+              <div v-if="publishedStories.length > 0" class="stories-grid">
+                <DashboardStoryCard
+                  v-for="story in publishedStories"
+                  :key="story.id"
+                  :story="story"
+                  :format-date="formatDate"
+                />
+              </div>
+              <div v-else class="empty-state">
+                <div class="empty-icon">∅</div>
+                <h3>No published stories yet</h3>
+                <p class="text-secondary">Publish a draft story to share it with the community</p>
+                <button class="btn" @click="activeTab = 'drafts'" v-if="draftStories.length > 0">View Draft Stories</button>
+              </div>
+            </div>
 
-        <!-- Completed Playbooks -->
-        <div v-else-if="activeTab === 'completed'">
-          <div v-if="completedPlaybooks.length > 0" class="playbooks-grid">
-            <CompletedPlaybookCard
-              v-for="(playbook, index) in completedPlaybooks"
-              :key="playbook.id"
-              :playbook="playbook"
-              :accent="(index % 3) + 1"
-              :generating="!!isGenerating[playbook.id]"
-              :format-date="formatDate"
-              :get-duration="getDuration"
-              @generate="generateStory"
-            />
+            <!-- Completed Playbooks -->
+            <div v-else-if="activeTab === 'completed'">
+              <div v-if="completedPlaybooks.length > 0" class="playbooks-grid">
+                <CompletedPlaybookCard
+                  v-for="(playbook, index) in completedPlaybooks"
+                  :key="playbook.id"
+                  :playbook="playbook"
+                  :accent="(index % 3) + 1"
+                  :generating="!!isGenerating[playbook.id]"
+                  :format-date="formatDate"
+                  :get-duration="getDuration"
+                  @generate="generateStory"
+                />
+              </div>
+              <div v-else class="empty-state">
+                <div class="empty-icon">∅</div>
+                <h3>No completed playbooks yet</h3>
+                <p class="text-secondary">Complete a playbook to generate your first success story</p>
+                <button class="btn" @click="$router.push('/dashboard/playbooks')">View Active Playbooks</button>
+              </div>
+            </div>
           </div>
-          <div v-else class="empty-state">
-            <div class="empty-icon">∅</div>
-            <h3>No completed playbooks yet</h3>
-            <p class="text-secondary">Complete a playbook to generate your first success story</p>
-            <button class="btn" @click="$router.push('/dashboard/playbooks')">View Active Playbooks</button>
-          </div>
-        </div>
+        </Transition>
       </div>
     </section>
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-layout">
+  <div class="dashboard-layout" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
     <header class="mobile-header">
       <button
         class="hamburger"
@@ -29,7 +29,11 @@
     ></div>
 
     <main class="dashboard-main">
-      <router-view />
+      <RouterView v-slot="{ Component }">
+        <Transition name="page-blur" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </main>
   </div>
 </template>
@@ -37,11 +41,14 @@
 <script setup lang="ts">
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar.vue'
 import { useDashboardLayout } from '@/composables/useDashboardLayout'
+import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
 
 const {
   user, pendingInvitationsCount, isMobileMenuOpen,
   toggleMobileMenu, closeMobileMenu, handleLogout
 } = useDashboardLayout()
+
+const { collapsed: sidebarCollapsed } = useSidebarCollapsed()
 </script>
 
 <style scoped>
@@ -50,6 +57,11 @@ const {
   grid-template-columns: 220px 1fr;
   min-height: 100vh;
   background: var(--color-bg-primary);
+  transition: grid-template-columns var(--transition-base);
+}
+
+.dashboard-layout.sidebar-collapsed {
+  grid-template-columns: 72px 1fr;
 }
 
 .mobile-header { display: none; }
@@ -96,10 +108,12 @@ const {
 
 @media (max-width: 1024px) {
   .dashboard-layout { grid-template-columns: 200px 1fr; }
+  .dashboard-layout.sidebar-collapsed { grid-template-columns: 72px 1fr; }
 }
 
 @media (max-width: 768px) {
-  .dashboard-layout { grid-template-columns: 1fr; }
+  .dashboard-layout,
+  .dashboard-layout.sidebar-collapsed { grid-template-columns: 1fr; }
 
   .mobile-header {
     display: flex;

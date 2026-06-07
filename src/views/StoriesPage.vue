@@ -2,16 +2,10 @@
   <div class="stories-page">
     <Navbar />
 
-    <section class="stories-hero gradient-bg">
-      <RibbonCanvas />
-      <div class="container">
-        <h1 class="hero-title">Success Stories</h1>
-        <p class="hero-subtitle text-secondary">
-          Real communities. Real challenges. Real solutions.<br>
-          See how pattern languages transform rural places.
-        </p>
-      </div>
-    </section>
+    <PageHero
+      title="Success Stories"
+      subtitle="Real communities. Real challenges. Real solutions.<br>See how pattern languages transform rural places."
+    />
 
     <div v-if="loading" class="section featured-section">
       <div class="container">
@@ -71,7 +65,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Navbar, Footer, CTASection, RibbonCanvas, Pagination } from '@/components'
+import { Navbar, Footer, CTASection, PageHero, Pagination } from '@/components'
 import FeaturedStory from '@/components/stories/FeaturedStory.vue'
 import StoryCardGrid from '@/components/stories/StoryCardGrid.vue'
 import { useStories } from '@/composables/useStories'
@@ -96,30 +90,6 @@ const paginatedStories = computed(() => {
 
 <style scoped>
 .stories-page { min-height: 100vh; }
-
-.stories-hero {
-  padding: 12rem var(--container-padding) 6rem;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-title {
-  font-size: 4rem;
-  font-weight: var(--font-weight-light);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  margin-bottom: 2rem;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-subtitle {
-  font-size: 1.125rem;
-  line-height: 1.8;
-  position: relative;
-  z-index: 1;
-}
 
 .featured-section {
   background: var(--color-bg-primary);
@@ -158,7 +128,6 @@ const paginatedStories = computed(() => {
 
 @media (max-width: 768px) {
   .hero-title { font-size: 2.5rem; }
-  .stories-hero { padding: 10rem var(--container-padding) 4rem; }
   .share-action { text-align: left; }
 }
 </style>

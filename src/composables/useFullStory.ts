@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router'
 import { useStories } from '@/composables/useStories'
 import { usePatterns } from '@/composables/usePatterns'
 
-export function useFullStory() {
+export function useFullStory(storyData?: any) {
   const { stories: allStories, fetchStories } = useStories()
   const { patterns: allPatterns } = usePatterns()
   const route = useRoute()
@@ -14,9 +14,10 @@ export function useFullStory() {
     await fetchStories(true)
   })
 
-  const story = computed(() =>
-    allStories.value.find(s => s.id === storyId.value)
-  )
+  const story = computed(() => {
+    if (storyData) return storyData
+    return allStories.value.find(s => s.id === storyId.value)
+  })
 
   const relatedStories = computed(() => {
     if (!story.value) return []

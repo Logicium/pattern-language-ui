@@ -8,24 +8,26 @@
           <p class="text-sm text-secondary">Community-led regeneration<br>for rural America</p>
         </div>
         <div class="footer-col">
-          <span class="footer-title">Resources</span>
-          <a href="#">Pattern Library</a>
-          <a href="#">Workshop Guide</a>
-          <a href="#">Documentation</a>
+          <span class="footer-title">Explore</span>
+          <router-link to="/patterns">Pattern Library</router-link>
+          <router-link to="/stories">Stories</router-link>
+          <router-link to="/cities">Cities</router-link>
+          <router-link to="/shop">Shop</router-link>
         </div>
         <div class="footer-col">
-          <span class="footer-title">Community</span>
-          <a href="#">Network</a>
-          <a href="#">Events</a>
-          <a href="#">Support</a>
+          <span class="footer-title">About</span>
+          <router-link to="/about">About</router-link>
+          <router-link to="/beta">Beta Program</router-link>
+          <router-link to="/terms">Terms of Service</router-link>
+          <router-link to="/privacy">Privacy Policy</router-link>
         </div>
         <div class="footer-col">
           <span class="footer-title">Contact</span>
-          <a href="#">hello@patternlanguage.ai</a>
+          <a href="mailto:hello@ruralpatternlanguage.com">hello@ruralpatternlanguage.com</a>
         </div>
       </div>
       <div class="footer-bottom">
-        <span class="text-xs text-tertiary">© 2025 PatternLanguage.ai</span>
+        <span class="text-xs text-tertiary">© 2026 PatternLanguage.ai</span>
         <span class="text-xs text-tertiary">Inspired by Christopher Alexander & Emergent Campus</span>
       </div>
     </div>

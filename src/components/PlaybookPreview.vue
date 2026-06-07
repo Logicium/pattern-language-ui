@@ -36,18 +36,24 @@
       </ul>
     </div>
 
-    <button 
-      v-if="!added"
-      @click="handleAddToPlaybooks" 
-      class="add-button"
-      :disabled="adding"
-    >
-      <span v-if="adding">Adding...</span>
-      <span v-else>+ Add to My Playbooks</span>
-    </button>
-    
-    <div v-else class="added-message text-sm">
-      ✓ Added to your playbooks
+    <div class="preview-actions">
+      <button 
+        v-if="!added"
+        @click="handleAddToPlaybooks" 
+        class="add-button"
+        :disabled="adding"
+      >
+        <span v-if="adding">Adding...</span>
+        <span v-else>+ Add to My Playbooks</span>
+      </button>
+      
+      <div v-else class="added-message text-sm">
+        ✓ Added to your playbooks
+      </div>
+
+      <button type="button" class="view-full-button" @click="emit('viewFull', playbook)">
+        View full playbook
+      </button>
     </div>
   </div>
 </template>
@@ -63,6 +69,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   addToPlaybooks: [playbook: Playbook]
+  viewFull: [playbook: Playbook]
 }>()
 
 const adding = ref(false)
@@ -220,5 +227,37 @@ const formatDate = (dateString: string) => {
   font-weight: var(--font-weight-medium);
   background: rgba(184, 212, 200, 0.1);
   border: 1px solid rgba(184, 212, 200, 0.3);
+}
+
+.preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.preview-actions .add-button,
+.preview-actions .added-message {
+  flex: 1 1 200px;
+}
+
+.view-full-button {
+  flex: 0 0 auto;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid rgba(42, 42, 42, 0.18);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all var(--transition-base);
+}
+
+.view-full-button:hover {
+  background: var(--color-bg-secondary);
+  transform: translateY(-1px);
 }
 </style>

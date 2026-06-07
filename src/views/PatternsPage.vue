@@ -2,16 +2,10 @@
   <div class="patterns-page">
     <Navbar />
 
-    <section class="patterns-hero gradient-bg">
-      <RibbonCanvas />
-      <div class="container">
-        <h1 class="hero-title">Pattern Library</h1>
-        <p class="hero-subtitle text-secondary">
-          {{ allPatterns.length }} modular solutions for rural revitalization.<br>
-          Mix, match, and adapt to your community's needs.
-        </p>
-      </div>
-    </section>
+    <PageHero
+      title="Pattern Library"
+      :subtitle="`${allPatterns.length} modular solutions for rural revitalization.<br>Mix, match, and adapt to your community's needs.`"
+    />
 
     <PatternSearchFilters
       v-model:search-query="searchQuery"
@@ -66,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer, CTASection, RibbonCanvas, Pagination } from '@/components'
+import { Navbar, Footer, CTASection, PageHero, Pagination } from '@/components'
 import PatternSearchFilters from '@/components/patterns/PatternSearchFilters.vue'
 import PatternResultsGrid from '@/components/patterns/PatternResultsGrid.vue'
 import { usePatternsPage } from '@/composables/usePatternsPage'
@@ -82,30 +76,6 @@ const {
 <style scoped>
 .patterns-page {
   min-height: 100vh;
-}
-
-.patterns-hero {
-  padding: 12rem var(--container-padding) 6rem;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-title {
-  font-size: 4rem;
-  font-weight: var(--font-weight-light);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  margin-bottom: 2rem;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-subtitle {
-  font-size: 1.125rem;
-  line-height: 1.8;
-  position: relative;
-  z-index: 1;
 }
 
 .results-section {

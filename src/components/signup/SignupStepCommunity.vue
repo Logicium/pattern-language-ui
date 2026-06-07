@@ -111,11 +111,28 @@
     </div>
 
     <div class="form-actions">
+      <label class="terms-agreement text-sm">
+        <AppCheckbox
+          :model-value="formData.agreedToTerms"
+          @change="update('agreedToTerms', !formData.agreedToTerms)"
+        />
+        <span>
+          I agree to the
+          <router-link to="/terms" target="_blank" class="terms-link">Terms of Service</router-link>
+          and
+          <router-link to="/privacy" target="_blank" class="terms-link">Privacy Policy</router-link>.
+        </span>
+      </label>
+
       <div class="button-group">
         <button type="button" class="btn btn-lg btn-secondary" @click="$emit('prevStep')">
           Back
         </button>
-        <button type="submit" class="btn btn-lg submit-btn" :disabled="isSubmitting">
+        <button
+          type="submit"
+          class="btn btn-lg submit-btn"
+          :disabled="isSubmitting || !formData.agreedToTerms"
+        >
           {{ isSubmitting ? 'Creating...' : 'Get Started' }}
         </button>
       </div>
@@ -259,6 +276,27 @@ const toggleChallenge = (challenge: string) => {
   flex-direction: column;
   align-items: stretch;
 }
+
+.terms-agreement {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid rgba(42, 42, 42, 0.06);
+  cursor: pointer;
+  line-height: 1.6;
+}
+
+.terms-link {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-decoration-color: rgba(42, 42, 42, 0.3);
+  transition: text-decoration-color var(--transition-base);
+}
+
+.terms-link:hover { text-decoration-color: var(--color-text-primary); }
 
 .button-group {
   display: grid;

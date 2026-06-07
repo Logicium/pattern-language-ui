@@ -38,7 +38,7 @@ export function useSettings() {
 
   const confirmLogout = () => {
     authStore.logout()
-    router.push('/')
+    router.push('/logout')
   }
 
   return {

@@ -316,3 +316,32 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   z-index: 1;
 }
+
+/* Panel-blur: lighter cousin of page-blur for in-page tab swaps. Pair with <Transition name="panel-blur" mode="out-in"> and key on the tab id. */
+.panel-blur-enter-active,
+.panel-blur-leave-active {
+  transition: opacity 240ms ease, filter 240ms ease, transform 240ms ease;
+  will-change: opacity, filter, transform;
+}
+.panel-blur-enter-from {
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(4px);
+}
+.panel-blur-leave-to {
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(-2px);
+}
+.panel-blur-enter-to,
+.panel-blur-leave-from {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-blur-enter-active,
+  .panel-blur-leave-active { transition: opacity 160ms ease; }
+  .panel-blur-enter-from,
+  .panel-blur-leave-to { filter: none; transform: none; }
+}

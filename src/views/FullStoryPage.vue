@@ -1,6 +1,6 @@
 <template>
   <div class="story-page">
-    <Navbar />
+    <Navbar v-if="!isModal" />
 
     <div v-if="story">
       <FullStoryHero :story="story" :get-pattern-route="getPatternRoute" />
@@ -21,10 +21,10 @@
 
     <div v-else class="container" style="padding: 10rem 0; text-align: center;">
       <p class="text-secondary">Story not found</p>
-      <router-link to="/stories" class="btn" style="margin-top: 2rem;">Back to Stories</router-link>
+      <router-link v-if="!isModal" to="/stories" class="btn" style="margin-top: 2rem;">Back to Stories</router-link>
     </div>
 
-    <Footer />
+    <Footer v-if="!isModal" />
   </div>
 </template>
 
@@ -35,7 +35,16 @@ import FullStoryContent from '@/components/full-story/FullStoryContent.vue'
 import FullStorySidebar from '@/components/full-story/FullStorySidebar.vue'
 import { useFullStory } from '@/composables/useFullStory'
 
-const { story, relatedStories, extractDomain, getPatternRoute, formatDate } = useFullStory()
+interface Props {
+  storyData?: any
+  isModal?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isModal: false
+})
+
+const { story, relatedStories, extractDomain, getPatternRoute, formatDate } = useFullStory(props.storyData)
 </script>
 
 <style scoped>

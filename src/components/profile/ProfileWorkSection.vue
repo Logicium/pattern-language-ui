@@ -39,11 +39,9 @@
           :key="challenge"
           class="checkbox-label text-sm"
         >
-          <input
-            v-model="formData.interests"
-            type="checkbox"
-            :value="challenge"
-            class="checkbox-input"
+          <AppCheckbox
+            :model-value="formData.interests?.includes(challenge) ?? false"
+            @change="toggleInterest(challenge)"
           />
           <span>{{ challenge }}</span>
         </label>
@@ -55,10 +53,9 @@
       <h2 class="section-title">Privacy</h2>
       
       <label class="checkbox-label text-sm privacy-toggle">
-        <input
-          v-model="formData.isPublic"
-          type="checkbox"
-          class="checkbox-input"
+        <AppCheckbox
+          :model-value="formData.isPublic"
+          @change="formData.isPublic = !formData.isPublic"
         />
         <span class="privacy-text">
           <strong>Make profile visible</strong>
@@ -72,10 +69,19 @@
 <script setup lang="ts">
 import type { ProfileData } from '@/composables/useProfileEdit'
 import { WICKED_CHALLENGES } from '@/utils/constants'
+import AppCheckbox from '@/components/AppCheckbox.vue'
 
-defineProps<{ formData: ProfileData }>()
+const props = defineProps<{ formData: ProfileData }>()
 
 const wickedChallenges = WICKED_CHALLENGES
+
+function toggleInterest(challenge: string) {
+  if (!props.formData.interests) props.formData.interests = []
+  const list = props.formData.interests
+  const idx = list.indexOf(challenge)
+  if (idx >= 0) list.splice(idx, 1)
+  else list.push(challenge)
+}
 </script>
 
 <style scoped>

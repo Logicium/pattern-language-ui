@@ -1,9 +1,11 @@
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { invitationsApi } from '@/services/api'
 
 export function useDashboardLayout() {
   const authStore = useAuthStore()
+  const router = useRouter()
   const user = computed(() => authStore.currentUser)
 
   const pendingInvitationsCount = ref(0)
@@ -22,6 +24,7 @@ export function useDashboardLayout() {
   const handleLogout = () => {
     authStore.logout()
     closeMobileMenu()
+    router.push('/logout')
   }
 
   const loadPendingInvitations = async () => {

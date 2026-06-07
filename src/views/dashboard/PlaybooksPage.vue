@@ -29,27 +29,31 @@
 
     <section class="section page-content">
       <div class="container">
-        <div v-if="filteredPlaybooks.length > 0" class="playbooks-grid">
-          <PlaybookCard
-            v-for="(playbook, index) in filteredPlaybooks"
-            :key="playbook.id"
-            :playbook="playbook"
-            :accent="(index % 3) + 1"
-            :show-creator="activeTab === 'local'"
-            :format-date="formatDate"
-          />
-        </div>
+        <Transition name="panel-blur" mode="out-in">
+          <div :key="activeTab">
+            <div v-if="filteredPlaybooks.length > 0" class="playbooks-grid">
+              <PlaybookCard
+                v-for="(playbook, index) in filteredPlaybooks"
+                :key="playbook.id"
+                :playbook="playbook"
+                :accent="(index % 3) + 1"
+                :show-creator="activeTab === 'local'"
+                :format-date="formatDate"
+              />
+            </div>
 
-        <div v-else class="empty-state">
-          <div class="empty-icon">∅</div>
-          <h3 v-if="activeTab === 'local'">No local playbooks found</h3>
-          <h3 v-else>No {{ activeTab }} playbooks</h3>
-          <p v-if="activeTab === 'local'" class="text-secondary">
-            No published playbooks from your local community yet
-          </p>
-          <p v-else class="text-secondary">Start tracking your pattern implementations</p>
-          <button v-if="activeTab !== 'local'" class="btn btn-lg">Create Playbook</button>
-        </div>
+            <div v-else class="empty-state">
+              <div class="empty-icon">∅</div>
+              <h3 v-if="activeTab === 'local'">No local playbooks found</h3>
+              <h3 v-else>No {{ activeTab }} playbooks</h3>
+              <p v-if="activeTab === 'local'" class="text-secondary">
+                No published playbooks from your local community yet
+              </p>
+              <p v-else class="text-secondary">Start tracking your pattern implementations</p>
+              <button v-if="activeTab !== 'local'" class="btn btn-lg">Create Playbook</button>
+            </div>
+          </div>
+        </Transition>
       </div>
     </section>
   </div>

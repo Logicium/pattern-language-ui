@@ -1,7 +1,8 @@
-import { ref, computed, nextTick, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { usePlaybooksStore } from '@/stores/playbooks'
+import { useChatScroll } from '@/composables/useChatScroll'
 import type { AvatarState } from '@/types'
 import type { Playbook } from '@/stores/playbooks'
 
@@ -17,6 +18,8 @@ export function useChatPage() {
   const isTyping = ref(false)
   const typedContent = ref('')
   const showSuccessModal = ref(false)
+
+  const { showJumpToBottom, scrollToBottom } = useChatScroll(messagesArea)
 
   onMounted(async () => {
     await chatStore.fetchSessions()
@@ -35,14 +38,6 @@ export function useChatPage() {
       textarea.value.style.height = 'auto'
       textarea.value.style.height = textarea.value.scrollHeight + 'px'
     }
-  }
-
-  const scrollToBottom = () => {
-    nextTick(() => {
-      if (messagesArea.value) {
-        messagesArea.value.scrollTop = messagesArea.value.scrollHeight
-      }
-    })
   }
 
   watch(() => messages.value.length, () => {
@@ -148,6 +143,8 @@ export function useChatPage() {
     showSuccessModal,
     messages,
     loading,
+    showJumpToBottom,
+    scrollToBottom,
     autoResize,
     sendMessage,
     handleAddPlaybook,

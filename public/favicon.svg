@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="38 38 124 124">
+  <defs>
+    <!-- Static gradient matching AiAvatar idle palette (peach → sage → lavender). -->
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8b4a0" />
+      <stop offset="50%" stop-color="#b8d4c8" />
+      <stop offset="100%" stop-color="#c9b8e8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Large central circle. Stroke widths are heavy so the mark stays legible at 16/32 px favicon sizes. -->
+  <circle cx="100" cy="100" r="50" fill="none" stroke="url(#g)" stroke-width="11" opacity="0.9" />
+
+  <!-- Three small circles at distance 22, radius 24, mirroring AiAvatar's idle composition. -->
+  <circle cx="100" cy="78" r="24" fill="none" stroke="url(#g)" stroke-width="11" opacity="0.95" />
+  <circle cx="119.05" cy="111" r="24" fill="none" stroke="url(#g)" stroke-width="11" opacity="0.95" />
+  <circle cx="80.95" cy="111" r="24" fill="none" stroke="url(#g)" stroke-width="11" opacity="0.95" />
+</svg>
+

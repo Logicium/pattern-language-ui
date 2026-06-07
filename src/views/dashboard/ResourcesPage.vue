@@ -34,19 +34,24 @@
 
     <section class="page-content" id="resources-content">
       <div class="container">
-        <ResourceCardGrid
-          :items="currentPaginatedItems"
-          :type="activeTab"
-          @add="addToPlaybook"
-        />
+        <Transition name="panel-blur" mode="out-in">
+          <div :key="activeTab">
+            <ResourceCardGrid
+              :items="currentPaginatedItems"
+              :type="activeTab"
+              @add="addToPlaybook"
+              @view="openResource"
+            />
 
-        <Pagination
-          v-model:current-page="currentPage"
-          v-model:items-per-page="itemsPerPage"
-          :total-items="currentFilteredItems.length"
-          :per-page-options="[12, 24, 48]"
-          scroll-target-id="resources-content"
-        />
+            <Pagination
+              v-model:current-page="currentPage"
+              v-model:items-per-page="itemsPerPage"
+              :total-items="currentFilteredItems.length"
+              :per-page-options="[12, 24, 48]"
+              scroll-target-id="resources-content"
+            />
+          </div>
+        </Transition>
       </div>
     </section>
 
@@ -58,13 +63,42 @@
       @close="closeModal"
       @select="selectPlaybook"
     />
+
+    <SlideInModal v-model="showDetailModal">
+      <div class="detail-modal-wrapper">
+        <button class="detail-close" @click="showDetailModal = false" aria-label="Close">
+          <X :size="20" />
+        </button>
+        <FullPatternPage
+          v-if="detailType === 'patterns' && detailResource"
+          :pattern-data="detailResource"
+          :is-modal="true"
+        />
+        <FullStoryPage
+          v-else-if="detailType === 'stories' && detailResource"
+          :story-data="detailResource"
+          :is-modal="true"
+        />
+        <FullChallengePage
+          v-else-if="detailType === 'challenges' && detailResource"
+          :challenge-data="detailResource"
+          :is-modal="true"
+        />
+      </div>
+    </SlideInModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { X } from 'lucide-vue-next'
 import Pagination from '@/components/Pagination.vue'
 import ResourceCardGrid from '@/components/resources/ResourceCardGrid.vue'
 import ResourceAddModal from '@/components/resources/ResourceAddModal.vue'
+import SlideInModal from '@/components/SlideInModal.vue'
+import FullPatternPage from '@/views/FullPatternPage.vue'
+import FullStoryPage from '@/views/FullStoryPage.vue'
+import FullChallengePage from '@/views/FullChallengePage.vue'
 import { useResourcesPage, type ResourceTab } from '@/composables/useResourcesPage'
 
 const {
@@ -80,6 +114,16 @@ const tabs: { key: ResourceTab; label: string }[] = [
   { key: 'challenges', label: 'Challenges' },
   { key: 'links', label: 'Links' },
 ]
+
+const showDetailModal = ref(false)
+const detailResource = ref<any>(null)
+const detailType = ref<ResourceTab | null>(null)
+
+function openResource(resource: any, type: ResourceTab) {
+  detailResource.value = resource
+  detailType.value = type
+  showDetailModal.value = true
+}
 </script>
 
 <style scoped>
@@ -178,6 +222,35 @@ const tabs: { key: ResourceTab; label: string }[] = [
 .page-content {
   padding: 3rem var(--container-padding);
   background: var(--color-bg-secondary);
+}
+
+.detail-modal-wrapper {
+  position: relative;
+  min-height: 100%;
+}
+
+.detail-close {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10002;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(42, 42, 42, 0.12);
+  background: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  transition: background 160ms ease, transform 160ms ease;
+  box-shadow: 0 4px 12px rgba(42, 42, 42, 0.12);
+}
+
+.detail-close:hover {
+  background: var(--color-bg-secondary);
+  transform: scale(1.05);
 }
 
 @media (max-width: 768px) {

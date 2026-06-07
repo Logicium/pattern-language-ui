@@ -1,15 +1,9 @@
 <template>
   <div class="invitations-page">
-    <section class="page-header gradient-bg">
-      <div class="container">
-        <div class="header-content">
-          <div class="header-text">
-            <h1 class="page-title">Invitations</h1>
-            <p class="text-sm text-secondary">Manage your playbook collaboration invitations</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <DashboardPageHeader
+      title="Invitations"
+      subtitle="Manage your playbook collaboration invitations"
+    />
 
     <section class="section page-content">
       <div class="container">
@@ -45,6 +39,7 @@
 
 <script setup lang="ts">
 import InvitationCard from '@/components/invitations/InvitationCard.vue'
+import DashboardPageHeader from '@/components/layout/DashboardPageHeader.vue'
 import { useInvitationsPage } from '@/composables/useInvitationsPage'
 
 const {
@@ -60,19 +55,10 @@ const {
   background: var(--color-bg-primary);
 }
 
-.page-header { padding: 4rem 0 3rem; }
-
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-}
-
-.page-title {
-  font-size: 3rem;
-  font-weight: 300;
-  margin: 0 0 0.5rem 0;
-  color: var(--color-text-primary);
 }
 
 .page-content { padding: 3rem 0; }

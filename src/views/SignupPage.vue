@@ -3,6 +3,7 @@
     <Navbar />
     
     <section class="signup-hero gradient-bg">
+      <RibbonCanvas />
       <div class="container">
         <h1 class="hero-title">Create Your Profile</h1>
         <p class="hero-subtitle text-secondary">
@@ -68,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer, ErrorModal } from '@/components'
+import { Navbar, Footer, ErrorModal, RibbonCanvas } from '@/components'
 import SignupStepAccount from '@/components/signup/SignupStepAccount.vue'
 import SignupStepCommunity from '@/components/signup/SignupStepCommunity.vue'
 import SignupSidebar from '@/components/signup/SignupSidebar.vue'
@@ -87,6 +88,8 @@ const {
 .signup-hero {
   padding: 12rem var(--container-padding) 6rem;
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .hero-title {
@@ -95,9 +98,16 @@ const {
   line-height: 1.1;
   letter-spacing: -0.03em;
   margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
-.hero-subtitle { font-size: 1.125rem; line-height: 1.8; }
+.hero-subtitle {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  position: relative;
+  z-index: 1;
+}
 
 .form-section { background: var(--color-bg-secondary); }
 

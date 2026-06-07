@@ -2,19 +2,23 @@
   <div class="all-cities-page">
     <Navbar />
 
-    <section class="cities-hero gradient-bg">
+    <PageHero
+      label="Community Directory"
+      title="Cities & Towns"
+      subtitle="Explore rural communities using Pattern Language to address their wicked problems."
+    />
+
+    <section class="search-section">
       <div class="container">
-        <p class="hero-label text-xs text-tertiary">Community Directory</p>
-        <h1 class="hero-title">Cities &amp; Towns</h1>
-        <p class="hero-sub text-secondary">
-          Explore rural communities using Pattern Language to address their wicked problems.
-        </p>
-        <input
-          v-model="search"
-          type="text"
-          placeholder="Search by city or state…"
-          class="search-input text-sm"
-        />
+        <div class="search-bar">
+          <input
+            v-model="search"
+            type="text"
+            placeholder="Search by city or state…"
+            class="search-input"
+          />
+          <button v-if="search" @click="search = ''" class="clear-btn text-xs">Clear</button>
+        </div>
       </div>
     </section>
 
@@ -71,6 +75,7 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
+import PageHero from '@/components/layout/PageHero.vue'
 import CityCard from '@/components/city/CityCard.vue'
 import { citiesApi } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
@@ -131,25 +136,53 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.cities-hero {
-  padding: 12rem var(--container-padding) 6rem;
+.search-section {
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  padding: 2.5rem var(--container-padding);
 }
-.hero-label { letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; display: block; }
-.hero-title { font-size: clamp(2.5rem, 6vw, 5rem); font-weight: var(--font-weight-light); letter-spacing: -0.03em; margin-bottom: 1.5rem; }
-.hero-sub { font-size: 1.1rem; max-width: 50ch; line-height: 1.7; margin-bottom: 2.5rem; }
+
+.search-bar {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
 .search-input {
   width: 100%;
-  max-width: 480px;
-  padding: 0.875rem 1.25rem;
-  border: 1px solid rgba(42, 42, 42, 0.15);
-  background: rgba(253, 251, 247, 0.8);
+  padding: 1rem 1.25rem;
   font-family: var(--font-family);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: 1px solid rgba(42, 42, 42, 0.08);
   outline: none;
-  transition: border-color var(--transition-base);
+  transition: border-color var(--transition-base), background var(--transition-base);
 }
-.search-input:focus { border-color: var(--color-text-primary); }
+
+.search-input:focus {
+  border-color: var(--color-accent-1);
+  background: var(--color-bg-primary);
+}
+
+.search-input::placeholder { color: var(--color-text-tertiary); }
+
+.clear-btn {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+}
+
+.clear-btn:hover { color: var(--color-text-primary); }
+
 .section-header { align-items: center; }
 .btn-add-city { margin-left: auto; white-space: nowrap; }
 .cities-grid {
