@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <FeaturedStory v-else-if="featuredStory" :story="featuredStory" />
+    <FeaturedStory v-else-if="featuredStories.length" :stories="featuredStories" />
 
     <section class="section all-stories-section">
       <div class="container">
@@ -74,12 +74,12 @@ const { stories: allStories, loading, error, fetchStories } = useStories()
 
 onMounted(() => { fetchStories(true) })
 
-const featuredStory = computed(() => allStories.value[0])
+const featuredStories = computed(() => allStories.value.slice(0, 3))
 const currentPage = ref(1)
 const itemsPerPage = ref(9)
 const perPageOptions = [6, 9, 12, 18]
 
-const allOtherStories = computed(() => allStories.value.slice(1))
+const allOtherStories = computed(() => allStories.value.slice(3))
 
 const paginatedStories = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
