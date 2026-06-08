@@ -41,10 +41,10 @@
         </linearGradient>
       </defs>
       <!-- Layout matches AiAvatar's idle state: small circles at distance 7 around the center, all radius 7.7. -->
-      <circle cx="32" cy="32" r="16" fill="none" :stroke="`url(#${gradientId})`" stroke-width="3" opacity="0.9" />
-      <circle cx="32" cy="25" r="7.7" fill="none" :stroke="`url(#${gradientId})`" stroke-width="3" opacity="0.95" />
-      <circle cx="38.06" cy="35.5" r="7.7" fill="none" :stroke="`url(#${gradientId})`" stroke-width="3" opacity="0.95" />
-      <circle cx="25.94" cy="35.5" r="7.7" fill="none" :stroke="`url(#${gradientId})`" stroke-width="3" opacity="0.95" />
+      <circle cx="32" cy="32" r="16" fill="none" :stroke="`url(#${gradientId})`" stroke-width="2" opacity="0.9" />
+      <circle cx="32" cy="25" r="7.7" fill="none" :stroke="`url(#${gradientId})`" stroke-width="2" opacity="0.95" />
+      <circle cx="38.06" cy="35.5" r="7.7" fill="none" :stroke="`url(#${gradientId})`" stroke-width="2" opacity="0.95" />
+      <circle cx="25.94" cy="35.5" r="7.7" fill="none" :stroke="`url(#${gradientId})`" stroke-width="2" opacity="0.95" />
     </svg>
     <span v-if="!markOnly" class="brand-word" :style="{ fontSize: resolvedWordSize }">{{ word }}</span>
   </component>

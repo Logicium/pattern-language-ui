@@ -29,33 +29,19 @@
       <section class="section pattern-content">
         <div class="container">
           <div class="content-grid">
-            <FullPatternContent :pattern="pattern" />
-            <FullPatternSidebar :pattern="pattern" :get-pattern-route="getPatternRoute" />
+            <FullPatternContent :pattern="pattern" :all-patterns="allPatterns" />
+            <FullPatternSidebar
+              :pattern="pattern"
+              :get-pattern-route="getPatternRoute"
+              :prev-pattern="prevPattern"
+              :next-pattern="nextPattern"
+            />
           </div>
         </div>
       </section>
 
-      <section class="section pattern-network-section">
-        <div class="container">
-          <p class="section-label text-xs text-tertiary">Pattern Network</p>
-          <h2 class="section-heading">Patterns connected to this one</h2>
-          <p class="section-blurb text-secondary">
-            Explore how this pattern threads through the wider language.
-            Click a node to dive into a related pattern.
-          </p>
-          <PatternNetworkGraph :pattern="pattern" :all-patterns="allPatterns" />
-        </div>
-      </section>
-
-      <section class="section pattern-map-section">
-        <div class="container">
-          <p class="section-label text-xs text-tertiary">In the Field</p>
-          <h2 class="section-heading">Where this pattern lives</h2>
-          <p class="section-blurb text-secondary">
-            Documented communities and regions putting this pattern to work.
-          </p>
-          <PatternLocationMap :stories="mapStories" />
-        </div>
+      <section class="pattern-map-section">
+        <PatternLocationMap :stories="mapStories" />
       </section>
 
       <section v-if="relatedStories.length > 0" class="section related-stories-section">
@@ -97,7 +83,6 @@ import { computed } from 'vue'
 import { Navbar, Footer, HeroBackdrop } from '@/components'
 import FullPatternContent from '@/components/full-pattern/FullPatternContent.vue'
 import FullPatternSidebar from '@/components/full-pattern/FullPatternSidebar.vue'
-import PatternNetworkGraph from '@/components/full-pattern/PatternNetworkGraph.vue'
 import PatternLocationMap from '@/components/full-pattern/PatternLocationMap.vue'
 import { useFullPattern } from '@/composables/useFullPattern'
 import { usePatterns } from '@/composables/usePatterns'
@@ -115,6 +100,24 @@ const props = withDefaults(defineProps<Props>(), {
 const { pattern, relatedStories, getPatternRoute, getChallengeRoute } = useFullPattern(props.patternData)
 const { patterns: allPatterns } = usePatterns()
 const { stories: allStories } = useStories()
+
+// Previous / next neighbors in the pattern list (by store order).
+const currentIndex = computed(() => {
+  if (!pattern.value) return -1
+  return allPatterns.value.findIndex((p: any) => p.id === pattern.value!.id)
+})
+const prevPattern = computed(() => {
+  const i = currentIndex.value
+  const len = allPatterns.value.length
+  if (i < 0 || len === 0) return null
+  return allPatterns.value[(i - 1 + len) % len]
+})
+const nextPattern = computed(() => {
+  const i = currentIndex.value
+  const len = allPatterns.value.length
+  if (i < 0 || len === 0) return null
+  return allPatterns.value[(i + 1) % len]
+})
 
 // Map section uses every story whose patterns include this one, not capped at 3.
 const mapStories = computed(() => {
@@ -191,8 +194,7 @@ const mapStories = computed(() => {
   gap: 4rem;
 }
 
-.pattern-network-section { background: var(--color-bg-primary); }
-.pattern-map-section { background: var(--color-bg-secondary); }
+.pattern-map-section { background: var(--color-bg-primary); }
 
 .section-label {
   display: block;

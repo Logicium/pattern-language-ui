@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <div class="sidebar-block">
+    <div v-if="!isAuthenticated" class="sidebar-block">
       <h3 class="sidebar-title text-sm">Start Here</h3>
       <p class="text-xs text-tertiary" style="line-height: 1.7; margin-bottom: 1rem;">
         Ready to implement this pattern in your community?
@@ -22,21 +22,43 @@
       <router-link to="/signup" class="btn" style="width: 100%;">Create Profile</router-link>
     </div>
 
-    <div class="sidebar-block">
+    <div v-if="prevPattern || nextPattern" class="sidebar-block">
       <h3 class="sidebar-title text-sm">Explore More</h3>
       <div class="explore-links">
-        <router-link to="/patterns" class="explore-link text-xs">← All Patterns</router-link>
-        <router-link to="/stories" class="explore-link text-xs">Success Stories →</router-link>
+        <router-link
+          v-if="prevPattern"
+          :to="`/patterns/${prevPattern.id}`"
+          class="explore-link"
+        >
+          <span class="explore-dir text-xs text-tertiary">← Previous</span>
+          <span class="explore-title text-sm">{{ prevPattern.title }}</span>
+        </router-link>
+        <router-link
+          v-if="nextPattern"
+          :to="`/patterns/${nextPattern.id}`"
+          class="explore-link explore-link--next"
+        >
+          <span class="explore-dir text-xs text-tertiary">Next →</span>
+          <span class="explore-title text-sm">{{ nextPattern.title }}</span>
+        </router-link>
       </div>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+
 defineProps<{
   pattern: any
   getPatternRoute: (title: string) => string
+  prevPattern?: any | null
+  nextPattern?: any | null
 }>()
+
+const authStore = useAuthStore()
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 </script>
 
 <style scoped>
@@ -87,18 +109,47 @@ defineProps<{
 .explore-links {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .explore-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   color: var(--color-text-secondary);
   text-decoration: none;
-  padding: 0.5rem 0;
-  transition: color var(--transition-base);
-  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  border-left: 2px solid transparent;
+  transition: all var(--transition-base);
 }
 
-.explore-link:hover { color: var(--color-text-primary); }
+.explore-link:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border-left-color: var(--color-accent-1);
+}
+
+.explore-link--next {
+  align-items: flex-end;
+  text-align: right;
+  border-left: none;
+  border-right: 2px solid transparent;
+}
+
+.explore-link--next:hover {
+  border-right-color: var(--color-accent-2);
+  border-left-color: transparent;
+}
+
+.explore-dir {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.explore-title {
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
 
 @media (max-width: 1024px) {
   .sidebar { position: static; }

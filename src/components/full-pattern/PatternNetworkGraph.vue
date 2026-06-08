@@ -142,10 +142,11 @@ const hoveredId = ref<number | null>(null)
 const hoveredNode = computed(() =>
   hoveredId.value !== null ? graph.value.nodes.find((n) => n.id === hoveredId.value) || null : null,
 )
-const tooltipPos = ref<{ x: number; y: number }>({ x: 0, y: 0 })
+const tooltipPos = ref<{ x: number; y: number; flipX: boolean; flipY: boolean }>({ x: 0, y: 0, flipX: false, flipY: false })
 const tooltipStyle = computed(() => ({
   left: `${tooltipPos.value.x}px`,
   top: `${tooltipPos.value.y}px`,
+  transform: `translate(${tooltipPos.value.flipX ? '-100%' : '0'}, ${tooltipPos.value.flipY ? '-100%' : '0'})`,
 }))
 
 let animationFrameId: number | null = null
@@ -331,20 +332,27 @@ const handleMouseMove = (event: MouseEvent) => {
   const rect = canvasRef.value.getBoundingClientRect()
   const mx = event.clientX - rect.left - width / 2
   const my = event.clientY - rect.top - height / 2
-  let found: number | null = null
+  let foundNode: GraphNode | null = null
   for (const n of nodesState) {
     const dx = n.x - mx
     const dy = n.y - my
     if (dx * dx + dy * dy <= n.radius * n.radius * 2.2) {
-      found = n.id
+      foundNode = n
       break
     }
   }
-  hoveredId.value = found
-  if (found !== null) {
+  hoveredId.value = foundNode ? foundNode.id : null
+  if (foundNode) {
+    // Anchor tooltip to the node itself (not the cursor) so flip math is stable.
+    const nodeScreenX = width / 2 + foundNode.x
+    const nodeScreenY = height / 2 + foundNode.y
+    const flipX = nodeScreenX > width * 0.6
+    const flipY = nodeScreenY > height * 0.6
     tooltipPos.value = {
-      x: event.clientX - rect.left + 12,
-      y: event.clientY - rect.top + 12,
+      x: nodeScreenX + (flipX ? -foundNode.radius - 8 : foundNode.radius + 8),
+      y: nodeScreenY + (flipY ? -foundNode.radius - 8 : foundNode.radius + 8),
+      flipX,
+      flipY,
     }
   }
 }

@@ -1,73 +1,88 @@
 <template>
   <div class="pattern-map">
-    <!-- Google Maps render target. Falls back to the inline SVG when no API key is configured or loading fails. -->
-    <div v-if="useGoogle" ref="mapEl" class="map-frame map-frame--google" />
+    <div ref="frameEl" class="map-frame">
+      <div ref="mapEl" class="map-canvas" />
 
-    <div v-else class="map-frame map-frame--svg">
-      <svg viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet" class="map-svg">
-        <defs>
-          <linearGradient id="map-bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#f8f6f2" />
-            <stop offset="100%" stop-color="#efece4" />
-          </linearGradient>
-        </defs>
+      <aside ref="readoutEl" class="map-readout">
+        <div class="map-readout-glass" aria-hidden="true"></div>
+        <div class="map-readout-content">
+          <p class="readout-eyebrow text-xs text-tertiary">In the field</p>
+          <h2 class="readout-heading">Where this pattern lives</h2>
 
-        <rect x="0" y="0" width="960" height="600" fill="url(#map-bg-grad)" />
+          <template v-if="selectedStory">
+            <p class="readout-subeyebrow text-xs text-tertiary">Selected community</p>
+            <h3 class="readout-title">{{ selectedStory.location }}</h3>
+            <p v-if="selectedStory.title" class="readout-subtitle text-sm">{{ selectedStory.title }}</p>
+            <p v-if="selectedStory.problem" class="readout-body text-sm text-secondary">
+              {{ selectedStory.problem }}
+            </p>
+            <router-link
+              v-if="typeof selectedStory.id === 'number'"
+              :to="`/stories/${selectedStory.id}`"
+              class="readout-link text-xs"
+            >
+              Read the full story →
+            </router-link>
+            <button type="button" class="readout-reset text-xs" @click="selectedStory = null">
+              ← Back to overview
+            </button>
+          </template>
+          <template v-else>
+            <p class="readout-body text-sm text-secondary">
+              <template v-if="pinnedLocations.length === 0">
+                No mapped communities yet. Add a story to put this pattern on the map.
+              </template>
+              <template v-else>
+                {{ pinnedLocations.length }}
+                {{ pinnedLocations.length === 1 ? 'community' : 'communities' }} documented —
+                click a pin to read their story.
+              </template>
+            </p>
+            <div v-if="pinnedLocations.length" class="readout-scroll">
+              <div
+                ref="readoutViewportEl"
+                class="readout-scroll-viewport"
+                @scroll="updateThumb"
+              >
+                <ul class="readout-list">
+                  <li
+                    v-for="p in pinnedLocations"
+                    :key="p.id"
+                    class="readout-list-item text-xs"
+                    @click="focusStory(p.id)"
+                  >
+                    <span class="readout-dot" :style="{ background: p.color }"></span>
+                    {{ p.location }}
+                  </li>
+                </ul>
+              </div>
+              <div
+                v-show="thumbVisible"
+                class="readout-scroll-track"
+                @mousedown.prevent="onTrackClick"
+              >
+                <div
+                  class="readout-scroll-thumb"
+                  :class="{ dragging: isDragging }"
+                  :style="thumbStyle"
+                  @mousedown.stop.prevent="onThumbDragStart"
+                />
+              </div>
+            </div>
+          </template>
 
-        <!-- Simplified contiguous US outline. -->
-        <path :d="usOutline" fill="#e6e2d6" stroke="#cdc6b3" stroke-width="1" stroke-linejoin="round" />
+          <p v-if="unmappedLocations.length" class="map-footnote text-xs text-tertiary">
+            Also documented in: {{ unmappedLocations.join(' · ') }}
+          </p>
+        </div>
+      </aside>
 
-        <!-- Subtle decorative lat/lon lines for a "field guide" feel. -->
-        <g class="grid" stroke="#c9c4b3" stroke-width="0.5" stroke-dasharray="2 3" opacity="0.5">
-          <line v-for="(_, i) in 6" :key="`h-${i}`" :x1="0" :y1="i * 100" :x2="960" :y2="i * 100" />
-          <line v-for="(_, i) in 10" :key="`v-${i}`" :x1="i * 96" y1="0" :x2="i * 96" :y2="600" />
-        </g>
-
-        <!-- Location pins. -->
-        <g class="markers">
-          <g
-            v-for="loc in projectedLocations"
-            :key="loc.id"
-            class="marker"
-            :transform="`translate(${loc.x}, ${loc.y})`"
-            @mouseenter="hovered = loc.id"
-            @mouseleave="hovered = null"
-          >
-            <circle r="14" :fill="loc.color" opacity="0.18" />
-            <circle r="7" :fill="loc.color" opacity="0.45" />
-            <circle r="3.5" :fill="loc.color" stroke="#2a2a2a" stroke-width="0.6" />
-          </g>
-        </g>
-
-        <!-- Tooltip rendered last so it sits on top. -->
-        <g v-if="hoveredLocation" class="tooltip" :transform="`translate(${hoveredLocation.x}, ${hoveredLocation.y - 24})`">
-          <rect
-            :x="-tooltipWidth(hoveredLocation.location) / 2"
-            y="-22"
-            :width="tooltipWidth(hoveredLocation.location)"
-            height="22"
-            fill="#2a2a2a"
-          />
-          <text
-            x="0"
-            y="-7"
-            text-anchor="middle"
-            fill="#fdfbf7"
-            font-family="Inter, sans-serif"
-            font-size="11"
-            font-weight="400"
-          >
-            {{ hoveredLocation.location }}
-          </text>
-        </g>
-      </svg>
-    </div>
-
-    <div v-if="unmappedLocations.length > 0" class="map-footnote text-xs text-tertiary">
-      Also documented in: {{ unmappedLocations.join(' · ') }}
-    </div>
-    <div v-if="projectedLocations.length === 0 && unmappedLocations.length === 0" class="map-empty text-xs text-tertiary">
-      No mapped communities yet. Add a story to put this pattern on the map.
+      <div v-if="!mapReady && !loadError" class="map-status text-xs text-tertiary">
+        Loading map…
+      </div>
+      <div v-else-if="loadError" class="map-status text-xs text-tertiary">
+        Map unavailable.
+      </div>
     </div>
   </div>
 </template>
@@ -75,52 +90,32 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
-import { US_OUTLINE_PATH } from './usMapPath'
 import { LOCATION_COORDS } from './locationCoords'
 import { configApi } from '@/services/api'
-
 interface StoryLike {
   id: number | string
+  title?: string
   location?: string
+  problem?: string
   color?: string
+  image?: string
 }
 
 const props = defineProps<{ stories: StoryLike[] }>()
 
-const usOutline = US_OUTLINE_PATH
-const hovered = ref<number | string | null>(null)
 const palette = ['#e8b4a0', '#b8d4c8', '#c9b8e8', '#d47b5f']
-// API key is fetched from the backend at runtime so it isn't shipped in the JS bundle.
 const apiKey = ref<string>('')
 const loadError = ref(false)
-const useGoogle = computed(() => !!apiKey.value && !loadError.value)
-
-interface Projected {
-  id: number | string
-  location: string
-  x: number
-  y: number
-  color: string
-}
+const mapReady = ref(false)
+const selectedStory = ref<StoryLike | null>(null)
 
 interface Pinned {
   id: number | string
+  story: StoryLike
   location: string
   lat: number
   lng: number
   color: string
-}
-
-// Equirectangular projection tuned for contiguous US.
-// Maps lon ∈ [-125, -67] → x ∈ [40, 920], lat ∈ [25, 50] → y ∈ [560, 60] (inverted).
-const project = (lat: number, lon: number) => {
-  const minLon = -125
-  const maxLon = -67
-  const minLat = 25
-  const maxLat = 50
-  const x = ((lon - minLon) / (maxLon - minLon)) * (920 - 40) + 40
-  const y = ((maxLat - lat) / (maxLat - minLat)) * (560 - 60) + 60
-  return { x, y }
 }
 
 const matchCoord = (location: string): { lat: number; lon: number } | null => {
@@ -140,6 +135,7 @@ const pinnedLocations = computed<Pinned[]>(() => {
     if (!coord) continue
     out.push({
       id: s.id,
+      story: s,
       location: s.location,
       lat: coord.lat,
       lng: coord.lon,
@@ -150,13 +146,6 @@ const pinnedLocations = computed<Pinned[]>(() => {
   return out
 })
 
-const projectedLocations = computed<Projected[]>(() =>
-  pinnedLocations.value.map((p) => {
-    const { x, y } = project(p.lat, p.lng)
-    return { id: p.id, location: p.location, x, y, color: p.color }
-  }),
-)
-
 const unmappedLocations = computed<string[]>(() => {
   const out: string[] = []
   for (const s of props.stories) {
@@ -166,18 +155,112 @@ const unmappedLocations = computed<string[]>(() => {
   return out
 })
 
-const hoveredLocation = computed(() =>
-  hovered.value !== null ? projectedLocations.value.find((l) => l.id === hovered.value) || null : null,
-)
+const focusStory = (id: number | string) => {
+  const pin = pinnedLocations.value.find((p) => p.id === id)
+  if (!pin) return
+  selectedStory.value = pin.story
+  if (mapInstance) {
+    mapInstance.panTo({ lat: pin.lat, lng: pin.lng })
+    mapInstance.setZoom(7)
+    const overlayPad = (readoutEl.value?.offsetWidth ?? 0)
+    if (overlayPad > 0) mapInstance.panBy(-overlayPad / 2, 0)
+  }
+}
 
-const tooltipWidth = (text: string) => Math.max(60, text.length * 6.5 + 20)
+// --- Wheel gate -----------------------------------------------------------
+// Only ctrl/cmd + wheel reaches the map. Plain wheel falls through to the
+// page so the article continues to scroll naturally.
+const onFrameWheel = (e: WheelEvent) => {
+  if (!e.ctrlKey && !e.metaKey) {
+    e.stopPropagation()
+  }
+}
+
+// --- Custom scrollbar -----------------------------------------------------
+const readoutViewportEl = ref<HTMLDivElement | null>(null)
+const thumbHeight = ref(0)
+const thumbTop = ref(0)
+const thumbVisible = ref(false)
+const isDragging = ref(false)
+let dragStartClientY = 0
+let dragStartScrollTop = 0
+
+const thumbStyle = computed(() => ({
+  height: `${thumbHeight.value}px`,
+  transform: `translateY(${thumbTop.value}px)`,
+}))
+
+const updateThumb = () => {
+  const el = readoutViewportEl.value
+  if (!el) return
+  const visibleH = el.clientHeight
+  const totalH = el.scrollHeight
+  if (totalH <= visibleH + 1) {
+    thumbVisible.value = false
+    return
+  }
+  thumbVisible.value = true
+  const ratio = visibleH / totalH
+  thumbHeight.value = Math.max(18, visibleH * ratio)
+  const maxScroll = totalH - visibleH
+  const scrollRatio = maxScroll > 0 ? el.scrollTop / maxScroll : 0
+  thumbTop.value = scrollRatio * (visibleH - thumbHeight.value)
+}
+
+const onThumbDrag = (e: MouseEvent) => {
+  const el = readoutViewportEl.value
+  if (!el) return
+  const visibleH = el.clientHeight
+  const trackRange = visibleH - thumbHeight.value
+  if (trackRange <= 0) return
+  const maxScroll = el.scrollHeight - visibleH
+  const deltaY = e.clientY - dragStartClientY
+  el.scrollTop = dragStartScrollTop + (deltaY / trackRange) * maxScroll
+}
+
+const onThumbDragEnd = () => {
+  isDragging.value = false
+  document.removeEventListener('mousemove', onThumbDrag)
+  document.removeEventListener('mouseup', onThumbDragEnd)
+  document.body.style.userSelect = ''
+}
+
+const onThumbDragStart = (e: MouseEvent) => {
+  const el = readoutViewportEl.value
+  if (!el) return
+  isDragging.value = true
+  dragStartClientY = e.clientY
+  dragStartScrollTop = el.scrollTop
+  document.body.style.userSelect = 'none'
+  document.addEventListener('mousemove', onThumbDrag)
+  document.addEventListener('mouseup', onThumbDragEnd)
+}
+
+const onTrackClick = (e: MouseEvent) => {
+  const el = readoutViewportEl.value
+  const track = e.currentTarget as HTMLElement
+  if (!el || !track) return
+  const rect = track.getBoundingClientRect()
+  const clickY = e.clientY - rect.top
+  // Center the thumb on the click point.
+  const targetTop = clickY - thumbHeight.value / 2
+  const trackRange = rect.height - thumbHeight.value
+  const ratio = Math.max(0, Math.min(1, targetTop / Math.max(trackRange, 1)))
+  el.scrollTop = ratio * (el.scrollHeight - el.clientHeight)
+}
+
+watch(pinnedLocations, () => {
+  nextTick(() => updateThumb())
+})
 
 // --- Google Maps wiring ---------------------------------------------------
 
+const frameEl = ref<HTMLDivElement | null>(null)
+const readoutEl = ref<HTMLElement | null>(null)
 const mapEl = ref<HTMLDivElement | null>(null)
 let mapInstance: google.maps.Map | null = null
 let markers: google.maps.Marker[] = []
-let infoWindow: google.maps.InfoWindow | null = null
+let resizeObserver: ResizeObserver | null = null
 
 // Editorial map style — desaturated to harmonize with the cream / sage / peach palette.
 const mapStyles: google.maps.MapTypeStyle[] = [
@@ -200,7 +283,7 @@ const pinIcon = (color: string): google.maps.Symbol => ({
   fillOpacity: 0.9,
   strokeColor: '#2a2a2a',
   strokeWeight: 0.8,
-  scale: 1.2,
+  scale: 1.1,
   anchor: new google.maps.Point(0, 12),
 })
 
@@ -210,22 +293,31 @@ const clearMarkers = () => {
 }
 
 const fitToMarkers = () => {
-  if (!mapInstance || pinnedLocations.value.length === 0) return
+  if (!mapInstance) return
+  const overlayPad = (readoutEl.value?.offsetWidth ?? 0) + 32
+  const padding = { top: 48, right: 48, bottom: 48, left: overlayPad }
+  if (pinnedLocations.value.length === 0) {
+    mapInstance.setCenter({ lat: 39, lng: -96 })
+    mapInstance.setZoom(4)
+    // Shift the rendered content right so the US sits in the visible (unblurred) half.
+    if (overlayPad > 0) mapInstance.panBy(-overlayPad / 2, 0)
+    return
+  }
   if (pinnedLocations.value.length === 1) {
     const only = pinnedLocations.value[0]!
     mapInstance.setCenter({ lat: only.lat, lng: only.lng })
     mapInstance.setZoom(6)
+    if (overlayPad > 0) mapInstance.panBy(-overlayPad / 2, 0)
     return
   }
   const bounds = new google.maps.LatLngBounds()
   for (const p of pinnedLocations.value) bounds.extend({ lat: p.lat, lng: p.lng })
-  mapInstance.fitBounds(bounds, 80)
+  mapInstance.fitBounds(bounds, padding)
 }
 
 const renderMarkers = () => {
   if (!mapInstance) return
   clearMarkers()
-  if (!infoWindow) infoWindow = new google.maps.InfoWindow()
   for (const p of pinnedLocations.value) {
     const marker = new google.maps.Marker({
       position: { lat: p.lat, lng: p.lng },
@@ -234,10 +326,7 @@ const renderMarkers = () => {
       icon: pinIcon(p.color),
     })
     marker.addListener('click', () => {
-      infoWindow!.setContent(
-        `<div style="font-family:Inter,sans-serif;font-size:0.8125rem;letter-spacing:0.04em;color:#2a2a2a;padding:2px 4px;">${p.location}</div>`,
-      )
-      infoWindow!.open({ map: mapInstance!, anchor: marker })
+      selectedStory.value = p.story
     })
     markers.push(marker)
   }
@@ -245,7 +334,6 @@ const renderMarkers = () => {
 }
 
 onMounted(async () => {
-  // Pull the Google Maps key from the backend so it never lives in the static bundle.
   try {
     const { key } = await configApi.getMapsKey()
     if (!key) {
@@ -254,11 +342,10 @@ onMounted(async () => {
     }
     apiKey.value = key
   } catch (err) {
-    console.warn('[PatternLocationMap] could not fetch maps key from API, falling back to SVG.', err)
+    console.warn('[PatternLocationMap] could not fetch maps key from API.', err)
     loadError.value = true
     return
   }
-  // Wait for the v-if="useGoogle" branch to render so mapEl is bound.
   await nextTick()
   if (!mapEl.value) return
   try {
@@ -267,16 +354,27 @@ onMounted(async () => {
     mapInstance = new google.maps.Map(mapEl.value, {
       center: { lat: 39, lng: -96 },
       zoom: 4,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      gestureHandling: 'cooperative',
+      disableDefaultUI: true,
+      gestureHandling: 'greedy',
       backgroundColor: '#f5f1e8',
       styles: mapStyles,
     })
+    mapReady.value = true
     renderMarkers()
+    // Re-frame whenever the map size changes (responsive overlay).
+    if (frameEl.value && 'ResizeObserver' in window) {
+      resizeObserver = new ResizeObserver(() => fitToMarkers())
+      resizeObserver.observe(frameEl.value)
+    }
+    // Custom wheel gate: only ctrl/cmd-scroll reaches the map; plain wheel scrolls the page.
+    // (We use 'greedy' on the map itself — which renders no overlay nag — and intercept
+    // wheel events in the capture phase before Google's listener runs.)
+    if (frameEl.value) {
+      frameEl.value.addEventListener('wheel', onFrameWheel, { capture: true })
+    }
+    nextTick(() => updateThumb())
   } catch (err) {
-    console.warn('[PatternLocationMap] failed to load Google Maps, falling back to SVG.', err)
+    console.warn('[PatternLocationMap] failed to load Google Maps.', err)
     loadError.value = true
   }
 })
@@ -287,50 +385,240 @@ watch(pinnedLocations, () => {
 
 onBeforeUnmount(() => {
   clearMarkers()
-  if (infoWindow) infoWindow.close()
-  infoWindow = null
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+  if (frameEl.value) {
+    frameEl.value.removeEventListener('wheel', onFrameWheel, { capture: true } as AddEventListenerOptions)
+  }
+  document.removeEventListener('mousemove', onThumbDrag)
+  document.removeEventListener('mouseup', onThumbDragEnd)
   mapInstance = null
 })
 </script>
 
 <style scoped>
-.pattern-map { width: 100%; }
+.pattern-map {
+  width: 100%;
+  position: relative;
+}
 
 .map-frame {
+  position: relative;
   width: 100%;
+  height: clamp(420px, 60vh, 640px);
   background: var(--color-bg-primary);
-  border: 1px solid rgba(42, 42, 42, 0.08);
+  overflow: hidden;
 }
 
-.map-frame--google {
-  height: 540px;
+.map-canvas {
+  position: absolute;
+  inset: 0;
 }
 
-.map-frame--svg {
-  padding: 1rem;
+.map-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
-.map-svg {
+/* Overlay: floats over the left half of the map. */
+.map-readout {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(50%, 560px);
+  display: flex;
+  z-index: 2;
+  isolation: isolate;
+}
+
+.map-readout-glass {
+  position: absolute;
+  inset: 0;
+  background: rgba(253, 251, 247, 0.55);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  /* Soft fade on the inner edge so the blur dissolves into the map. */
+  mask-image: linear-gradient(to right, black 0%, black 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 78%, transparent 100%);
+  pointer-events: none;
+}
+
+.map-readout-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 4rem 5rem 4rem var(--container-padding);
   width: 100%;
-  height: auto;
-  display: block;
+  overflow: hidden;
 }
 
-.marker {
-  cursor: default;
-  transition: transform var(--transition-fast);
-  transform-origin: center;
-  transform-box: fill-box;
+.readout-eyebrow,
+.readout-subeyebrow {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0;
 }
 
-.marker:hover { transform: scale(1.15) translate(var(--tx, 0), var(--ty, 0)); }
+.readout-subeyebrow {
+  margin-top: 1.25rem;
+}
 
-.tooltip { pointer-events: none; }
+.readout-heading {
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
 
-.map-footnote,
-.map-empty {
-  margin-top: 1rem;
+.readout-title {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.readout-subtitle {
+  font-style: italic;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.readout-body {
+  line-height: 1.7;
+  margin: 0;
+  max-width: 42ch;
+}
+
+.readout-link {
+  align-self: flex-start;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-accent-1);
+  padding-bottom: 2px;
+  transition: color var(--transition-fast);
+}
+
+.readout-link:hover { color: var(--color-accent-warm); }
+
+.readout-reset {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 0.25rem;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+}
+
+.readout-reset:hover { color: var(--color-text-primary); }
+
+.readout-scroll {
+  position: relative;
+  margin: 0.25rem 0 0;
+}
+
+.readout-scroll-viewport {
+  max-height: 220px;
+  overflow-y: auto;
+  /* Hide native scrollbar entirely — we render our own. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.readout-scroll-viewport::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.readout-scroll-track {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: pointer;
+}
+
+.readout-scroll-thumb {
+  position: absolute;
+  right: 4px;
+  width: 2px;
+  background: rgba(42, 42, 42, 0.22);
+  border-radius: 1px;
+  transition: background var(--transition-fast), width var(--transition-fast);
+  pointer-events: auto;
+  cursor: grab;
+}
+.readout-scroll-track:hover .readout-scroll-thumb,
+.readout-scroll-thumb.dragging {
+  background: rgba(42, 42, 42, 0.55);
+  width: 3px;
+  right: 3.5px;
+}
+.readout-scroll-thumb.dragging {
+  cursor: grabbing;
+}
+
+.readout-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.readout-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.readout-list-item:hover { color: var(--color-text-primary); }
+
+.readout-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.map-footnote {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(42, 42, 42, 0.06);
   letter-spacing: 0.05em;
   line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .map-frame { height: 520px; }
+  .map-readout {
+    width: 100%;
+    max-width: none;
+  }
+  .map-readout-content {
+    padding: 2.5rem var(--container-padding);
+  }
 }
 </style>

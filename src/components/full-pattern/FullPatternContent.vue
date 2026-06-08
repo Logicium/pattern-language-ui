@@ -40,12 +40,20 @@
         </div>
       </div>
     </div>
+
+    <div v-if="allPatterns && allPatterns.length > 0" class="content-block">
+      <h2 class="section-subtitle">Patterns Connected</h2>
+      <PatternNetworkGraph :pattern="pattern" :all-patterns="allPatterns" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import PatternNetworkGraph from '@/components/full-pattern/PatternNetworkGraph.vue'
+
 defineProps<{
   pattern: any
+  allPatterns?: any[]
 }>()
 </script>
 
@@ -102,6 +110,12 @@ defineProps<{
 }
 
 .example-card p { line-height: 1.7; }
+
+.connected-blurb {
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+  max-width: 60ch;
+}
 
 @media (max-width: 768px) {
   .content-block { padding: 2rem; }
