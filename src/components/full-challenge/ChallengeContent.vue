@@ -42,7 +42,7 @@
                 {{ String(getPatternId(patternTitle)).padStart(2, '0') }}
               </div>
               <h3 class="pattern-title text-sm">{{ patternTitle }}</h3>
-              <div class="pattern-arrow">→</div>
+              <div class="pattern-arrow chevron">⌝</div>
             </div>
           </div>
         </div>

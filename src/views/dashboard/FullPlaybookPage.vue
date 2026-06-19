@@ -175,10 +175,10 @@
             <!-- Navigation -->
             <div class="content-nav">
               <router-link to="/dashboard/playbooks" class="nav-link text-xs">
-                ← All Playbooks
+                <span class="chevron">⌜</span> All Playbooks
               </router-link>
               <router-link to="/dashboard/stories" class="nav-link text-xs">
-                Success Stories →
+                Success Stories <span class="chevron">⌝</span>
               </router-link>
             </div>
           </div>
@@ -270,7 +270,7 @@
     <SlideInModal v-model="showPatternModal">
       <div v-if="selectedPattern" class="pattern-modal-content">
         <button class="close-button" @click="showPatternModal = false" title="Close">
-          ← Back
+          <span class="chevron">⌜</span> Back
         </button>
         <FullPatternPage :patternData="selectedPattern" :isModal="true" />
       </div>
@@ -280,7 +280,7 @@
     <SlideInModal v-model="showChallengeModal">
       <div v-if="selectedChallenge" class="challenge-modal-content">
         <button class="close-button" @click="showChallengeModal = false" title="Close">
-          ← Back
+          <span class="chevron">⌜</span> Back
         </button>
         <FullChallengePage :challengeData="selectedChallenge" :isModal="true" />
       </div>

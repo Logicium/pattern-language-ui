@@ -1,7 +1,7 @@
 <template>
   <SlideInModal v-model="isOpen" title="Task Details">
     <div v-if="task && playbook" class="full-task-page">
-      <button class="close-button" @click="isOpen = false" title="Close">← Back</button>
+      <button class="close-button" @click="isOpen = false" title="Close"><span class="chevron">⌜</span> Back</button>
 
       <TaskHeader
         :task="task"

@@ -22,7 +22,7 @@
       </div>
       <div v-if="!city.isGenerated" class="ungenerated text-xs text-tertiary">Info not yet generated</div>
     </div>
-    <div class="card-arrow">→</div>
+    <div class="card-arrow chevron">⌝</div>
   </router-link>
 </template>
 
@@ -68,6 +68,6 @@ defineProps<{
 .score-bar { flex: 1; height: 3px; background: rgba(42, 42, 42, 0.1); }
 .score-fill { height: 100%; background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2)); transition: width var(--transition-base); }
 .ungenerated { margin-top: 0.25rem; font-style: italic; }
-.card-arrow { padding: 1.75rem 1.25rem; display: flex; align-items: center; color: var(--color-text-tertiary); font-size: 1.1rem; transition: color var(--transition-fast); }
+.card-arrow { padding: 1.75rem 1.25rem; display: flex; align-items: center; color: var(--color-text-tertiary); transition: color var(--transition-fast); }
 .city-card:hover .card-arrow { color: var(--color-text-primary); }
 </style>

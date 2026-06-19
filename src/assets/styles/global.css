@@ -249,6 +249,15 @@ h1, h2, h3, h4, h5, h6 {
 .text-secondary { color: var(--color-text-secondary); }
 .text-tertiary { color: var(--color-text-tertiary); }
 
+/* Chevron glyph utility (⌜ / ⌝) — keep glyph ~2x text size without disturbing line metrics */
+.chevron {
+  display: inline-block;
+  font-size: 1.9em;
+  line-height: 0;
+  vertical-align: -0.18em;
+  font-weight: var(--font-weight-light);
+}
+
 /* Spacing Utilities */
 .mt-sm { margin-top: var(--spacing-sm); }
 .mt-md { margin-top: var(--spacing-md); }

@@ -76,10 +76,10 @@
       <h3 class="sidebar-title text-sm">Navigation</h3>
       <div class="explore-links">
         <router-link to="/dashboard/success-stories" class="explore-link text-xs">
-          ← All Stories
+          <span class="chevron">⌜</span> All Stories
         </router-link>
         <router-link to="/dashboard/playbooks" class="explore-link text-xs">
-          Playbooks →
+          Playbooks <span class="chevron">⌝</span>
         </router-link>
       </div>
     </div>

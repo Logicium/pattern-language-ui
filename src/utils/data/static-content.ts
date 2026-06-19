@@ -21,7 +21,7 @@ export interface TeamMember {
 export const teamMembers: TeamMember[] = [
   {
     id: 1,
-    name: 'Joze Petrich',
+    name: 'Jože Petrich',
     role: 'Founder & Pattern Architect',
     bio: 'Built Emergent Campus in Trinidad, CO. Inspired by Christopher Alexander\'s work and a decade of community development.'
   },

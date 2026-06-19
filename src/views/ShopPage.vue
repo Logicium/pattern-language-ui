@@ -11,31 +11,31 @@
     <section class="section product-section">
       <div class="container product-layout">
         <div class="product-art">
-          <div class="cover-placeholder">
+          <img v-if="productData?.images?.length" :src="productData.images[0].src" :alt="productData.title" class="book-cover" />
+          <div class="cover-placeholder" v-else>
             <span class="text-xs text-tertiary">Cover</span>
           </div>
         </div>
 
         <div class="product-detail">
-          <span class="label text-xs text-tertiary">By the Pattern Language Team</span>
-          <h2 class="product-title">A Pattern Language for Rural Regeneration</h2>
-          <p class="product-tagline text-secondary">
+          <span class="label text-xs text-tertiary">By Jože Petrich</span>
+          <h2 class="product-title">{{ productData?.title || 'A Pattern Language for Rural Regeneration' }}</h2>
+          <div class="product-tagline text-secondary" v-if="productData?.descriptionHtml" v-html="productData.descriptionHtml"></div>
+          <p class="product-tagline text-secondary" v-else>
             A field guide to the patterns rural communities use to build resilience,
             opportunity, and belonging — adapted from Christopher Alexander, forged in
             practice.
           </p>
 
-          <!-- Shopify Buy Button mount point -->
           <div v-if="configured" class="buy-button-shell">
-            <div ref="buyButtonEl" class="buy-button-mount"></div>
             <a
-              v-if="storeFallbackUrl"
-              :href="storeFallbackUrl"
+              v-if="storeFallbackUrl || productData?.onlineStoreUrl"
+              :href="productData?.onlineStoreUrl || storeFallbackUrl"
               target="_blank"
               rel="noopener noreferrer"
               class="buy-fallback btn btn-lg"
             >
-              Buy on Shopify →
+              Buy on Shopify <span class="chevron">⌝</span>
             </a>
           </div>
 
@@ -96,12 +96,12 @@ const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN a
 const SHOPIFY_PRODUCT_ID = import.meta.env.VITE_SHOPIFY_PRODUCT_ID as string | undefined
 const SHOPIFY_STORE_URL = import.meta.env.VITE_SHOPIFY_STORE_URL as string | undefined
 
-const buyButtonEl = ref<HTMLElement | null>(null)
 const configured = !!(SHOPIFY_DOMAIN && SHOPIFY_STOREFRONT_TOKEN && SHOPIFY_PRODUCT_ID)
 const storeFallbackUrl = SHOPIFY_STORE_URL || (SHOPIFY_DOMAIN ? `https://${SHOPIFY_DOMAIN}` : '')
 
 const notifyEmail = ref('')
 const notifyState = ref<'idle' | 'submitting' | 'success'>('idle')
+const productData = ref<any>(null) // Holds the dynamically fetched Shopify product data
 
 async function onNotifySubmit() {
   notifyState.value = 'submitting'
@@ -137,49 +137,33 @@ function loadBuyButtonSdk(): Promise<any> {
 }
 
 onMounted(async () => {
-  if (!configured || !buyButtonEl.value) return
+  if (!configured) return
   try {
     const ShopifyBuy = await loadBuyButtonSdk()
     const client = ShopifyBuy.buildClient({
       domain: SHOPIFY_DOMAIN,
       storefrontAccessToken: SHOPIFY_STOREFRONT_TOKEN,
     })
-    ShopifyBuy.UI.onReady(client).then((ui: any) => {
-      ui.createComponent('product', {
-        id: SHOPIFY_PRODUCT_ID,
-        node: buyButtonEl.value,
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-          product: {
-            styles: {
-              product: { '@media (min-width: 601px)': { 'max-width': '100%' } },
-              button: {
-                'background-color': '#2a2a2a',
-                'border-radius': '0',
-                'font-family': 'Inter, sans-serif',
-                'font-weight': '300',
-                'letter-spacing': '0.08em',
-                'text-transform': 'none',
-                ':hover': { 'background-color': '#1a1a1a' },
-              },
-            },
-            text: { button: 'Add to Cart' },
-            contents: { img: false, title: false, price: true, description: false },
-          },
-          cart: {
-            styles: {
-              button: {
-                'background-color': '#2a2a2a',
-                'border-radius': '0',
-                ':hover': { 'background-color': '#1a1a1a' },
-              },
-            },
-          },
-        },
-      })
-    })
+
+    // Fetch the product directly from the Storefront API.
+    // The Storefront API client typically expects the full gid:// string.
+    const fullId = SHOPIFY_PRODUCT_ID?.startsWith('gid://') 
+      ? SHOPIFY_PRODUCT_ID 
+      : `gid://shopify/Product/${SHOPIFY_PRODUCT_ID}`
+
+    const product = await client.product.fetch(fullId)
+    if (product) {
+      // Extract only what we need into a plain object. 
+      // This prevents Vue from attempting to Proxy Shopify's internal read-only objects.
+      productData.value = {
+        title: product.title,
+        descriptionHtml: product.descriptionHtml,
+        onlineStoreUrl: product.onlineStoreUrl,
+        images: product.images?.map((img: any) => ({ src: img.src || img.url || '' })) || []
+      }
+    }
   } catch (error) {
-    console.error('Failed to initialize Shopify Buy Button:', error)
+    console.error('Failed to fetch Shopify product data:', error)
   }
 })
 </script>
@@ -197,6 +181,15 @@ onMounted(async () => {
 }
 
 .product-art { position: sticky; top: 6rem; }
+
+.book-cover {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border: 1px solid rgba(42, 42, 42, 0.08);
+  box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
+}
 
 .cover-placeholder {
   aspect-ratio: 2 / 3;

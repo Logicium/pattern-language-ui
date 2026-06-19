@@ -150,7 +150,7 @@
           :disabled="!newMessage.trim() || sending"
           class="send-btn"
         >
-          <span class="send-icon">→</span>
+          <span class="send-icon chevron">⌝</span>
         </button>
       </div>
     </div>
@@ -900,7 +900,7 @@ watch(() => props.playbook?.id, () => {
 }
 
 .send-icon {
-  font-size: 14px;
+  /* sizing handled by global .chevron utility */
 }
 
 @media (max-width: 768px) {
