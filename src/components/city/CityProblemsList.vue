@@ -20,7 +20,7 @@
           {{ problem.challengeTitle }}
         </router-link>
       </div>
-      <span v-if="problem.challengeId" class="problem-arrow chevron text-tertiary">⌝</span>
+      <span v-if="problem.challengeId" class="problem-arrow chevron text-tertiary"></span>
     </li>
   </ul>
 </template>

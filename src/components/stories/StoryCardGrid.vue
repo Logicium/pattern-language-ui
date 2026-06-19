@@ -31,7 +31,7 @@
           </span>
         </div>
         <router-link :to="`/stories/${story.id}`" class="read-more-btn text-sm">
-          Read More <span class="chevron">⌝</span>
+          Read More <span class="chevron"></span>
         </router-link>
       </div>
     </div>

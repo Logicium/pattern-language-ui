@@ -19,7 +19,7 @@
       </div>
       <div class="preview-row">
         <span class="preview-label text-xs text-tertiary">Timeline</span>
-        <span class="preview-value text-sm">{{ formatDate(playbook.startDate) }} <span class="chevron">⌝</span> {{ formatDate(playbook.targetCompletionDate) }}</span>
+        <span class="preview-value text-sm">{{ formatDate(playbook.startDate) }} <span class="chevron"></span> {{ formatDate(playbook.targetCompletionDate) }}</span>
       </div>
       <div class="preview-row">
         <span class="preview-label text-xs text-tertiary">Tasks</span>
@@ -190,7 +190,7 @@ const formatDate = (dateString: string) => {
 }
 
 .task-item::before {
-  content: '⌝';
+  content: '↗';
   position: absolute;
   left: 0;
   font-size: 1.6rem;

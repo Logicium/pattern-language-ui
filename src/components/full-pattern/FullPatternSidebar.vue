@@ -30,7 +30,7 @@
           :to="`/patterns/${prevPattern.id}`"
           class="explore-link"
         >
-          <span class="explore-dir text-xs text-tertiary">← Previous</span>
+          <span class="explore-dir text-xs text-tertiary"><span class="chevron chevron--back"></span> Previous</span>
           <span class="explore-title text-sm">{{ prevPattern.title }}</span>
         </router-link>
         <router-link
@@ -38,7 +38,7 @@
           :to="`/patterns/${nextPattern.id}`"
           class="explore-link explore-link--next"
         >
-          <span class="explore-dir text-xs text-tertiary">Next →</span>
+          <span class="explore-dir text-xs text-tertiary">Next <span class="chevron"></span></span>
           <span class="explore-title text-sm">{{ nextPattern.title }}</span>
         </router-link>
       </div>

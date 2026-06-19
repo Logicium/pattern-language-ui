@@ -2,7 +2,7 @@
   <SlideInModal :model-value="modelValue" title="Invite Member" @update:model-value="$emit('update:modelValue', $event)">
     <div class="invite-member-content">
       <button class="close-button" @click="$emit('update:modelValue', false)" title="Close">
-        <span class="chevron">⌜</span> Back
+        <span class="chevron chevron--back"></span> Back
       </button>
 
       <h2 class="modal-title">Invite Member</h2>

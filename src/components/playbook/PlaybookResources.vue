@@ -23,7 +23,7 @@
       >
         <span class="resource-type text-xs text-tertiary">{{ resource.type }}</span>
         <span>{{ resource.title }}</span>
-        <span class="link-indicator chevron">⌝</span>
+        <span class="link-indicator chevron"></span>
       </a>
       
       <router-link

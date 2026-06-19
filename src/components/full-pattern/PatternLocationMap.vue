@@ -21,10 +21,10 @@
               :to="`/stories/${selectedStory.id}`"
               class="readout-link text-xs"
             >
-              Read the full story →
+              Read the full story <span class="chevron"></span>
             </router-link>
             <button type="button" class="readout-reset text-xs" @click="selectedStory = null">
-              ← Back to overview
+              <span class="chevron chevron--back"></span> Back to overview
             </button>
           </template>
           <template v-else>

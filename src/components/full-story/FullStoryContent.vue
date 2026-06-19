@@ -29,7 +29,7 @@
             <span class="reference-name text-sm">{{ extractDomain(url) }}</span>
             <p class="reference-description text-xs text-secondary">{{ url }}</p>
           </div>
-          <span class="reference-arrow chevron">⌝</span>
+          <span class="reference-arrow chevron"></span>
         </a>
       </div>
     </div>

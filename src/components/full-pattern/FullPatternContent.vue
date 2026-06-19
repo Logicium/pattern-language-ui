@@ -92,7 +92,7 @@ defineProps<{
 }
 
 .implementation-list li::before {
-  content: '→';
+  content: '↗';
   position: absolute;
   left: 0;
   color: var(--color-accent-1);

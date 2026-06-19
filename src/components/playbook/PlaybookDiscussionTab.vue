@@ -150,7 +150,7 @@
           :disabled="!newMessage.trim() || sending"
           class="send-btn"
         >
-          <span class="send-icon chevron">⌝</span>
+          <span class="send-icon chevron"></span>
         </button>
       </div>
     </div>

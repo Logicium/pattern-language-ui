@@ -249,13 +249,37 @@ h1, h2, h3, h4, h5, h6 {
 .text-secondary { color: var(--color-text-secondary); }
 .text-tertiary { color: var(--color-text-tertiary); }
 
-/* Chevron glyph utility (⌜ / ⌝) — keep glyph ~2x text size without disturbing line metrics */
+/* Arrow utility — an SVG diagonal arrow (head = a square corner, shaft = that
+   square's diagonal) drawn through `mask`, so the strokes are uniform, it
+   inherits currentColor, and no markup changes are needed. The arrow lives in a
+   ::before pseudo (1em box) so co-classes that set padding/font-size keep working.
+   Default points up-right (forward); add .chevron--back for up-left (back). */
 .chevron {
-  display: inline-block;
-  font-size: 1.9em;
-  line-height: 0;
-  vertical-align: -0.18em;
-  font-weight: var(--font-weight-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: -0.15em;   /* sit centered against the text */
+  margin-left: 0.3em;        /* gap between the text and the arrow */
+}
+
+.chevron::before {
+  content: '';
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cline%20x1='3'%20y1='21'%20x2='21'%20y2='3'/%3E%3Cpolyline%20points='3%203%2021%203%2021%2021'/%3E%3C/svg%3E") no-repeat center / contain;
+          mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cline%20x1='3'%20y1='21'%20x2='21'%20y2='3'/%3E%3Cpolyline%20points='3%203%2021%203%2021%2021'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+/* Back variant — points up-left, with the gap after the arrow instead. */
+.chevron--back {
+  margin-left: 0;
+  margin-right: 0.3em;
+}
+
+.chevron--back::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cline%20x1='21'%20y1='21'%20x2='3'%20y2='3'/%3E%3Cpolyline%20points='21%203%203%203%203%2021'/%3E%3C/svg%3E");
+          mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cline%20x1='21'%20y1='21'%20x2='3'%20y2='3'/%3E%3Cpolyline%20points='21%203%203%203%203%2021'/%3E%3C/svg%3E");
 }
 
 /* Spacing Utilities */

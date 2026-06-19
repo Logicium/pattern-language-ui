@@ -153,7 +153,7 @@
                       <span class="text-xs text-tertiary">Suggested:</span>
                       <span v-for="p in breakdown.connectivity.suggestedPatterns" :key="p" class="pattern-tag text-xs">{{ p }}</span>
                     </div>
-                    <a v-if="breakdown.connectivity?.sourceUrl" :href="breakdown.connectivity.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.connectivity.source }} <span class="chevron">⌝</span></a>
+                    <a v-if="breakdown.connectivity?.sourceUrl" :href="breakdown.connectivity.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.connectivity.source }} <span class="chevron"></span></a>
                     <span v-else class="source-link text-xs text-tertiary">Source: {{ breakdown.connectivity?.source }}</span>
                   </div>
                 </div>
@@ -186,7 +186,7 @@
                       <span class="text-xs text-tertiary">Suggested:</span>
                       <span v-for="p in breakdown.economy.suggestedPatterns" :key="p" class="pattern-tag text-xs">{{ p }}</span>
                     </div>
-                    <a v-if="breakdown.economy?.sourceUrl" :href="breakdown.economy.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.economy.source }} <span class="chevron">⌝</span></a>
+                    <a v-if="breakdown.economy?.sourceUrl" :href="breakdown.economy.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.economy.source }} <span class="chevron"></span></a>
                     <span v-else class="source-link text-xs text-tertiary">Source: {{ breakdown.economy?.source }}</span>
                   </div>
                 </div>
@@ -259,7 +259,7 @@
                       <span class="text-xs text-tertiary">Suggested:</span>
                       <span v-for="p in breakdown.housing.suggestedPatterns" :key="p" class="pattern-tag text-xs">{{ p }}</span>
                     </div>
-                    <a v-if="breakdown.housing?.sourceUrl" :href="breakdown.housing.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.housing.source }} <span class="chevron">⌝</span></a>
+                    <a v-if="breakdown.housing?.sourceUrl" :href="breakdown.housing.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.housing.source }} <span class="chevron"></span></a>
                     <span v-else class="source-link text-xs text-tertiary">Source: {{ breakdown.housing?.source }}</span>
                   </div>
                 </div>
@@ -293,7 +293,7 @@
                       <span class="text-xs text-tertiary">Suggested:</span>
                       <span v-for="p in breakdown.health.suggestedPatterns" :key="p" class="pattern-tag text-xs">{{ p }}</span>
                     </div>
-                    <a v-if="breakdown.health?.sourceUrl" :href="breakdown.health.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.health.source }} <span class="chevron">⌝</span></a>
+                    <a v-if="breakdown.health?.sourceUrl" :href="breakdown.health.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.health.source }} <span class="chevron"></span></a>
                     <span v-else class="source-link text-xs text-tertiary">Source: {{ breakdown.health?.source }}</span>
                   </div>
                 </div>
@@ -326,7 +326,7 @@
                       <span class="text-xs text-tertiary">Suggested:</span>
                       <span v-for="p in breakdown.talent.suggestedPatterns" :key="p" class="pattern-tag text-xs">{{ p }}</span>
                     </div>
-                    <a v-if="breakdown.talent?.sourceUrl" :href="breakdown.talent.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.talent.source }} <span class="chevron">⌝</span></a>
+                    <a v-if="breakdown.talent?.sourceUrl" :href="breakdown.talent.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.talent.source }} <span class="chevron"></span></a>
                     <span v-else class="source-link text-xs text-tertiary">Source: {{ breakdown.talent?.source }}</span>
                   </div>
                 </div>
@@ -372,7 +372,7 @@
                       <span class="text-xs text-tertiary">Suggested:</span>
                       <span v-for="p in breakdown.prosperity.suggestedPatterns" :key="p" class="pattern-tag text-xs">{{ p }}</span>
                     </div>
-                    <a v-if="breakdown.prosperity.sourceUrl" :href="breakdown.prosperity.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.prosperity.source }} <span class="chevron">⌝</span></a>
+                    <a v-if="breakdown.prosperity.sourceUrl" :href="breakdown.prosperity.sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link text-xs">Source: {{ breakdown.prosperity.source }} <span class="chevron"></span></a>
                   </div>
                 </div>
               </div>
@@ -423,7 +423,7 @@
                   <p class="resource-desc text-xs text-secondary">{{ r.description }}</p>
                   <span class="resource-domain text-xs text-tertiary">{{ extractDomain(r.url) }}</span>
                 </div>
-                <span class="resource-arrow chevron">⌝</span>
+                <span class="resource-arrow chevron"></span>
               </a>
             </div>
             <p v-else class="text-secondary text-sm">No resources generated yet.</p>

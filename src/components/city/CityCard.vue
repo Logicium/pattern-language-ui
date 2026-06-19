@@ -22,7 +22,7 @@
       </div>
       <div v-if="!city.isGenerated" class="ungenerated text-xs text-tertiary">Info not yet generated</div>
     </div>
-    <div class="card-arrow chevron">⌝</div>
+    <div class="card-arrow chevron"></div>
   </router-link>
 </template>
 

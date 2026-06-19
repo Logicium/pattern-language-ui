@@ -27,8 +27,8 @@
     <div class="sidebar-block">
       <h3 class="sidebar-title text-sm">Explore</h3>
       <div class="explore-links">
-        <router-link to="/stories" class="explore-link text-xs"><span class="chevron">⌜</span> All Stories</router-link>
-        <router-link to="/patterns" class="explore-link text-xs">Pattern Library <span class="chevron">⌝</span></router-link>
+        <router-link to="/stories" class="explore-link text-xs"><span class="chevron chevron--back"></span> All Stories</router-link>
+        <router-link to="/patterns" class="explore-link text-xs">Pattern Library <span class="chevron"></span></router-link>
       </div>
     </div>
   </aside>
