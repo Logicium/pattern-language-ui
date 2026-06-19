@@ -20,6 +20,8 @@
         <div class="product-detail">
           <span class="label text-xs text-tertiary">By Jože Petrich</span>
           <h2 class="product-title">{{ productData?.title || 'A Pattern Language for Rural Regeneration' }}</h2>
+          <div class="product-price text-xl text-secondary" v-if="productData?.price">{{ productData.price }}</div>
+          
           <div class="product-tagline text-secondary" v-if="productData?.descriptionHtml" v-html="productData.descriptionHtml"></div>
           <p class="product-tagline text-secondary" v-else>
             A field guide to the patterns rural communities use to build resilience,
@@ -153,13 +155,24 @@ onMounted(async () => {
 
     const product = await client.product.fetch(fullId)
     if (product) {
+      // Extract price from the first variant
+      const variant = product.variants?.[0]
+      let formattedPrice = ''
+      if (variant?.price) {
+        // Handle both older string format and newer object format
+        const amount = variant.price.amount || variant.price
+        const currency = variant.price.currencyCode || 'USD'
+        formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(Number(amount))
+      }
+
       // Extract only what we need into a plain object. 
       // This prevents Vue from attempting to Proxy Shopify's internal read-only objects.
       productData.value = {
         title: product.title,
         descriptionHtml: product.descriptionHtml,
         onlineStoreUrl: product.onlineStoreUrl,
-        images: product.images?.map((img: any) => ({ src: img.src || img.url || '' })) || []
+        images: product.images?.map((img: any) => ({ src: img.src || img.url || '' })) || [],
+        price: formattedPrice
       }
     }
   } catch (error) {
@@ -213,6 +226,11 @@ onMounted(async () => {
   font-weight: var(--font-weight-light);
   line-height: 1.1;
   letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.product-price {
+  font-weight: var(--font-weight-medium);
   margin-bottom: 1.5rem;
 }
 
