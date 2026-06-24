@@ -4,8 +4,8 @@
 
     <PageHero
       label="Shop"
-      title="The Book"
-      subtitle="The methodology behind Pattern Language —<br>in print, in your hands, on your shelf."
+      title="The Collection"
+      subtitle="The methodology behind Pattern Language — a book and two decks,<br>in print, in your hands, on your table."
     />
 
     <section class="shop-body">
@@ -36,6 +36,7 @@
             for the design of the book and facilitation deck, and for helping with
             fulfillment and management of the presale.
           </p>
+          <p class="presale-ship text-xs text-tertiary">Orders ship at the end of August.</p>
         </div>
 
         <!-- ─────────────── The three items ─────────────── -->
@@ -69,7 +70,7 @@
                   :href="products[item.id]?.onlineStoreUrl || storeFallbackUrl"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="card-buy btn"
+                  class="card-buy"
                 >
                   {{ item.buyLabel }} <span class="chevron"></span>
                 </a>
@@ -220,8 +221,8 @@ onMounted(async () => {
 
 /* ─────────────── Presale note ─────────────── */
 .presale-note {
-  max-width: 56ch;
-  margin: 0 auto 5rem;
+  max-width: 72ch;
+  margin: 0 auto 5.5rem;
   text-align: center;
 }
 
@@ -233,7 +234,7 @@ onMounted(async () => {
 }
 
 .presale-lead {
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   line-height: 1.7;
   margin-bottom: 1.25rem;
 }
@@ -243,6 +244,12 @@ onMounted(async () => {
 .presale-thanks {
   font-size: 0.9375rem;
   line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.presale-ship {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
 }
 
 .presale-link {
@@ -260,7 +267,6 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(2rem, 4vw, 3.5rem);
-  align-items: stretch;
 }
 
 .product-card {
@@ -268,29 +274,34 @@ onMounted(async () => {
   flex-direction: column;
 }
 
+/* Fixed height keeps all three image frames identical regardless of artwork. */
 .card-media {
   position: relative;
-  aspect-ratio: 4 / 5;
+  height: clamp(19rem, 23vw, 22rem);
   background: linear-gradient(
     135deg,
     rgba(232, 180, 160, 0.14),
     rgba(184, 212, 200, 0.14),
     rgba(201, 184, 232, 0.14)
   );
-  border: 1px solid rgba(42, 42, 42, 0.1);
+  border: 1px solid rgba(42, 42, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1.75rem;
   margin-bottom: 1.75rem;
+  overflow: hidden;
 }
 
 .card-media img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  box-shadow: 0 18px 36px -22px rgba(0, 0, 0, 0.32);
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.22));
+  transition: transform 0.6s cubic-bezier(0.16, 0.84, 0.44, 1);
 }
+
+.product-card:hover .card-media img { transform: scale(1.04); }
 
 .card-media-placeholder {
   text-transform: uppercase;
@@ -301,7 +312,7 @@ onMounted(async () => {
   display: flex;
   align-items: baseline;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
 }
 
 .card-num {
@@ -317,11 +328,11 @@ onMounted(async () => {
 }
 
 .card-title {
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: var(--font-weight-light);
-  line-height: 1.2;
-  letter-spacing: -0.015em;
-  margin-bottom: 0.75rem;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.85rem;
 }
 
 .card-blurb {
@@ -332,6 +343,7 @@ onMounted(async () => {
 .card-foot {
   margin-top: auto;
   padding-top: 1.5rem;
+  border-top: 1px solid rgba(42, 42, 42, 0.1);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -340,15 +352,27 @@ onMounted(async () => {
 }
 
 .card-price {
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-normal);
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-light);
   letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .card-buy {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
   text-decoration: none;
+  border-bottom: 1px solid var(--color-text-primary);
+  padding-bottom: 0.3rem;
   white-space: nowrap;
+  transition: opacity var(--transition-fast);
 }
+
+.card-buy:hover { opacity: 0.55; }
 
 .card-soon {
   text-transform: uppercase;
