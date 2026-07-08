@@ -50,7 +50,10 @@
 </template>
 
 <script setup lang="ts">
-import RibbonCanvas from '@/components/RibbonCanvas.vue'
+import { defineAsyncComponent } from 'vue'
+
+// Async so three.js stays out of the initial bundle and loads after first paint.
+const RibbonCanvas = defineAsyncComponent(() => import('@/components/RibbonCanvas.vue'))
 </script>
 
 <style scoped>

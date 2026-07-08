@@ -447,6 +447,7 @@ import CityProblemsList from '@/components/city/CityProblemsList.vue'
 import ProfilePage from '@/views/dashboard/ProfilePage.vue'
 import { usersApi } from '@/services/api'
 import { useFullCityPage } from '@/composables/useFullCityPage'
+import { useSeo } from '@/composables/useSeo'
 
 const {
   city, loading, error, generating,
@@ -455,6 +456,15 @@ const {
   normalizedProblems, breakdown,
   openChallenge, extractDomain, generate
 } = useFullCityPage()
+
+useSeo({
+  title: () => city.value && `${city.value.name}${city.value.state ? `, ${city.value.state}` : ''}`,
+  description: () =>
+    city.value &&
+    `How ${city.value.name} is using Pattern Language to tackle local challenges — community readiness, active patterns, and progress.`,
+  path: () => city.value && `/cities/${city.value.id}`,
+  type: 'article'
+})
 
 type SectionKey = 'connectivity' | 'economy' | 'social' | 'housing' | 'health' | 'talent' | 'prosperity'
 

@@ -37,6 +37,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useChallenges } from '@/composables/useChallenges'
 import { usePatterns } from '@/composables/usePatterns'
+import { useSeo } from '@/composables/useSeo'
 import ChallengeContent from '@/components/full-challenge/ChallengeContent.vue'
 
 interface Props {
@@ -55,6 +56,16 @@ const router = useRouter()
 
 const challengeId = computed(() => props.challengeData?.id || parseInt(route.params.id as string))
 const challenge = computed(() => props.challengeData || allChallenges.value.find(c => c.id === challengeId.value))
+
+// Modal usage renders inside another page, which owns the document head.
+if (!props.isModal) {
+  useSeo({
+    title: () => challenge.value?.title,
+    description: () => challenge.value && `${challenge.value.description} ${challenge.value.context || ''}`,
+    path: () => challenge.value && `/challenges/${challenge.value.id}`,
+    type: 'article'
+  })
+}
 
 const getPatternIdByTitle = (title: string): number => {
   const pattern = allPatterns.value.find(p => p.title === title)

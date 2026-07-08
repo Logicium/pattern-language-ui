@@ -34,6 +34,7 @@ import FullStoryHero from '@/components/full-story/FullStoryHero.vue'
 import FullStoryContent from '@/components/full-story/FullStoryContent.vue'
 import FullStorySidebar from '@/components/full-story/FullStorySidebar.vue'
 import { useFullStory } from '@/composables/useFullStory'
+import { useSeo, SITE_URL } from '@/composables/useSeo'
 
 interface Props {
   storyData?: any
@@ -45,6 +46,18 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { story, relatedStories, extractDomain, getPatternRoute, formatDate } = useFullStory(props.storyData)
+
+// Modal usage renders inside another page, which owns the document head.
+if (!props.isModal) {
+  useSeo({
+    title: () => story.value && `${story.value.title} — ${story.value.location}`,
+    description: () => story.value && `${story.value.problem || ''} ${story.value.solution || ''}`,
+    path: () => story.value && `/stories/${story.value.id}`,
+    image: () =>
+      story.value?.image?.startsWith('/') ? `${SITE_URL}${story.value.image}` : story.value?.image,
+    type: 'article'
+  })
+}
 </script>
 
 <style scoped>

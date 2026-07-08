@@ -5,9 +5,12 @@
 </template>
 
 <script setup lang="ts">
-import RibbonCanvas from '@/components/RibbonCanvas.vue'
-import LatticeCanvas from '@/components/hero/LatticeCanvas.vue'
-import OrbitCanvas from '@/components/hero/OrbitCanvas.vue'
+import { defineAsyncComponent } from 'vue'
+
+// Async so three.js stays out of the initial bundle and loads after first paint.
+const RibbonCanvas = defineAsyncComponent(() => import('@/components/RibbonCanvas.vue'))
+const LatticeCanvas = defineAsyncComponent(() => import('@/components/hero/LatticeCanvas.vue'))
+const OrbitCanvas = defineAsyncComponent(() => import('@/components/hero/OrbitCanvas.vue'))
 
 export type HeroBackdropVariant = 'ribbon' | 'lattice' | 'orbit'
 

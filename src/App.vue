@@ -10,8 +10,25 @@
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
+import { useHead } from '@unhead/vue'
 import BetaBanner from '@/components/layout/BetaBanner.vue'
+import { useSeo, SITE_NAME } from '@/composables/useSeo'
+
+const route = useRoute()
+
+useHead({
+  titleTemplate: (title?: string) =>
+    title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — Designing Thriving Rural Communities`
+})
+
+// Route-level defaults from router meta; detail pages override with entity data via useSeo.
+useSeo({
+  title: () => route.meta.seoTitle as string | undefined,
+  description: () => route.meta.seoDescription as string | undefined,
+  path: () => route.path,
+  noindex: () => route.meta.noindex as boolean | undefined
+})
 </script>
 
 <style>

@@ -87,6 +87,7 @@ import PatternLocationMap from '@/components/full-pattern/PatternLocationMap.vue
 import { useFullPattern } from '@/composables/useFullPattern'
 import { usePatterns } from '@/composables/usePatterns'
 import { useStories } from '@/composables/useStories'
+import { useSeo } from '@/composables/useSeo'
 
 interface Props {
   patternData?: any
@@ -100,6 +101,16 @@ const props = withDefaults(defineProps<Props>(), {
 const { pattern, relatedStories, getPatternRoute, getChallengeRoute } = useFullPattern(props.patternData)
 const { patterns: allPatterns } = usePatterns()
 const { stories: allStories } = useStories()
+
+// Modal usage renders inside another page, which owns the document head.
+if (!props.isModal) {
+  useSeo({
+    title: () => pattern.value?.title,
+    description: () => pattern.value && `${pattern.value.description} ${pattern.value.problem || ''}`,
+    path: () => pattern.value && `/patterns/${pattern.value.id}`,
+    type: 'article'
+  })
+}
 
 // Previous / next neighbors in the pattern list (by store order).
 const currentIndex = computed(() => {
