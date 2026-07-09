@@ -18,14 +18,14 @@ function handleAuthError() {
 // Helper function to make authenticated requests
 async function authFetch(url: string, options: RequestInit = {}) {
   const token = getAuthToken()
-  
+
   // Check if token is expired before making request
   if (token && isTokenExpired(token)) {
     console.log('Token expired, redirecting to login')
     handleAuthError()
     throw new Error('Session expired. Please login again.')
   }
-  
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -40,15 +40,26 @@ async function authFetch(url: string, options: RequestInit = {}) {
     headers,
   })
 
-  // Handle 401 Unauthorized - token is invalid or expired
+  // Handle 401 Unauthorized — but only bounce to login when the user actually
+  // had a session. Anonymous visitors browsing public pages must never be
+  // redirected; the caller just gets an error to handle.
   if (response.status === 401) {
-    console.log('Received 401 Unauthorized, clearing auth and redirecting to login')
-    handleAuthError()
-    throw new Error('Session expired. Please login again.')
+    if (token) {
+      console.log('Received 401 Unauthorized, clearing auth and redirecting to login')
+      handleAuthError()
+      throw new Error('Session expired. Please login again.')
+    }
+    throw new Error('You must be logged in to do that.')
   }
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`)
+    // Surface the API's message (e.g. "You must be a member to invite others")
+    // instead of a generic status text.
+    const error = await response.json().catch(() => null)
+    const message = error?.message
+    throw new Error(
+      Array.isArray(message) ? message.join(', ') : message || `API error: ${response.statusText}`
+    )
   }
 
   return response.json()
@@ -143,22 +154,36 @@ export const playbooksApi = {
     authFetch(`/playbooks/${id}/publish`, { method: 'PATCH' }),
   unpublish: (id: number) => 
     authFetch(`/playbooks/${id}/unpublish`, { method: 'PATCH' }),
-  getLocalPublished: () => 
+  getLocalPublished: () =>
     authFetch('/playbooks/local/published'),
-  
+  getAllPublished: () =>
+    authFetch('/playbooks/all/published'),
+
   // Members
-  getMembers: (id: number) => 
+  getMembers: (id: number) =>
     authFetch(`/playbooks/${id}/members`),
-  removeMember: (id: number, userId: number) => 
+  removeMember: (id: number, userId: number) =>
     authFetch(`/playbooks/${id}/members/${userId}`, { method: 'DELETE' }),
-  
+  leave: (id: number) =>
+    authFetch(`/playbooks/${id}/leave`, { method: 'POST' }),
+
   // Invitations
-  invite: (id: number, userId: number, message?: string) => 
-    authFetch(`/playbooks/${id}/invite`, { 
-      method: 'POST', 
-      body: JSON.stringify({ userId, message }) 
+  invite: (id: number, userId: number, message?: string) =>
+    authFetch(`/playbooks/${id}/invite`, {
+      method: 'POST',
+      body: JSON.stringify({ userId, message })
     }),
-  
+  inviteByEmail: (id: number, email: string, message?: string) =>
+    authFetch(`/playbooks/${id}/invite-email`, {
+      method: 'POST',
+      body: JSON.stringify({ email, message })
+    }),
+  requestToJoin: (id: number, message?: string) =>
+    authFetch(`/playbooks/${id}/join-request`, {
+      method: 'POST',
+      body: JSON.stringify({ message })
+    }),
+
   // Task assignments
   assignTask: (playbookId: number, taskId: string, userIds: number[]) => 
     authFetch(`/playbooks/${playbookId}/tasks/${taskId}/assign`, { 
@@ -360,12 +385,13 @@ export const usersApi = {
   updateMyProfile: (data: any) => authFetch('/users/me/profile', { method: 'PUT', body: JSON.stringify(data) }),
   
   // Search users
-  search: (params?: { location?: string; state?: string; challenges?: string[] }) => {
+  search: (params?: { location?: string; state?: string; challenges?: string[]; scope?: 'local' | 'all' }) => {
     const searchParams = new URLSearchParams()
     if (params?.location) searchParams.append('location', params.location)
     if (params?.state) searchParams.append('state', params.state)
     if (params?.challenges) searchParams.append('challenges', params.challenges.join(','))
-    
+    if (params?.scope) searchParams.append('scope', params.scope)
+
     const queryString = searchParams.toString()
     return authFetch(`/users/search${queryString ? `?${queryString}` : ''}`)
   },
@@ -374,8 +400,16 @@ export const usersApi = {
 // Invitations API
 export const invitationsApi = {
   getPending: () => authFetch('/invitations/pending'),
+  getJoinRequests: () => authFetch('/invitations/requests'),
+  getSent: () => authFetch('/invitations/sent'),
   accept: (id: number) => authFetch(`/invitations/${id}/accept`, { method: 'POST' }),
   reject: (id: number) => authFetch(`/invitations/${id}/reject`, { method: 'POST' }),
+  // Invite someone to the platform by email, optionally into one of your playbooks
+  invitePlatform: (email: string, playbookId?: number, message?: string) =>
+    authFetch('/invitations/invite', {
+      method: 'POST',
+      body: JSON.stringify({ email, playbookId, message })
+    }),
 }
 
 // Cities API

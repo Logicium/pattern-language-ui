@@ -1,5 +1,5 @@
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 export interface SignupFormData {
@@ -19,7 +19,15 @@ export interface SignupFormData {
 
 export function useSignupForm() {
   const router = useRouter()
+  const route = useRoute()
   const authStore = useAuthStore()
+
+  // Playbook email-invitation token (from /signup?invite=<token>); signing up
+  // with it automatically adds the new user to the inviting playbook.
+  const inviteToken = computed(() => {
+    const token = route.query.invite
+    return typeof token === 'string' && token ? token : undefined
+  })
 
   const currentStep = ref(1)
   const isSubmitting = ref(false)
@@ -107,6 +115,7 @@ export function useSignupForm() {
           currentWork: formData.value.currentWork,
           goals: formData.value.goals,
           interests: formData.value.selectedChallenges,
+          inviteToken: inviteToken.value,
         })
       } else {
         await authStore.signup({
@@ -119,7 +128,8 @@ export function useSignupForm() {
           state: formData.value.state,
           currentWork: formData.value.currentWork,
           goals: formData.value.goals,
-          interests: formData.value.selectedChallenges
+          interests: formData.value.selectedChallenges,
+          inviteToken: inviteToken.value
         })
       }
 

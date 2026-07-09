@@ -29,8 +29,11 @@ export function useDashboardLayout() {
 
   const loadPendingInvitations = async () => {
     try {
-      const invitations = await invitationsApi.getPending()
-      pendingInvitationsCount.value = invitations.length
+      const [invitations, joinRequests] = await Promise.all([
+        invitationsApi.getPending(),
+        invitationsApi.getJoinRequests(),
+      ])
+      pendingInvitationsCount.value = invitations.length + joinRequests.length
     } catch (error) {
       console.error('Failed to load pending invitations:', error)
     }

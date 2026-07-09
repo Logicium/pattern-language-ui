@@ -2,15 +2,17 @@
   <section class="playbook-hero gradient-bg">
     <div class="container">
       <div class="hero-meta">
-        <span class="pattern-number text-xs text-tertiary">Pattern {{ String(playbook.patternId).padStart(2, '0') }}</span>
-        <span 
-          class="status-badge text-xs" 
+        <span class="pattern-number text-xs text-tertiary">
+          Pattern {{ String(playbook.patternId).padStart(2, '0') }} — {{ playbook.patternTitle }}
+        </span>
+        <span
+          class="status-badge text-xs"
           :class="`status-${playbook.status}`"
         >
           {{ playbook.status }}
         </span>
       </div>
-      <h1 class="hero-title">{{ playbook.patternTitle }}</h1>
+      <h1 class="hero-title">{{ playbookTitle(playbook) }}</h1>
       <p class="hero-location text-secondary">
         {{ playbook.location }}
       </p>
@@ -35,6 +37,8 @@
 </template>
 
 <script setup lang="ts">
+import { playbookTitle } from '@/utils/formatters'
+
 defineProps<{
   playbook: any
 }>()

@@ -68,7 +68,7 @@
           <div class="section-header"><span class="section-number"></span><h2 class="section-title">Public Playbooks</h2></div>
           <div v-if="city.playbooks?.length" class="list-grid">
             <router-link v-for="p in city.playbooks" :key="p.id" :to="`/dashboard/playbooks/${p.id}`" class="list-item">
-              <span class="item-name text-sm">{{ p.patternTitle }}</span>
+              <span class="item-name text-sm">{{ p.title || p.patternTitle }}</span>
               <span class="item-desc text-xs text-tertiary">{{ p.status }} · {{ p.progress }}% complete</span>
             </router-link>
           </div>

@@ -1,61 +1,66 @@
 <template>
   <div class="playbook-card" :data-accent="accent">
-    <div class="playbook-header">
-      <h3 class="playbook-title">{{ playbook.patternTitle }}</h3>
-      <div class="completion-badge text-xs">✓ Complete</div>
+    <div class="label-row">
+      <span class="label-id">
+        <span class="accent-mark" aria-hidden="true"></span>
+        Pattern {{ String(playbook.patternId).padStart(2, '0') }}
+      </span>
+      <span class="label-complete">Complete</span>
     </div>
 
-    <div class="playbook-location text-sm text-secondary">{{ playbook.location }}</div>
+    <h3 class="playbook-title">{{ playbookTitle(playbook) }}</h3>
 
-    <div class="playbook-meta">
-      <div class="meta-item text-xs text-tertiary">
-        <span class="meta-label">Pattern</span>
-        <span class="meta-value">{{ String(playbook.patternId).padStart(2, '0') }}</span>
-      </div>
-      <div class="meta-item text-xs text-tertiary">
-        <span class="meta-label">Started</span>
-        <span class="meta-value">{{ formatDate(playbook.startDate) }}</span>
-      </div>
-      <div class="meta-item text-xs text-tertiary">
-        <span class="meta-label">Completed</span>
-        <span class="meta-value">{{ formatDate(playbook.completedDate!) }}</span>
-      </div>
-    </div>
+    <span class="pattern-chip">{{ playbook.patternTitle }}</span>
+
+    <p class="card-provenance">{{ playbook.location }}</p>
 
     <div class="playbook-stats">
       <div class="stat-item">
         <div class="stat-value">{{ playbook.tasks.length }}</div>
-        <div class="stat-label text-xs text-tertiary">Tasks</div>
+        <div class="stat-label">Tasks</div>
       </div>
       <div class="stat-item">
         <div class="stat-value">{{ getDuration(playbook) }}</div>
-        <div class="stat-label text-xs text-tertiary">Duration</div>
+        <div class="stat-label">Duration</div>
       </div>
       <div class="stat-item">
         <div class="stat-value">{{ playbook.resources.length }}</div>
-        <div class="stat-label text-xs text-tertiary">Resources</div>
+        <div class="stat-label">Resources</div>
       </div>
     </div>
+
+    <dl class="caption">
+      <div class="caption-row">
+        <dt>Started</dt>
+        <dd>{{ formatDate(playbook.startDate) }}</dd>
+      </div>
+      <div class="caption-row">
+        <dt>Completed</dt>
+        <dd>{{ formatDate(playbook.completedDate!) }}</dd>
+      </div>
+    </dl>
 
     <div class="playbook-actions">
       <button
         :disabled="generating"
-        class="action-btn-primary text-xs"
+        class="action-link action-primary"
         @click="$emit('generate', playbook.id)"
       >
-        {{ generating ? 'GENERATING...' : 'GENERATE STORY' }}
+        {{ generating ? 'Generating…' : 'Generate Story' }}
       </button>
       <router-link
         :to="`/dashboard/playbooks/${playbook.id}`"
-        class="action-btn-secondary text-xs"
+        class="action-link action-muted"
       >
-        VIEW PLAYBOOK
+        View Playbook
       </router-link>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { playbookTitle } from '@/utils/formatters'
+
 defineProps<{
   playbook: any
   accent: number
@@ -71,154 +76,181 @@ defineEmits<{
 
 <style scoped>
 .playbook-card {
-  background: var(--color-bg-primary);
-  padding: 2.5rem;
-  border-left: 3px solid transparent;
-  transition: all var(--transition-base);
-}
-
-.playbook-card[data-accent="1"] { border-left-color: var(--color-accent-1); }
-.playbook-card[data-accent="2"] { border-left-color: var(--color-accent-2); }
-.playbook-card[data-accent="3"] { border-left-color: var(--color-accent-3); }
-
-.playbook-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(42, 42, 42, 0.06);
-}
-
-.playbook-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.playbook-title {
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-normal);
-  letter-spacing: -0.01em;
-  margin-bottom: 0;
-  line-height: 1.3;
-  flex: 1;
-}
-
-.completion-badge {
-  padding: 0.375rem 0.75rem;
-  background: rgba(184, 212, 200, 0.15);
-  color: var(--color-accent-2);
-  border: 1px solid var(--color-accent-2);
-  letter-spacing: 0.08em;
-  font-weight: var(--font-weight-medium);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.playbook-location { margin-bottom: 1.5rem; }
-
-.playbook-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--hairline);
+  padding: 2.75rem 2.5rem 2.25rem;
+  font-variant-numeric: tabular-nums;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.meta-item {
+.playbook-card:hover {
+  background: #ffffff;
+  border-color: var(--hairline-strong);
+}
+
+.label-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.meta-label {
-  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-bottom: 2.25rem;
 }
 
-.meta-value { font-weight: var(--font-weight-medium); }
+.label-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.accent-mark {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+}
+
+.playbook-card[data-accent="1"] .accent-mark { background: var(--color-accent-1); }
+.playbook-card[data-accent="2"] .accent-mark { background: var(--color-accent-2); }
+.playbook-card[data-accent="3"] .accent-mark { background: var(--color-accent-3); }
+
+.label-complete { color: var(--color-accent-2); }
+
+.playbook-title {
+  font-size: 1.75rem;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.02em;
+  line-height: 1.18;
+  margin: 0 0 1.25rem;
+}
+
+.pattern-chip {
+  align-self: flex-start;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  margin-bottom: 1.25rem;
+}
+
+.playbook-card[data-accent="1"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-1) 24%, transparent); }
+.playbook-card[data-accent="2"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-2) 30%, transparent); }
+.playbook-card[data-accent="3"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-3) 24%, transparent); }
+
+.card-provenance {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 2.25rem;
+}
 
 .playbook-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
   margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
-.stat-item { text-align: center; }
+.stat-item {
+  text-align: center;
+  padding: 0.25rem 1rem;
+}
+
+.stat-item + .stat-item {
+  border-left: 1px solid var(--hairline);
+}
 
 .stat-value {
   font-size: 1.75rem;
   font-weight: var(--font-weight-light);
-  margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
 }
 
 .stat-label {
-  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.caption {
+  margin: 0 0 2.5rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.caption-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2.5rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.caption-row dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.caption-row dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-normal);
+  text-align: right;
 }
 
 .playbook-actions {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  gap: 2.5rem;
+  align-items: baseline;
+  margin-top: auto;
 }
 
-.action-btn-primary,
-.action-btn-secondary {
-  flex: 1;
-  min-width: 140px;
-  padding: 0.75rem 1.5rem;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.08em;
-  text-align: center;
+.action-link {
+  background: none;
+  border: none;
+  padding: 0 0 2px;
   cursor: pointer;
-  transition: all var(--transition-base);
-  border: 1px solid;
+  font-family: var(--font-family);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   text-decoration: none;
-  display: inline-block;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.action-btn-primary {
-  background: var(--color-accent-2);
-  color: var(--color-bg-primary);
-  border-color: var(--color-accent-2);
-}
-
-.action-btn-primary:hover:not(:disabled) {
-  background: var(--color-accent-3);
-  border-color: var(--color-accent-3);
-  transform: translateY(-2px);
-}
-
-.action-btn-primary:disabled {
-  opacity: 0.5;
+.action-link:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.action-btn-secondary {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border-color: rgba(42, 42, 42, 0.15);
+.action-primary {
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-text-primary);
 }
 
-.action-btn-secondary:hover {
+.action-muted {
+  color: var(--color-text-tertiary);
+  border-bottom: 1px solid transparent;
+}
+
+.action-muted:hover {
   color: var(--color-text-primary);
-  border-color: var(--color-text-primary);
-  background: rgba(42, 42, 42, 0.02);
+  border-bottom-color: var(--hairline-strong);
 }
 
 @media (max-width: 768px) {
-  .playbook-stats {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  .stat-value { font-size: 1.5rem; }
-
-  .playbook-actions { flex-direction: column; }
-
-  .action-btn-primary,
-  .action-btn-secondary { width: 100%; }
+  .playbook-card { padding: 2.25rem 1.75rem 2rem; }
+  .playbook-title { font-size: 1.5rem; }
+  .playbook-actions { flex-wrap: wrap; gap: 1.75rem; }
 }
 </style>

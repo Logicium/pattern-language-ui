@@ -37,7 +37,8 @@
                 :key="playbook.id"
                 :playbook="playbook"
                 :accent="(index % 3) + 1"
-                :show-creator="activeTab === 'local'"
+                :index="index + 1"
+                :show-creator="activeTab === 'local' || activeTab === 'all'"
                 :format-date="formatDate"
               />
             </div>
@@ -45,12 +46,16 @@
             <div v-else class="empty-state">
               <div class="empty-icon">∅</div>
               <h3 v-if="activeTab === 'local'">No local playbooks found</h3>
+              <h3 v-else-if="activeTab === 'all'">No published playbooks found</h3>
               <h3 v-else>No {{ activeTab }} playbooks</h3>
               <p v-if="activeTab === 'local'" class="text-secondary">
                 No published playbooks from your local community yet
               </p>
+              <p v-else-if="activeTab === 'all'" class="text-secondary">
+                No one has published a playbook yet
+              </p>
               <p v-else class="text-secondary">Start tracking your pattern implementations</p>
-              <button v-if="activeTab !== 'local'" class="btn btn-lg">Create Playbook</button>
+              <button v-if="activeTab !== 'local' && activeTab !== 'all'" class="btn btn-lg">Create Playbook</button>
             </div>
           </div>
         </Transition>
@@ -65,7 +70,7 @@ import PlaybookCard from '@/components/playbooks/PlaybookCard.vue'
 import { usePlaybooksPage } from '@/composables/usePlaybooksPage'
 
 const {
-  activeTab, localPlaybooks,
+  activeTab, localPlaybooks, allPublishedPlaybooks,
   activePlaybooks, completedPlaybooks, pausedPlaybooks,
   filteredPlaybooks, formatDate
 } = usePlaybooksPage()
@@ -75,6 +80,7 @@ const tabs = computed(() => [
   { key: 'completed' as const, label: 'Completed', count: completedPlaybooks.value.length },
   { key: 'paused' as const, label: 'Paused', count: pausedPlaybooks.value.length },
   { key: 'local' as const, label: 'Local Playbooks', count: localPlaybooks.value.length },
+  { key: 'all' as const, label: 'All Playbooks', count: allPublishedPlaybooks.value.length },
 ])
 </script>
 

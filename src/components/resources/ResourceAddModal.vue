@@ -19,7 +19,7 @@
               @click="$emit('select', playbook.id)"
             >
               <div class="playbook-info">
-                <div class="text-sm playbook-title">{{ playbook.patternTitle }}</div>
+                <div class="text-sm playbook-title">{{ playbook.title || playbook.patternTitle }}</div>
                 <div class="text-xs text-tertiary">{{ playbook.location }}</div>
               </div>
               <div class="playbook-progress">

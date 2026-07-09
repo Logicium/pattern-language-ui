@@ -2,13 +2,14 @@ import { ref, computed, onMounted } from 'vue'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import { playbooksApi } from '@/services/api'
 
-export type PlaybooksTab = 'active' | 'completed' | 'paused' | 'local'
+export type PlaybooksTab = 'active' | 'completed' | 'paused' | 'local' | 'all'
 
 export function usePlaybooksPage() {
   const playbooksStore = usePlaybooksStore()
 
   const activeTab = ref<PlaybooksTab>('active')
   const localPlaybooks = ref<any[]>([])
+  const allPublishedPlaybooks = ref<any[]>([])
 
   const activePlaybooks = computed(() => playbooksStore.activePlaybooks)
   const completedPlaybooks = computed(() => playbooksStore.completedPlaybooks)
@@ -23,9 +24,19 @@ export function usePlaybooksPage() {
     }
   }
 
+  const loadAllPublishedPlaybooks = async () => {
+    try {
+      allPublishedPlaybooks.value = await playbooksApi.getAllPublished()
+    } catch (error) {
+      console.error('Failed to load all published playbooks:', error)
+      allPublishedPlaybooks.value = []
+    }
+  }
+
   onMounted(() => {
     playbooksStore.fetchPlaybooks()
     loadLocalPlaybooks()
+    loadAllPublishedPlaybooks()
   })
 
   const filteredPlaybooks = computed(() => {
@@ -34,6 +45,7 @@ export function usePlaybooksPage() {
       case 'completed': return completedPlaybooks.value
       case 'paused': return pausedPlaybooks.value
       case 'local': return localPlaybooks.value
+      case 'all': return allPublishedPlaybooks.value
       default: return []
     }
   })
@@ -50,7 +62,7 @@ export function usePlaybooksPage() {
   }
 
   return {
-    activeTab, localPlaybooks,
+    activeTab, localPlaybooks, allPublishedPlaybooks,
     activePlaybooks, completedPlaybooks, pausedPlaybooks,
     filteredPlaybooks, completedTasksCount, formatDate
   }

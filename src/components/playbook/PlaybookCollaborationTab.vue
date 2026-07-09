@@ -5,7 +5,7 @@
       <div class="collab-section-header">
         <h3 class="section-subtitle">Team</h3>
         <button
-          v-if="userRole === 'creator'"
+          v-if="isUserMember"
           @click="$emit('inviteMember')"
           :disabled="loading"
           class="btn-text text-xs"
@@ -115,11 +115,21 @@
             <span class="action-label text-xs">{{ playbook.status === 'paused' ? 'Resume' : 'Pause' }}</span>
           </button>
           <button
+            v-if="userRole === 'creator'"
             @click="$emit('showDelete')"
             class="action-card action-danger"
           >
             <span class="action-icon">✕</span>
             <span class="action-label text-xs">Delete</span>
+          </button>
+          <button
+            v-else
+            @click="$emit('leave')"
+            :disabled="loading"
+            class="action-card action-danger"
+          >
+            <span class="action-icon">↩</span>
+            <span class="action-label text-xs">Leave Playbook</span>
           </button>
         </template>
         <template v-else>
@@ -159,6 +169,7 @@ defineEmits<{
   togglePause: []
   showDelete: []
   requestJoin: []
+  leave: []
 }>()
 
 function formatRelativeDate(dateStr: string): string {

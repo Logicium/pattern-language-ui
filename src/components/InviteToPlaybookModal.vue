@@ -26,7 +26,7 @@
           <label>Select Playbook</label>
           <AppDropdown
             :model-value="selectedPlaybookId"
-            :options="myPlaybooks.map(p => ({ value: p.id, label: p.patternTitle }))"
+            :options="myPlaybooks.map(p => ({ value: p.id, label: p.title || p.patternTitle }))"
             placeholder="Choose a playbook..."
             :disabled="loading"
             @update:model-value="selectedPlaybookId = Number($event)"

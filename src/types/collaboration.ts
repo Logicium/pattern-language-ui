@@ -21,15 +21,19 @@ export interface PlaybookInvitation {
   playbook: {
     id: number
     patternTitle: string
+    title?: string
   }
   invitedBy: {
     id: number
     name: string
   }
+  // Null for email invitations sent to someone who hasn't signed up yet
   invitedUser: {
     id: number
     name: string
-  }
+  } | null
+  type: 'invite' | 'join_request'
+  email?: string
   status: 'pending' | 'accepted' | 'rejected'
   message?: string
   createdAt: string

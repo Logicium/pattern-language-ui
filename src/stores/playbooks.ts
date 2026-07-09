@@ -23,6 +23,7 @@ export interface Playbook {
   id: string | number // Support both string (AI-generated) and number (database)
   patternId: number
   patternTitle: string
+  title?: string // Descriptive solution title; patternTitle shown as a badge
   challenge: string
   challenges?: Array<{ id: number; title: string }>
   solution: string

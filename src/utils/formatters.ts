@@ -21,6 +21,11 @@ export const getInitials = (name: string) => {
     .slice(0, 2)
 }
 
+// Descriptive project title with fallback for older playbooks that only
+// carry the pattern name.
+export const playbookTitle = (playbook: { title?: string | null; patternTitle: string }) =>
+  playbook.title || playbook.patternTitle
+
 export const getResourceLink = (resource: any) => {
   if (resource.type === 'pattern') return `/patterns/${resource.id}`
   if (resource.type === 'challenge') return `/challenges/${resource.id}`

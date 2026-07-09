@@ -8,7 +8,7 @@
         class="playbook-card"
       >
         <div class="playbook-header">
-          <h3 class="playbook-title">{{ playbook.patternTitle }}</h3>
+          <h3 class="playbook-title">{{ playbook.title || playbook.patternTitle }}</h3>
           <span class="playbook-status text-xs" :class="playbook.status">
             {{ playbook.status }}
           </span>

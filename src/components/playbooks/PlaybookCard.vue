@@ -1,60 +1,52 @@
 <template>
-  <div class="playbook-card" :data-accent="accent">
-    <div class="card-header">
-      <h3 class="card-title">{{ playbook.patternTitle }}</h3>
-      <div class="progress-badge text-xs">{{ playbook.progress }}%</div>
+  <router-link :to="`/dashboard/playbooks/${playbook.id}`" class="playbook-card" :data-accent="accent">
+    <div class="label-row">
+      <span class="label-id">
+        <span class="accent-mark" aria-hidden="true"></span>
+        Pattern {{ String(playbook.patternId).padStart(2, '0') }}
+      </span>
+      <span v-if="index !== undefined" class="label-index">№ {{ String(index).padStart(2, '0') }}</span>
     </div>
 
-    <div class="card-location text-sm text-secondary">{{ playbook.location }}</div>
+    <h3 class="card-title">{{ playbookTitle(playbook) }}</h3>
 
-    <div v-if="showCreator && playbook.user" class="creator-info text-xs text-tertiary">
-      <span>By {{ playbook.user.name }}</span>
-    </div>
+    <span class="pattern-chip">{{ playbook.patternTitle }}</span>
 
-    <div class="card-meta">
-      <div class="meta-item text-xs text-tertiary">
-        <span class="meta-label">Pattern</span>
-        <span class="meta-value">{{ String(playbook.patternId).padStart(2, '0') }}</span>
-      </div>
-      <div class="meta-item text-xs text-tertiary">
-        <span class="meta-label">Challenge</span>
-        <span class="meta-value">{{ playbook.challenge }}</span>
-      </div>
-      <div class="meta-item text-xs text-tertiary">
-        <span class="meta-label">Due</span>
-        <span class="meta-value">{{ formatDate(playbook.targetCompletionDate) }}</span>
-      </div>
-    </div>
+    <p class="card-provenance">
+      {{ playbook.location }}<template v-if="showCreator && playbook.user">&ensp;·&ensp;{{ playbook.user.name }}</template>
+    </p>
 
-    <div class="progress-container">
-      <div class="progress-bar">
-        <div
-          class="progress-fill"
-          :style="{
-            width: `${playbook.progress}%`,
-            backgroundSize: `${100 / (playbook.progress || 1) * 100}% 100%`
-          }"
-        ></div>
+    <dl class="caption">
+      <div class="caption-row">
+        <dt>Challenge</dt>
+        <dd>{{ playbook.challenge }}</dd>
       </div>
-      <div class="progress-label text-xs text-tertiary">
-        {{ tasksCompleted }} of {{ playbook.tasks.length }} tasks complete
+      <div class="caption-row">
+        <dt>Due</dt>
+        <dd>{{ formatDate(playbook.targetCompletionDate) }}</dd>
+      </div>
+    </dl>
+
+    <div class="card-foot">
+      <div class="progress-line">
+        <span class="progress-fill" :style="{ width: `${playbook.progress}%` }"></span>
+      </div>
+      <div class="foot-row">
+        <span class="foot-note">{{ tasksCompleted }} of {{ playbook.tasks.length }} tasks — {{ playbook.progress }}%</span>
+        <span class="view-note">View</span>
       </div>
     </div>
-
-    <div class="card-actions">
-      <router-link :to="`/dashboard/playbooks/${playbook.id}`" class="btn action-btn-primary">
-        VIEW DETAILS
-      </router-link>
-    </div>
-  </div>
+  </router-link>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { playbookTitle } from '@/utils/formatters'
 
 const props = defineProps<{
   playbook: any
   accent: number
+  index?: number
   showCreator?: boolean
   formatDate: (dateString: string) => string
 }>()
@@ -66,106 +58,148 @@ const tasksCompleted = computed(() =>
 
 <style scoped>
 .playbook-card {
-  background: var(--color-bg-primary);
-  padding: 2.5rem;
-  border-left: 3px solid transparent;
-  transition: all var(--transition-base);
-}
-
-.playbook-card[data-accent="1"] { border-left-color: var(--color-accent-1); }
-.playbook-card[data-accent="2"] { border-left-color: var(--color-accent-2); }
-.playbook-card[data-accent="3"] { border-left-color: var(--color-accent-3); }
-
-.playbook-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(42, 42, 42, 0.08);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.progress-badge {
-  padding: 0.375rem 0.75rem;
-  background: rgba(42, 42, 42, 0.05);
-  border: 1px solid rgba(42, 42, 42, 0.1);
-  letter-spacing: 0.08em;
-  font-weight: var(--font-weight-medium);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.card-title {
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-normal);
-  letter-spacing: -0.01em;
-  margin-bottom: 0;
-  line-height: 1.3;
-  flex: 1;
-}
-
-.card-location { margin-bottom: 1rem; }
-
-.creator-info {
-  margin-bottom: 1rem;
-  padding: 0.5rem 0;
-  font-style: italic;
-}
-
-.card-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--hairline);
+  padding: 2.75rem 2.5rem 2.25rem;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.meta-item {
+.playbook-card:hover {
+  background: #ffffff;
+  border-color: var(--hairline-strong);
+}
+
+.label-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  letter-spacing: 0.05em;
-}
-
-.meta-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: var(--color-text-tertiary);
+  margin-bottom: 2.25rem;
 }
 
-.meta-value { font-weight: var(--font-weight-medium); }
+.label-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
 
-.progress-container { margin-bottom: 2rem; }
+.accent-mark {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+}
 
-.progress-bar {
-  height: 3px;
-  background: rgba(42, 42, 42, 0.08);
-  margin-bottom: 0.75rem;
+.playbook-card[data-accent="1"] .accent-mark { background: var(--color-accent-1); }
+.playbook-card[data-accent="2"] .accent-mark { background: var(--color-accent-2); }
+.playbook-card[data-accent="3"] .accent-mark { background: var(--color-accent-3); }
+
+.card-title {
+  font-size: 1.75rem;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.02em;
+  line-height: 1.18;
+  margin: 0 0 1.25rem;
+}
+
+.pattern-chip {
+  align-self: flex-start;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  margin-bottom: 1.25rem;
+}
+
+.playbook-card[data-accent="1"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-1) 24%, transparent); }
+.playbook-card[data-accent="2"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-2) 30%, transparent); }
+.playbook-card[data-accent="3"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-3) 24%, transparent); }
+
+.card-provenance {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 2.25rem;
+}
+
+.caption {
+  margin: 0 0 2.5rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.caption-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2.5rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.caption-row dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.caption-row dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-normal);
+  text-align: right;
+}
+
+.card-foot { margin-top: auto; }
+
+.progress-line {
+  height: 2px;
+  background: var(--hairline);
+  margin-bottom: 1rem;
   overflow: hidden;
 }
 
 .progress-fill {
+  display: block;
   height: 100%;
   background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2), var(--color-accent-3));
-  background-position: left center;
-  background-repeat: no-repeat;
-  transition: width var(--transition-base), background-size var(--transition-base);
+  transition: width var(--transition-base);
 }
 
-.progress-label { letter-spacing: 0.05em; }
-
-.card-actions {
+.foot-row {
   display: flex;
-  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.action-btn-primary {
-  flex: 1;
-  text-align: center;
-  text-decoration: none;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.75rem;
+.foot-note { color: var(--color-text-tertiary); }
+
+.view-note {
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--hairline-strong);
+  padding-bottom: 2px;
+  transition: border-color var(--transition-fast);
+}
+
+.playbook-card:hover .view-note {
+  border-bottom-color: var(--color-text-primary);
+}
+
+@media (max-width: 768px) {
+  .playbook-card { padding: 2.25rem 1.75rem 2rem; }
+  .card-title { font-size: 1.5rem; }
 }
 </style>

@@ -16,6 +16,10 @@ export function usePlaybookData() {
   const { patterns: allPatterns } = usePatterns()
 
   const loading = ref(false)
+  // Page-level load lifecycle: spinner while true, error message when set,
+  // "not found" only when neither applies and no playbook matched.
+  const pageLoading = ref(true)
+  const loadError = ref<string | null>(null)
   const localPlaybookData = ref<any>(null)
   const allLocalPlaybooks = ref<any[]>([])
   const members = ref<PlaybookMember[]>([])
@@ -47,18 +51,36 @@ export function usePlaybookData() {
     return playbook.value.tasks.filter((t: any) => t.completed).length
   })
 
+  // Throws on API failure so the caller can distinguish "failed to load"
+  // from "loaded fine but no such playbook".
   const loadPublicPlaybook = async () => {
+    // Any published playbook (not just local ones) can be viewed
+    allLocalPlaybooks.value = await playbooksApi.getAllPublished()
+    const foundPlaybook = allLocalPlaybooks.value.find(p => p.id.toString() === playbookId.value)
+    if (foundPlaybook) {
+      localPlaybookData.value = foundPlaybook
+    }
+  }
+
+  const loadPlaybook = async () => {
+    pageLoading.value = true
+    loadError.value = null
+    localPlaybookData.value = null
     try {
-      loading.value = true
-      allLocalPlaybooks.value = await playbooksApi.getLocalPublished()
-      const foundPlaybook = allLocalPlaybooks.value.find(p => p.id.toString() === playbookId.value)
-      if (foundPlaybook) {
-        localPlaybookData.value = foundPlaybook
+      await playbooksStore.fetchPlaybooks(true)
+      if (playbooksStore.error) {
+        throw new Error(playbooksStore.error)
       }
-    } catch (error) {
-      console.error('Failed to load public playbook:', error)
+      const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === playbookId.value)
+      if (!userPlaybook) {
+        await loadPublicPlaybook()
+      }
+      loadMembers()
+    } catch (error: any) {
+      console.error('Failed to load playbook:', error)
+      loadError.value = error?.message || 'Failed to load playbook'
     } finally {
-      loading.value = false
+      pageLoading.value = false
     }
   }
 
@@ -143,23 +165,11 @@ export function usePlaybookData() {
   }
 
   // Lifecycle
-  onMounted(async () => {
-    await playbooksStore.fetchPlaybooks(true)
-    const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === playbookId.value)
-    if (!userPlaybook) {
-      await loadPublicPlaybook()
-    }
-    loadMembers()
-  })
+  onMounted(loadPlaybook)
 
   watch(() => route.params.id, async (newId) => {
     if (newId) {
-      localPlaybookData.value = null
-      const userPlaybook = playbooksStore.playbooks.find(p => p.id.toString() === newId)
-      if (!userPlaybook) {
-        await loadPublicPlaybook()
-      }
-      loadMembers()
+      await loadPlaybook()
     }
   })
 
@@ -171,6 +181,9 @@ export function usePlaybookData() {
 
   return {
     loading,
+    pageLoading,
+    loadError,
+    loadPlaybook,
     playbook,
     playbookId,
     members,

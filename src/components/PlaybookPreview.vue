@@ -3,8 +3,10 @@
     <div class="preview-header">
       <div class="preview-icon">📋</div>
       <div class="preview-title-section">
-        <h3 class="preview-title">{{ playbook.patternTitle }}</h3>
-        <p class="preview-subtitle text-xs text-tertiary">AI-Generated Playbook</p>
+        <h3 class="preview-title">{{ playbookTitle(playbook) }}</h3>
+        <p class="preview-subtitle text-xs text-tertiary">
+          Pattern {{ String(playbook.patternId).padStart(2, '0') }} — {{ playbook.patternTitle }}
+        </p>
       </div>
     </div>
 
@@ -60,6 +62,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { playbookTitle } from '@/utils/formatters'
 import type { Playbook } from '@/stores/playbooks'
 
 interface Props {

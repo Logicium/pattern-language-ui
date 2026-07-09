@@ -7,9 +7,7 @@
       </p>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <p class="text-secondary">Loading stories...</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading stories..." />
 
     <div v-else-if="stories.length === 0" class="empty-state">
       <p class="text-secondary">No success stories yet.</p>
@@ -62,6 +60,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { LoadingState } from '@/components'
 import { userStoriesApi } from '@/services/api'
 
 const stories = ref<any[]>([])
@@ -113,18 +112,27 @@ onMounted(async () => {
 
 .story-card {
   position: relative;
-  padding: 3rem 2rem;
+  padding: 3rem 2.75rem;
   text-decoration: none;
   color: var(--color-text-primary);
   overflow: hidden;
-  transition: transform var(--transition-base);
+  transition: box-shadow var(--transition-fast);
   min-height: 280px;
   display: flex;
   flex-direction: column;
 }
 
+/* Static inner hairline mat, museum-frame style */
+.story-card::after {
+  content: '';
+  position: absolute;
+  inset: 0.85rem;
+  border: 1px solid rgba(42, 42, 42, 0.14);
+  pointer-events: none;
+}
+
 .story-card:hover {
-  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(42, 42, 42, 0.08);
 }
 
 .story-overlay {
@@ -173,10 +181,10 @@ onMounted(async () => {
 }
 
 .story-title {
-  font-size: 1.75rem;
-  font-weight: var(--font-weight-normal);
-  line-height: 1.3;
-  letter-spacing: -0.01em;
+  font-size: 1.875rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   margin-bottom: 0.5rem;
 }
 
@@ -184,6 +192,10 @@ onMounted(async () => {
   line-height: 1.6;
   color: var(--color-text-secondary);
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .story-patterns {

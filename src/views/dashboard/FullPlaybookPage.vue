@@ -152,6 +152,7 @@
                 @toggle-pause="togglePause"
                 @show-delete="showDeleteModal = true"
                 @request-join="requestToJoin"
+                @leave="leavePlaybook"
               />
             </template>
 
@@ -186,9 +187,27 @@
       </section>
     </div>
 
+    <!-- Loading State -->
+    <LoadingState v-else-if="pageLoading" message="Loading playbook..." />
+
+    <!-- Load Error State -->
+    <div v-else-if="loadError" class="container" style="padding: 10rem 0; text-align: center;">
+      <p class="text-secondary">Something went wrong loading this playbook.</p>
+      <p class="text-xs text-tertiary" style="margin-top: 0.5rem;">{{ loadError }}</p>
+      <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+        <button class="btn" @click="loadPlaybook">Try Again</button>
+        <router-link to="/dashboard/playbooks" class="btn-secondary btn-sm" style="align-self: center;">
+          Back to Playbooks
+        </router-link>
+      </div>
+    </div>
+
     <!-- Not Found State -->
     <div v-else class="container" style="padding: 10rem 0; text-align: center;">
       <p class="text-secondary">Playbook not found</p>
+      <p class="text-xs text-tertiary" style="margin-top: 0.5rem;">
+        It may have been deleted, unpublished, or you may no longer have access.
+      </p>
       <router-link to="/dashboard/playbooks" class="btn" style="margin-top: 2rem;">
         Back to Playbooks
       </router-link>
@@ -259,11 +278,15 @@
     <InviteMemberPanel
       v-model="showInviteMemberModal"
       :search-query="searchQuery"
+      :member-scope="memberScope"
       :filtered-available-users="filteredAvailableUsers"
       :invited-user-ids="invitedUserIds"
       :loading="loading"
+      :invite-email-sending="inviteEmailSending"
       @update:search-query="searchQuery = $event"
+      @update:member-scope="memberScope = $event"
       @invite-user="inviteUser"
+      @invite-email="inviteByEmail"
     />
 
     <!-- Pattern Slide-In Modal -->
@@ -290,7 +313,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ConfirmModal, Toast } from '@/components'
+import { ConfirmModal, Toast, LoadingState } from '@/components'
 import FullTaskPage from '@/components/FullTaskPage.vue'
 import SlideInModal from '@/components/SlideInModal.vue'
 import FullPatternPage from '@/views/FullPatternPage.vue'
@@ -328,6 +351,9 @@ const tabs = [
 // Core playbook data
 const {
   loading,
+  pageLoading,
+  loadError,
+  loadPlaybook,
   playbook,
   members,
   userRole,
@@ -404,11 +430,15 @@ const {
 const {
   showInviteMemberModal,
   searchQuery,
+  memberScope,
   invitedUserIds,
+  inviteEmailSending,
   filteredAvailableUsers,
   inviteUser,
+  inviteByEmail,
   togglePublishState,
   requestToJoin,
+  leavePlaybook,
   removeMember,
 } = usePlaybookCollaboration(playbook, members, loading, showToast, toastMessage, refreshPlaybook)
 

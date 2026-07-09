@@ -6,11 +6,27 @@
       </button>
 
       <h2 class="modal-title">Invite Member</h2>
-      
+
       <p class="text-sm text-secondary" style="margin-bottom: 20px;">
-        Invite users from your local community to collaborate on this playbook.
+        Invite other Pattern Language users to collaborate on this playbook.
       </p>
-      
+
+      <!-- Scope Toggle -->
+      <div class="scope-toggle">
+        <button
+          :class="['scope-option text-xs', { active: memberScope === 'local' }]"
+          @click="$emit('update:memberScope', 'local')"
+        >
+          Local Members
+        </button>
+        <button
+          :class="['scope-option text-xs', { active: memberScope === 'all' }]"
+          @click="$emit('update:memberScope', 'all')"
+        >
+          All Members
+        </button>
+      </div>
+
       <!-- Search Input -->
       <div class="form-group">
         <input
@@ -29,8 +45,8 @@
           :key="user.id"
           class="user-result"
         >
-          <div 
-            class="user-avatar" 
+          <div
+            class="user-avatar"
             :style="{ backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none' }"
           >
             {{ !user.profileImage ? getInitials(user.name) : '' }}
@@ -51,28 +67,77 @@
       <p v-if="filteredAvailableUsers.length === 0" class="text-xs text-tertiary">
         {{ searchQuery ? 'No users found matching your search' : 'No users available to invite' }}
       </p>
+
+      <!-- Invite by Email -->
+      <div class="email-invite">
+        <h3 class="email-invite-title text-sm">Invite by email</h3>
+        <p class="text-xs text-tertiary" style="margin-bottom: 12px;">
+          Not on Pattern Language yet? Send a branded invitation — they'll join this playbook automatically when they sign up.
+        </p>
+        <div class="form-group">
+          <input
+            v-model="inviteEmail"
+            type="email"
+            class="form-input"
+            placeholder="name@example.com"
+            @keyup.enter="sendEmailInvite"
+          />
+        </div>
+        <div class="form-group">
+          <textarea
+            v-model="inviteMessage"
+            class="form-input"
+            rows="3"
+            placeholder="Add a personal message (optional)..."
+          ></textarea>
+        </div>
+        <button
+          class="btn-sm"
+          :disabled="inviteEmailSending || !isEmailValid"
+          @click="sendEmailInvite"
+        >
+          {{ inviteEmailSending ? 'Sending...' : 'Send Email Invitation' }}
+        </button>
+      </div>
     </div>
   </SlideInModal>
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import SlideInModal from '@/components/SlideInModal.vue'
 import { getInitials } from '@/utils/formatters'
 import type { SearchedUser } from '@/types/collaboration'
 
-defineProps<{
+const props = defineProps<{
   modelValue: boolean
   searchQuery: string
+  memberScope: 'local' | 'all'
   filteredAvailableUsers: SearchedUser[]
   invitedUserIds: number[]
   loading: boolean
+  inviteEmailSending: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'update:searchQuery': [value: string]
+  'update:memberScope': [value: 'local' | 'all']
   inviteUser: [user: SearchedUser]
+  inviteEmail: [email: string, message?: string]
 }>()
+
+const inviteEmail = ref('')
+const inviteMessage = ref('')
+
+const isEmailValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.value.trim()))
+
+const sendEmailInvite = () => {
+  if (!isEmailValid.value || props.inviteEmailSending) return
+  emit('inviteEmail', inviteEmail.value.trim(), inviteMessage.value.trim() || undefined)
+  inviteEmail.value = ''
+  inviteMessage.value = ''
+}
 </script>
 
 <style scoped>
@@ -104,11 +169,36 @@ defineEmits<{
   color: #2c2c2c;
 }
 
+.scope-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(42, 42, 42, 0.12);
+  width: fit-content;
+}
+
+.scope-option {
+  padding: 0.6rem 1.25rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font-family);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.scope-option.active {
+  background: #2c2c2c;
+  color: white;
+}
+
 .users-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-height: 500px;
+  max-height: 380px;
   overflow-y: auto;
   margin-top: 1rem;
 }
@@ -149,5 +239,23 @@ defineEmits<{
   font-weight: 400;
   font-size: 15px;
   margin-bottom: 2px;
+}
+
+.email-invite {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(42, 42, 42, 0.08);
+}
+
+.email-invite-title {
+  font-weight: 400;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.email-invite textarea {
+  resize: vertical;
 }
 </style>

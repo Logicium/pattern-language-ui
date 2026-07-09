@@ -75,17 +75,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function signup(signupData: { 
-    email: string; 
-    password: string; 
+  async function signup(signupData: {
+    email: string;
+    password: string;
     firstName?: string;
     lastName?: string;
-    name: string; 
+    name: string;
     location?: string;
     state?: string;
     currentWork?: string;
     goals?: string;
-    interests?: string[] 
+    interests?: string[];
+    inviteToken?: string;
   }) {
     try {
       const response = await fetch(`${API_URL}/auth/signup`, {
@@ -156,6 +157,7 @@ export const useAuthStore = defineStore('auth', () => {
     currentWork?: string
     goals?: string
     interests?: string[]
+    inviteToken?: string
   }) {
     try {
       const response = await fetch(`${API_URL}/auth/google-signup`, {
