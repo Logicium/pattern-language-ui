@@ -1,9 +1,5 @@
 <template>
   <div class="playbook-full-preview">
-    <button class="preview-close" @click="emit('close')" aria-label="Close preview">
-      <X :size="20" />
-    </button>
-
     <PlaybookHero :playbook="playbook" />
 
     <section class="section preview-content">
@@ -68,13 +64,12 @@
 </template>
 
 <script setup lang="ts">
-import { X } from 'lucide-vue-next'
 import PlaybookHero from './PlaybookHero.vue'
 import PlaybookSummary from './PlaybookSummary.vue'
 import type { Playbook } from '@/stores/playbooks'
 
 defineProps<{ playbook: Playbook }>()
-const emit = defineEmits<{ close: [] }>()
+defineEmits<{ close: [] }>()
 
 const formatCategory = (category: string) =>
   category.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -87,29 +82,6 @@ const formatDate = (s: string) =>
 .playbook-full-preview {
   position: relative;
   min-height: 100%;
-}
-
-.preview-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(42, 42, 42, 0.12);
-  background: var(--color-bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--color-text-primary);
-  transition: background 160ms ease, transform 160ms ease;
-}
-
-.preview-close:hover {
-  background: var(--color-bg-secondary);
-  transform: scale(1.05);
 }
 
 .preview-content {

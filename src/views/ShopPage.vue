@@ -66,14 +66,19 @@
                 <span class="card-price" v-if="products[item.id]?.price">
                   {{ products[item.id]?.price }}
                 </span>
-                <a
-                  :href="products[item.id]?.onlineStoreUrl || storeFallbackUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="card-buy"
-                >
-                  {{ item.buyLabel }} <span class="chevron"></span>
-                </a>
+                <div class="card-actions">
+                  <button type="button" class="card-preview" @click="openPreview(item)">
+                    Preview
+                  </button>
+                  <a
+                    :href="products[item.id]?.onlineStoreUrl || storeFallbackUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="card-buy"
+                  >
+                    {{ item.buyLabel }} <span class="chevron"></span>
+                  </a>
+                </div>
               </template>
               <span v-else class="card-soon text-xs text-tertiary">Coming soon</span>
             </div>
@@ -82,13 +87,58 @@
       </div>
     </section>
 
+    <!-- Product preview panel -->
+    <SlideInModal v-model="showPreview" sidebar-width="0px" back-label="Back to the collection">
+      <div v-if="previewItem" class="preview-panel">
+        <div class="preview-layout">
+          <div class="preview-media">
+            <img
+              v-if="products[previewItem.id]?.images?.length"
+              :src="products[previewItem.id]?.images?.[0]?.src"
+              :alt="products[previewItem.id]?.title || previewItem.fallbackTitle"
+            />
+            <span v-else class="preview-media-placeholder text-xs text-tertiary">
+              {{ previewItem.label }}
+            </span>
+          </div>
+
+          <div class="preview-info">
+            <span class="preview-label text-xs text-tertiary">{{ previewItem.label }}</span>
+            <h2 class="preview-title">{{ products[previewItem.id]?.title || previewItem.fallbackTitle }}</h2>
+            <span v-if="products[previewItem.id]?.price" class="preview-price">
+              {{ products[previewItem.id]?.price }}
+            </span>
+
+            <div
+              v-if="products[previewItem.id]?.descriptionHtml"
+              class="preview-description text-secondary"
+              v-html="products[previewItem.id]?.descriptionHtml"
+            ></div>
+            <p v-else class="preview-description text-secondary">{{ previewItem.blurb }}</p>
+
+            <a
+              :href="products[previewItem.id]?.onlineStoreUrl || storeFallbackUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="preview-buy"
+            >
+              {{ previewItem.buyLabel }} <span class="buy-arrow">→</span>
+            </a>
+            <p class="preview-ship text-xs text-tertiary">
+              Checkout happens on our store. Orders ship at the end of August.
+            </p>
+          </div>
+        </div>
+      </div>
+    </SlideInModal>
+
     <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Navbar, Footer, PageHero } from '@/components'
+import { Navbar, Footer, PageHero, SlideInModal } from '@/components'
 
 const SHOPIFY_DOMAIN = import.meta.env.VITE_SHOPIFY_DOMAIN as string | undefined
 const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN as string | undefined
@@ -115,6 +165,15 @@ interface Product {
 
 // Fetched Shopify data, keyed by product id.
 const products = ref<Record<string, Product>>({})
+
+// Preview panel state
+const showPreview = ref(false)
+const previewItem = ref<(typeof items)[number] | null>(null)
+
+const openPreview = (item: (typeof items)[number]) => {
+  previewItem.value = item
+  showPreview.value = true
+}
 
 // The three cards. Blurbs are our own short copy — Shopify supplies the title,
 // price, image, and buy link.
@@ -272,6 +331,15 @@ onMounted(async () => {
 .product-card {
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--hairline);
+  background: var(--color-bg-primary);
+  padding: 1.75rem 1.75rem 2rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.product-card:hover {
+  background: #ffffff;
+  border-color: var(--hairline-strong);
 }
 
 /* Fixed height keeps all three image frames identical regardless of artwork. */
@@ -284,7 +352,7 @@ onMounted(async () => {
     rgba(184, 212, 200, 0.14),
     rgba(201, 184, 232, 0.14)
   );
-  border: 1px solid rgba(42, 42, 42, 0.08);
+  border: 1px solid var(--hairline);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -358,11 +426,37 @@ onMounted(async () => {
   font-variant-numeric: tabular-nums;
 }
 
+.card-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 1.75rem;
+}
+
+.card-preview {
+  background: none;
+  border: none;
+  padding: 0 0 0.3rem;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  border-bottom: 1px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.card-preview:hover {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--hairline-strong);
+}
+
 .card-buy {
   display: inline-flex;
   align-items: center;
-  font-size: 0.8125rem;
-  letter-spacing: 0.14em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-primary);
   text-decoration: none;
@@ -373,6 +467,119 @@ onMounted(async () => {
 }
 
 .card-buy:hover { opacity: 0.55; }
+
+/* ─────────────── Preview panel ─────────────── */
+.preview-panel {
+  padding: 2rem 3rem 5rem;
+}
+
+.preview-layout {
+  display: grid;
+  grid-template-columns: 6fr 5fr;
+  gap: 4rem;
+  max-width: 1080px;
+  margin: 2rem auto 0;
+  align-items: start;
+}
+
+.preview-media {
+  position: relative;
+  min-height: 420px;
+  background: linear-gradient(
+    135deg,
+    rgba(232, 180, 160, 0.14),
+    rgba(184, 212, 200, 0.14),
+    rgba(201, 184, 232, 0.14)
+  );
+  border: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.preview-media img {
+  max-width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.22));
+}
+
+.preview-media-placeholder {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.preview-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.preview-label {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 1.25rem;
+}
+
+.preview-title {
+  font-size: 2.25rem;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  margin: 0 0 1rem;
+}
+
+.preview-price {
+  font-size: 1.375rem;
+  font-weight: var(--font-weight-light);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 1.75rem;
+}
+
+.preview-description {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+}
+
+.preview-description :deep(p) { margin-bottom: 1rem; }
+.preview-description :deep(ul) { padding-left: 1.25rem; margin-bottom: 1rem; }
+
+.preview-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2.5rem;
+  background: var(--color-bg-dark);
+  color: var(--color-bg-primary);
+  border: 1px solid var(--color-bg-dark);
+  text-decoration: none;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: all var(--transition-fast);
+}
+
+.preview-buy:hover {
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.buy-arrow { display: inline-block; }
+
+.preview-ship {
+  margin-top: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+@media (max-width: 900px) {
+  .preview-panel { padding: 1.5rem 1.75rem 4rem; }
+  .preview-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+  .preview-media { min-height: 300px; }
+  .preview-title { font-size: 1.75rem; }
+}
 
 .card-soon {
   text-transform: uppercase;

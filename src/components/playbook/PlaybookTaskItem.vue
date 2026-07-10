@@ -1,7 +1,14 @@
 <template>
   <div class="task-item" :data-accent="accentColor">
+    <div ref="swapEl" class="task-swap">
+    <Transition
+      name="mode-blur"
+      mode="out-in"
+      @before-leave="lockHeight"
+      @enter="animateToContent"
+    >
     <!-- Task Display Mode -->
-    <div v-if="editingTaskId !== task.id" class="task-main" @click="onTaskClick">
+    <div v-if="editingTaskId !== task.id" key="view" class="task-main" @click="onTaskClick">
       <div class="task-header-row">
         <div class="task-drag-handle" title="Drag to reorder">
           <svg class="drag-icon" width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
@@ -51,7 +58,16 @@
     </div>
 
     <!-- Task Edit Mode -->
-    <div v-else-if="isUserMember" class="task-edit-form">
+    <div v-else-if="isUserMember" key="edit" class="task-edit-form">
+      <!-- Save/Cancel sit where the Edit button was, so the eye never travels -->
+      <div class="edit-header-row">
+        <span class="edit-label text-xs text-tertiary">Editing Task</span>
+        <div class="task-actions">
+          <button @click="$emit('saveEdit')" class="task-action-btn task-action-primary text-xs" type="button">Save</button>
+          <button @click="$emit('cancelEdit')" class="task-action-btn text-xs" type="button">Cancel</button>
+          <button @click="$emit('deleteTask', task.id)" class="task-action-btn task-action-danger text-xs" type="button">Delete</button>
+        </div>
+      </div>
       <div class="form-group">
         <label class="text-xs text-tertiary">Task Title</label>
         <input
@@ -90,30 +106,34 @@
           class="form-input"
         />
       </div>
-      <div class="form-actions">
-        <button @click="$emit('saveEdit')" class="btn btn-sm">Save</button>
-        <button @click="$emit('cancelEdit')" class="btn-text text-xs">Cancel</button>
-        <button @click="$emit('deleteTask', task.id)" class="btn-text text-xs text-danger">Delete Task</button>
-      </div>
+    </div>
+    </Transition>
     </div>
 
-    <!-- Expandable Notes Section -->
-    <div v-if="expandedTaskNotes[task.id] && isUserMember" class="task-notes-section">
-      <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
-        Implementation Notes
-      </label>
-      <textarea
-        :value="taskNotes[task.id]"
-        @input="onNotesInput(task.id, ($event.target as HTMLTextAreaElement).value)"
-        class="task-notes-textarea"
-        rows="3"
-        placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
-      ></textarea>
+    <!-- Expandable Notes Section — height animates via interpolate-size -->
+    <div
+      v-if="isUserMember"
+      class="task-notes-section"
+      :class="{ expanded: expandedTaskNotes[task.id] }"
+    >
+      <div class="task-notes-inner">
+        <label class="text-xs text-tertiary" style="display: block; margin-bottom: 0.5rem;">
+          Implementation Notes
+        </label>
+        <textarea
+          :value="taskNotes[task.id]"
+          @input="onNotesInput(task.id, ($event.target as HTMLTextAreaElement).value)"
+          class="task-notes-textarea"
+          rows="3"
+          placeholder="Describe what you did to complete this task, any challenges faced, resources used, or lessons learned..."
+        ></textarea>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { formatDate } from '@/utils/formatters'
 import type { PlaybookSection } from '@/stores/playbooks'
 import AppCheckbox from '@/components/AppCheckbox.vue'
@@ -146,6 +166,47 @@ const onNotesInput = (taskId: string, value: string) => {
   emit('updateNotes', taskId, value)
 }
 
+// The view<->edit swap replaces content, so no height property ever changes
+// on its own — lock the wrapper at the old height, then transition it to the
+// incoming content's height while the blur crossfade runs. The inline height
+// is released only when the HEIGHT transition ends (the blur finishes much
+// earlier — releasing there retargets the animation mid-flight and jitters).
+const swapEl = ref<HTMLElement | null>(null)
+let heightEndHandler: ((e: TransitionEvent) => void) | null = null
+
+const clearHeightHandler = () => {
+  if (heightEndHandler && swapEl.value) {
+    swapEl.value.removeEventListener('transitionend', heightEndHandler)
+    heightEndHandler = null
+  }
+}
+
+const lockHeight = () => {
+  const el = swapEl.value
+  if (!el) return
+  clearHeightHandler()
+  el.style.height = `${el.offsetHeight}px`
+}
+
+const animateToContent = () => {
+  const el = swapEl.value
+  if (!el) return
+  requestAnimationFrame(() => {
+    const target = el.scrollHeight
+    if (target === el.offsetHeight) {
+      el.style.height = ''
+      return
+    }
+    el.style.height = `${target}px`
+    heightEndHandler = (e: TransitionEvent) => {
+      if (e.target !== el || e.propertyName !== 'height') return
+      el.style.height = ''
+      clearHeightHandler()
+    }
+    el.addEventListener('transitionend', heightEndHandler)
+  })
+}
+
 const onTaskClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (target.closest('.task-drag-handle') || target.closest('.task-checkbox-wrapper') || target.closest('.task-actions')) return
@@ -167,6 +228,11 @@ const onTaskClick = (e: MouseEvent) => {
 .task-item[data-accent="1"] { border-left-color: var(--color-accent-1); }
 .task-item[data-accent="2"] { border-left-color: var(--color-accent-2); }
 .task-item[data-accent="3"] { border-left-color: var(--color-accent-3); }
+
+.task-swap {
+  overflow: clip;
+  transition: height var(--transition-base);
+}
 
 .task-main {
   display: flex;
@@ -284,20 +350,56 @@ const onTaskClick = (e: MouseEvent) => {
   border-color: var(--color-text-primary);
 }
 
+/* No margin here: the height animation measures scrollHeight, which cannot
+   see child margins — a margin would make the target land short and pop. */
 .task-edit-form {
-  padding: 2rem;
+  padding: 1.5rem 1.5rem 2rem;
   background: var(--color-bg-secondary);
   border: 1px solid rgba(42, 42, 42, 0.08);
-  margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
+.edit-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.edit-label {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.task-action-primary {
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.task-action-danger:hover {
+  color: var(--color-accent-warm);
+  border-color: var(--color-accent-warm);
+}
+
+/* Collapsed by default; `interpolate-size: allow-keywords` on :root lets the
+   height animate to auto in supporting browsers (snaps gracefully elsewhere). */
 .task-notes-section {
-  padding: 0 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid rgba(42, 42, 42, 0.08);
+  height: 0;
+  overflow: clip;
+  border-top: 1px solid transparent;
   background: var(--color-bg-secondary);
+  transition: height var(--transition-fast), border-color var(--transition-fast);
+}
+
+.task-notes-section.expanded {
+  height: auto;
+  border-top-color: rgba(42, 42, 42, 0.08);
+}
+
+.task-notes-inner {
+  padding: 1rem 1.5rem 1.5rem;
 }
 
 .task-notes-textarea {

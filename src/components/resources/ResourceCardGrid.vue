@@ -3,7 +3,7 @@
     <div
       v-for="(item, index) in items"
       :key="item.id"
-      :class="['resource-card', { 'link-card': type === 'links', clickable: type !== 'links' }]"
+      :class="['resource-card', { 'link-card': isLinkTab, clickable: !isLinkTab }]"
       :data-accent="(index % 3) + 1"
       @click="onCardClick(item)"
     >
@@ -16,11 +16,12 @@
           <template v-else>{{ item.category || 'Resource' }}</template>
         </span>
         <span v-if="type === 'stories' && item.publishedDate" class="label-meta">{{ formatDate(item.publishedDate) }}</span>
+        <span v-else-if="isLinkTab && item.scope" class="label-meta">{{ item.scope }}</span>
       </div>
 
-      <h3 class="card-title">{{ type === 'links' ? item.name : item.title }}</h3>
+      <h3 class="card-title">{{ isLinkTab ? item.name : item.title }}</h3>
 
-      <p v-if="(type === 'stories' || type === 'links') && item.location" class="card-provenance">
+      <p v-if="(type === 'stories' || isLinkTab) && item.location" class="card-provenance">
         {{ item.location }}
       </p>
 
@@ -37,7 +38,7 @@
         <span v-for="p in item.relatedPatterns.slice(0, 2)" :key="p" class="tag-chip">{{ p }}</span>
       </div>
 
-      <div v-if="type === 'links'" class="link-url">
+      <div v-if="isLinkTab" class="link-url">
         {{ getHostname(item.url) }}
       </div>
 
@@ -68,7 +69,7 @@
           class="action-link action-primary"
         >Visit Site</a>
 
-        <button class="action-link action-muted" @click="$emit('add', item, typeMap[type])">
+        <button class="action-link action-muted" @click="$emit('add', item, resourceType)">
           + Add to Playbook
         </button>
       </div>
@@ -77,7 +78,8 @@
 </template>
 
 <script setup lang="ts">
-import type { ResourceTab, ResourceType } from '@/composables/useResourcesPage'
+import { computed } from 'vue'
+import { LINK_TABS, type ResourceTab, type ResourceType } from '@/composables/useResourcesPage'
 
 const props = defineProps<{
   items: any[]
@@ -89,17 +91,22 @@ const emit = defineEmits<{
   view: [resource: any, type: ResourceTab]
 }>()
 
+// Local / National / All tabs all show link-type resources
+const isLinkTab = computed(() => LINK_TABS.includes(props.type))
+
 function onCardClick(item: any) {
-  if (props.type === 'links') return
+  if (isLinkTab.value) return
   emit('view', item, props.type)
 }
 
-const typeMap: Record<ResourceTab, ResourceType> = {
-  patterns: 'pattern',
-  stories: 'story',
-  challenges: 'challenge',
-  links: 'link'
-}
+const resourceType = computed<ResourceType>(() => {
+  switch (props.type) {
+    case 'patterns': return 'pattern'
+    case 'stories': return 'story'
+    case 'challenges': return 'challenge'
+    default: return 'link'
+  }
+})
 
 const getHostname = (url: string): string => {
   try {

@@ -25,11 +25,11 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label text-xs text-tertiary">Town/City</label>
-        <input
-          v-model="formData.location"
-          type="text"
-          placeholder="e.g., Trinidad"
-          class="form-input"
+        <CityInput
+          :model-value="formData.location || ''"
+          placeholder="Start typing your town..."
+          @update:model-value="formData.location = $event"
+          @select="onCitySelect"
         />
       </div>
       <div class="form-group">
@@ -48,10 +48,17 @@
 import type { ProfileData } from '@/composables/useProfileEdit'
 import { US_STATES } from '@/utils/constants'
 import AppDropdown from '@/components/AppDropdown.vue'
+import CityInput from '@/components/CityInput.vue'
 
-defineProps<{ formData: ProfileData }>()
+const props = defineProps<{ formData: ProfileData }>()
 
 const usStates = US_STATES
+
+// Selecting a city also sets the state, keeping both fields clean
+const onCitySelect = ({ city, state }: { city: string; state: string }) => {
+  props.formData.location = city
+  props.formData.state = state
+}
 </script>
 
 <style scoped>

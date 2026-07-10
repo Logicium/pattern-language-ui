@@ -1,12 +1,16 @@
 import { ref, computed, watch } from 'vue'
 import { usePlaybooksStore } from '@/stores/playbooks'
+import { useAuthStore } from '@/stores/auth'
 import { usePatterns } from '@/composables/usePatterns'
 import { useStories } from '@/composables/useStories'
 import { useChallenges } from '@/composables/useChallenges'
 import { useResources } from '@/composables/useResources'
+import { normalizeStateCode, stateFromLocation } from '@/utils/states'
 
-export type ResourceTab = 'patterns' | 'stories' | 'challenges' | 'links'
+export type ResourceTab = 'patterns' | 'stories' | 'challenges' | 'local' | 'national' | 'all'
 export type ResourceType = 'pattern' | 'story' | 'challenge' | 'link'
+
+export const LINK_TABS: ResourceTab[] = ['local', 'national', 'all']
 
 export function useResourcesPage() {
   const { patterns: allPatterns } = usePatterns()
@@ -68,11 +72,39 @@ export function useResourcesPage() {
     )
   })
 
+  const authStore = useAuthStore()
+
+  // Local = town/county/state-level resources for the user's own state.
+  // Everything is compared as normalized 2-letter codes — never substrings,
+  // and tolerant of "Trinidad Colorado"-style freeform profile values.
+  const userStateCode = computed(() =>
+    normalizeStateCode(authStore.user?.state) ?? stateFromLocation(authStore.user?.location)
+  )
+
+  const linkStateCode = (l: any): string | null =>
+    normalizeStateCode(l.state) ?? stateFromLocation(l.location)
+
+  const isLocalLink = (l: any) => {
+    if (l.scope === 'national') return false
+    const linkState = linkStateCode(l)
+    if (!linkState || !userStateCode.value) return false
+    return linkState === userStateCode.value
+  }
+
+  const isNationalLink = (l: any) =>
+    l.scope === 'national' ||
+    (!l.scope && (l.category === 'Federal Resource' || l.category === 'Pattern Language Resource'))
+
+  const localLinks = computed(() => filteredLinks.value.filter(isLocalLink))
+  const nationalLinks = computed(() => filteredLinks.value.filter(isNationalLink))
+
   const tabCounts = computed(() => ({
     patterns: filteredPatterns.value.length,
     stories: filteredStories.value.length,
     challenges: filteredChallenges.value.length,
-    links: filteredLinks.value.length,
+    local: localLinks.value.length,
+    national: nationalLinks.value.length,
+    all: filteredLinks.value.length,
   }))
 
   const currentFilteredItems = computed(() => {
@@ -80,7 +112,9 @@ export function useResourcesPage() {
       case 'patterns': return filteredPatterns.value
       case 'stories': return filteredStories.value
       case 'challenges': return filteredChallenges.value
-      case 'links': return filteredLinks.value
+      case 'local': return localLinks.value
+      case 'national': return nationalLinks.value
+      case 'all': return filteredLinks.value
     }
   })
 

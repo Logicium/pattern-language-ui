@@ -1,9 +1,11 @@
 <template>
   <div class="stories-grid">
-    <div
-      v-for="story in stories"
+    <router-link
+      v-for="(story, index) in stories"
       :key="story.id"
-      class="story-card card"
+      :to="`/stories/${story.id}`"
+      class="story-card"
+      :data-accent="(index % 3) + 1"
     >
       <div class="story-visual" :style="{ backgroundColor: story.color }">
         <img
@@ -11,30 +13,41 @@
           :src="story.image"
           :alt="story.location"
           class="story-image"
+          loading="lazy"
         />
         <div class="color-overlay" :style="{ backgroundColor: story.color }"></div>
-        <div class="story-location text-xs">{{ story.location }}</div>
+        <div class="story-location">{{ story.location }}</div>
       </div>
+
       <div class="story-content">
-        <h3>{{ story.title }}</h3>
-        <div class="story-section">
-          <span class="story-label text-xs text-tertiary">Challenge</span>
-          <p class="text-sm text-secondary">{{ story.problem }}</p>
-        </div>
-        <div class="story-section">
-          <span class="story-label text-xs text-tertiary">Solution</span>
-          <p class="text-sm text-secondary">{{ story.solution }}</p>
-        </div>
-        <div class="story-patterns">
-          <span v-for="p in story.patterns" :key="p" class="tag text-xs text-secondary">
-            {{ p }}
+        <div class="label-row">
+          <span class="label-id">
+            <span class="accent-mark" aria-hidden="true"></span>
+            Story {{ String(story.id).padStart(2, '0') }}
           </span>
         </div>
-        <router-link :to="`/stories/${story.id}`" class="read-more-btn text-sm">
-          Read More <span class="chevron"></span>
-        </router-link>
+
+        <h3 class="card-title">{{ story.title }}</h3>
+
+        <p class="card-excerpt">{{ story.excerpt || story.problem }}</p>
+
+        <div class="card-tags">
+          <span
+            v-for="p in story.patterns.slice(0, 2)"
+            :key="p"
+            class="tag-chip"
+          >{{ p }}</span>
+          <span v-if="story.patterns.length > 2" class="tag-more">
+            +{{ story.patterns.length - 2 }}
+          </span>
+        </div>
+
+        <div class="card-foot">
+          <span class="foot-note">{{ story.patterns.length }} {{ story.patterns.length === 1 ? 'pattern' : 'patterns' }}</span>
+          <span class="view-note">Read Story</span>
+        </div>
       </div>
-    </div>
+    </router-link>
   </div>
 </template>
 
@@ -52,23 +65,31 @@ defineProps<{
 }
 
 .story-card {
-  overflow: hidden;
-  transition: transform 0.3s ease;
   display: flex;
   flex-direction: column;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--hairline);
+  text-decoration: none;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .story-card:hover {
-  transform: translateY(-4px);
+  background: #ffffff;
+  border-color: var(--hairline-strong);
 }
 
+/* ── Visual ── */
 .story-visual {
-  height: 280px;
+  height: 220px;
   position: relative;
   display: flex;
   align-items: flex-end;
-  padding: 2rem;
+  padding: 1.5rem;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .story-image {
@@ -91,69 +112,127 @@ defineProps<{
 }
 
 .story-location {
-  letter-spacing: 0.08em;
-  background: rgba(253, 251, 247, 0.95);
-  padding: 0.5rem 1rem;
-  backdrop-filter: blur(10px);
-  color: var(--color-text-primary);
   position: relative;
   z-index: 1;
+  padding: 0.45rem 0.85rem;
+  background: rgba(253, 251, 247, 0.95);
+  backdrop-filter: blur(10px);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
 }
 
+/* ── Content ── */
 .story-content {
-  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.75rem 2rem 1.75rem;
 }
 
-.story-content h3 {
-  font-size: 1.25rem;
-  margin-bottom: 2rem;
-  letter-spacing: -0.01em;
-  line-height: 1.4;
+.label-row {
+  display: flex;
+  align-items: center;
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-bottom: 1rem;
 }
 
-.story-section {
+.label-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.accent-mark {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+}
+
+.story-card[data-accent="1"] .accent-mark { background: var(--color-accent-1); }
+.story-card[data-accent="2"] .accent-mark { background: var(--color-accent-2); }
+.story-card[data-accent="3"] .accent-mark { background: var(--color-accent-3); }
+
+.card-title {
+  font-size: 1.375rem;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 0.75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-excerpt {
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+  margin: 0 0 1.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
-.story-label {
-  display: block;
-  letter-spacing: 0.1em;
+.tag-chip {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
-}
-
-.story-section p {
-  line-height: 1.7;
-}
-
-.story-patterns {
-  margin-top: 2rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.tag {
-  padding: 0.375rem 0.75rem;
-  border: 1px solid rgba(42, 42, 42, 0.1);
-  letter-spacing: 0.05em;
-}
-
-.read-more-btn {
-  display: inline-block;
-  margin-top: 1.5rem;
   color: var(--color-text-primary);
-  text-decoration: none;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.05em;
-  transition: all var(--transition-base);
-  border-bottom: 2px solid transparent;
+  white-space: nowrap;
 }
 
-.read-more-btn:hover {
-  color: var(--color-accent-1);
-  border-bottom-color: var(--color-accent-1);
+.story-card[data-accent="1"] .tag-chip { background: color-mix(in srgb, var(--color-accent-1) 24%, transparent); }
+.story-card[data-accent="2"] .tag-chip { background: color-mix(in srgb, var(--color-accent-2) 30%, transparent); }
+.story-card[data-accent="3"] .tag-chip { background: color-mix(in srgb, var(--color-accent-3) 24%, transparent); }
+
+.tag-more {
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
 }
+
+.card-foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--hairline);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.foot-note { color: var(--color-text-tertiary); }
+
+.view-note {
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--hairline-strong);
+  padding-bottom: 2px;
+  white-space: nowrap;
+  transition: border-color var(--transition-fast);
+}
+
+.story-card:hover .view-note { border-bottom-color: var(--color-text-primary); }
 
 @media (max-width: 1024px) {
   .stories-grid {

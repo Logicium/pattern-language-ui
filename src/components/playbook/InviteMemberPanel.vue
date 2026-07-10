@@ -1,10 +1,6 @@
 <template>
   <SlideInModal :model-value="modelValue" title="Invite Member" @update:model-value="$emit('update:modelValue', $event)">
     <div class="invite-member-content">
-      <button class="close-button" @click="$emit('update:modelValue', false)" title="Close">
-        <span class="chevron chevron--back"></span> Back
-      </button>
-
       <h2 class="modal-title">Invite Member</h2>
 
       <p class="text-sm text-secondary" style="margin-bottom: 20px;">
@@ -144,22 +140,6 @@ const sendEmailInvite = () => {
 .invite-member-content {
   padding: 3rem;
   position: relative;
-}
-
-.invite-member-content .close-button {
-  background: transparent;
-  border: none;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 300;
-  padding: 0;
-  margin-bottom: 2rem;
-  transition: color 0.2s;
-}
-
-.invite-member-content .close-button:hover {
-  color: var(--color-text-primary);
 }
 
 .invite-member-content .modal-title {

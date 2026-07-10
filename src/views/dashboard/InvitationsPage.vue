@@ -1,6 +1,7 @@
 <template>
   <div class="invitations-page">
     <section class="page-header gradient-bg">
+      <HeroBackdrop variant="ribbon" />
       <div class="container">
         <div class="header-content">
           <div class="header-text">
@@ -167,6 +168,7 @@
 </template>
 
 <script setup lang="ts">
+import HeroBackdrop from '@/components/hero/HeroBackdrop.vue'
 import { ref, computed } from 'vue'
 import InvitationCard from '@/components/invitations/InvitationCard.vue'
 import AppDropdown from '@/components/AppDropdown.vue'
@@ -175,7 +177,7 @@ import { useInvitationsPage } from '@/composables/useInvitationsPage'
 
 type InvitationsTab = 'received' | 'requests' | 'sent' | 'invite'
 
-const activeTab = ref<InvitationsTab>('received')
+const activeTab = ref<InvitationsTab>('invite')
 
 const {
   invitations, joinRequests, sentInvitations, myPlaybooks,
@@ -187,10 +189,10 @@ const {
 } = useInvitationsPage()
 
 const tabs = computed(() => [
+  { key: 'invite' as const, label: 'Invite Someone', count: null },
   { key: 'received' as const, label: 'Received', count: invitations.value.length },
   { key: 'requests' as const, label: 'Join Requests', count: joinRequests.value.length },
   { key: 'sent' as const, label: 'Sent', count: sentInvitations.value.length },
-  { key: 'invite' as const, label: 'Invite Someone', count: null },
 ])
 
 const playbookOptions = computed(() => [
@@ -307,12 +309,12 @@ const playbookOptions = computed(() => [
 }
 
 /* ── Invite tab: editorial split layout ─────────────────────────── */
+/* Spans the full container so its edges align with the tabs above */
 .invite-editorial {
   display: grid;
   grid-template-columns: 5fr 6fr;
   gap: 5rem;
-  max-width: 1080px;
-  margin: 2rem auto 0;
+  margin: 0;
   padding: 4rem;
   background: var(--color-bg-primary);
   border: 1px solid rgba(42, 42, 42, 0.08);

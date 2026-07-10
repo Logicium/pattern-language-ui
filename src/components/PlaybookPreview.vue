@@ -1,60 +1,58 @@
 <template>
   <div class="playbook-preview">
-    <div class="preview-header">
-      <div class="preview-icon">📋</div>
-      <div class="preview-title-section">
-        <h3 class="preview-title">{{ playbookTitle(playbook) }}</h3>
-        <p class="preview-subtitle text-xs text-tertiary">
-          Pattern {{ String(playbook.patternId).padStart(2, '0') }} — {{ playbook.patternTitle }}
-        </p>
-      </div>
+    <div class="label-row">
+      <span class="label-id">
+        <span class="accent-mark" aria-hidden="true"></span>
+        AI-Generated Playbook
+      </span>
+      <span class="label-meta">{{ playbook.tasks.length }} tasks</span>
     </div>
 
-    <div class="preview-content">
-      <div class="preview-row">
-        <span class="preview-label text-xs text-tertiary">Challenge</span>
-        <span class="preview-value text-sm">{{ playbook.challenge }}</span>
+    <h3 class="card-title">{{ playbookTitle(playbook) }}</h3>
+
+    <span class="pattern-chip">
+      Pattern {{ String(playbook.patternId).padStart(2, '0') }} — {{ playbook.patternTitle }}
+    </span>
+
+    <dl class="caption">
+      <div class="caption-row">
+        <dt>Challenge</dt>
+        <dd>{{ playbook.challenge }}</dd>
       </div>
-      <div class="preview-row">
-        <span class="preview-label text-xs text-tertiary">Location</span>
-        <span class="preview-value text-sm">{{ playbook.location }}</span>
+      <div class="caption-row">
+        <dt>Location</dt>
+        <dd>{{ playbook.location }}</dd>
       </div>
-      <div class="preview-row">
-        <span class="preview-label text-xs text-tertiary">Timeline</span>
-        <span class="preview-value text-sm">{{ formatDate(playbook.startDate) }} <span class="chevron"></span> {{ formatDate(playbook.targetCompletionDate) }}</span>
+      <div class="caption-row">
+        <dt>Timeline</dt>
+        <dd>{{ formatDate(playbook.startDate) }} — {{ formatDate(playbook.targetCompletionDate) }}</dd>
       </div>
-      <div class="preview-row">
-        <span class="preview-label text-xs text-tertiary">Tasks</span>
-        <span class="preview-value text-sm">{{ playbook.tasks.length }} actionable steps</span>
-      </div>
-    </div>
+    </dl>
 
     <div class="preview-tasks">
-      <span class="tasks-header text-xs text-tertiary">First 3 Tasks:</span>
+      <span class="tasks-header">First Steps</span>
       <ul class="tasks-list">
-        <li v-for="task in playbook.tasks.slice(0, 3)" :key="task.id" class="task-item text-sm">
-          {{ task.title }}
+        <li v-for="(task, i) in playbook.tasks.slice(0, 3)" :key="task.id" class="task-row">
+          <span class="task-mark" :data-accent="(i % 3) + 1" aria-hidden="true"></span>
+          <span class="task-text">{{ task.title }}</span>
         </li>
       </ul>
     </div>
 
-    <div class="preview-actions">
-      <button 
+    <div class="card-foot">
+      <button
         v-if="!added"
-        @click="handleAddToPlaybooks" 
-        class="add-button"
+        type="button"
+        class="action-link action-primary"
         :disabled="adding"
+        @click="handleAddToPlaybooks"
       >
-        <span v-if="adding">Adding...</span>
-        <span v-else>+ Add to My Playbooks</span>
+        {{ adding ? 'Adding…' : '+ Add to My Playbooks' }}
       </button>
-      
-      <div v-else class="added-message text-sm">
-        ✓ Added to your playbooks
-      </div>
+      <span v-else class="added-note">✓ Added to your playbooks</span>
 
-      <button type="button" class="view-full-button" @click="emit('viewFull', playbook)">
-        View full playbook
+      <button type="button" class="action-link action-muted" @click="emit('viewFull', playbook)">
+        View Full Playbook
       </button>
     </div>
   </div>
@@ -102,167 +100,190 @@ const formatDate = (dateString: string) => {
 
 <style scoped>
 .playbook-preview {
+  display: flex;
+  flex-direction: column;
   background: var(--color-bg-primary);
-  border: 1px solid rgba(42, 42, 42, 0.12);
-  border-left: 4px solid var(--color-accent-3);
-  padding: 1.5rem;
+  border: 1px solid var(--hairline);
+  padding: 2.25rem 2rem 1.75rem;
   margin: 1rem 0;
+  font-variant-numeric: tabular-nums;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.playbook-preview:hover {
+  background: #ffffff;
+  border-color: var(--hairline-strong);
+}
+
+.label-row {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
   gap: 1rem;
-}
-
-.preview-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.preview-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.preview-title-section {
-  flex: 1;
-}
-
-.preview-title {
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  margin-bottom: 0.25rem;
-  letter-spacing: -0.01em;
-}
-
-.preview-subtitle {
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  color: var(--color-text-tertiary);
+  margin-bottom: 1.5rem;
 }
 
-.preview-content {
-  display: flex;
-  flex-direction: column;
+.label-id {
+  display: inline-flex;
+  align-items: center;
   gap: 0.75rem;
-  padding: 1rem 0;
-  border-top: 1px solid rgba(42, 42, 42, 0.08);
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
 }
 
-.preview-row {
-  display: flex;
-  gap: 1rem;
+.accent-mark {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  background: var(--color-accent-3);
 }
 
-.preview-label {
-  min-width: 80px;
+.label-meta { white-space: nowrap; }
+
+.card-title {
+  font-size: 1.375rem;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+}
+
+.pattern-chip {
+  align-self: flex-start;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-accent-3) 24%, transparent);
+  margin-bottom: 1.5rem;
 }
 
-.preview-value {
-  flex: 1;
-  color: var(--color-text-secondary);
+.caption {
+  margin: 0 0 1.5rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.caption-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.caption-row dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.caption-row dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-normal);
+  text-align: right;
 }
 
 .preview-tasks {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  margin-bottom: 1.75rem;
 }
 
 .tasks-header {
+  display: block;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+  margin-bottom: 0.85rem;
 }
 
 .tasks-list {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 
-.task-item {
-  padding-left: 1.5rem;
-  position: relative;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
+.task-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
 }
 
-.task-item::before {
-  content: '↗';
-  position: absolute;
-  left: 0;
-  font-size: 1.6rem;
-  line-height: 0.9;
-  color: var(--color-accent-3);
-}
-
-.add-button {
-  padding: 1rem 1.5rem;
-  background: var(--color-accent-3);
-  color: var(--color-bg-primary);
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: all var(--transition-base);
-}
-
-.add-button:hover:not(:disabled) {
-  background: var(--color-accent-2);
+.task-mark {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
   transform: translateY(-1px);
 }
 
-.add-button:disabled {
-  opacity: 0.6;
+.task-mark[data-accent="1"] { background: var(--color-accent-1); }
+.task-mark[data-accent="2"] { background: var(--color-accent-2); }
+.task-mark[data-accent="3"] { background: var(--color-accent-3); }
+
+.task-text {
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.action-link {
+  background: none;
+  border: none;
+  padding: 0 0 2px;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.action-link:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.added-message {
-  padding: 1rem;
-  text-align: center;
-  color: var(--color-accent-2);
-  font-weight: var(--font-weight-medium);
-  background: rgba(184, 212, 200, 0.1);
-  border: 1px solid rgba(184, 212, 200, 0.3);
-}
-
-.preview-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: stretch;
-}
-
-.preview-actions .add-button,
-.preview-actions .added-message {
-  flex: 1 1 200px;
-}
-
-.view-full-button {
-  flex: 0 0 auto;
-  padding: 1rem 1.5rem;
-  background: transparent;
+.action-primary {
   color: var(--color-text-primary);
-  border: 1px solid rgba(42, 42, 42, 0.18);
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: all var(--transition-base);
+  border-bottom: 1px solid var(--color-text-primary);
 }
 
-.view-full-button:hover {
-  background: var(--color-bg-secondary);
-  transform: translateY(-1px);
+.action-primary:hover:not(:disabled) { opacity: 0.6; }
+
+.action-muted {
+  color: var(--color-text-tertiary);
+  border-bottom: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.action-muted:hover {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--hairline-strong);
+}
+
+.added-note {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent-2);
 }
 </style>

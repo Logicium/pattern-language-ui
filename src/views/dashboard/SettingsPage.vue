@@ -1,6 +1,7 @@
 <template>
   <div class="settings-page">
     <section class="page-header gradient-bg">
+      <HeroBackdrop variant="ribbon" />
       <div class="container">
         <h1 class="page-title">Settings</h1>
         <p class="text-sm text-secondary">Manage your account and preferences</p>
@@ -58,6 +59,7 @@
 </template>
 
 <script setup lang="ts">
+import HeroBackdrop from '@/components/hero/HeroBackdrop.vue'
 import { Toast, ConfirmModal, SlideInModal } from '@/components'
 import ProfileEditPage from './ProfileEditPage.vue'
 import SettingsAISection from '@/components/settings/SettingsAISection.vue'

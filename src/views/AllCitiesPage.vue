@@ -60,6 +60,7 @@
             :key="city.id"
             :city="city"
             :accent="(i % 3) + 1"
+            :maps-key="mapsKey"
           />
         </div>
       </div>
@@ -77,7 +78,7 @@ import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import PageHero from '@/components/layout/PageHero.vue'
 import CityCard from '@/components/city/CityCard.vue'
-import { citiesApi } from '@/services/api'
+import { citiesApi, configApi } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -90,6 +91,7 @@ const error = ref('')
 const addError = ref('')
 const search = ref('')
 const adding = ref(false)
+const mapsKey = ref('')
 
 const filtered = computed(() => {
   if (!search.value.trim()) return cities.value
@@ -125,6 +127,11 @@ async function addMyCity() {
 }
 
 onMounted(async () => {
+  // Map backdrops are decoration — never block or fail the page for them
+  configApi.getMapsKey()
+    .then(({ key }) => { mapsKey.value = key || '' })
+    .catch(() => { mapsKey.value = '' })
+
   try {
     cities.value = await citiesApi.getAll()
   } catch {
@@ -187,11 +194,9 @@ onMounted(async () => {
 .btn-add-city { margin-left: auto; white-space: nowrap; }
 .cities-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1px;
-  background: rgba(42, 42, 42, 0.08);
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
 }
-.cities-grid > * { background: var(--color-bg-primary); }
 .state-message { padding: 4rem 0; }
 .empty-state { padding: 4rem 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
 .empty-state a { color: var(--color-text-primary); }

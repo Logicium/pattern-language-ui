@@ -106,38 +106,48 @@
             </svg>
           </div>
 
-          <div v-if="section.id !== '__ungrouped__' && editingSectionId === section.id" class="section-title-edit">
-            <input
-              :value="editingSectionTitle"
-              @input="$emit('update:editingSectionTitle', ($event.target as HTMLInputElement).value)"
-              type="text"
-              class="section-title-input"
-              @keyup.enter="$emit('saveSectionEdit')"
-              @keyup.escape="$emit('cancelSectionEdit')"
-            />
-            <button @click="$emit('saveSectionEdit')" class="section-action-btn text-xs">Save</button>
-            <button @click="$emit('cancelSectionEdit')" class="section-action-btn text-xs">Cancel</button>
-          </div>
-          <h3 v-else class="phase-title text-xs text-tertiary">
-            {{ section.title.toUpperCase() }}
-          </h3>
-
-          <div v-if="isUserMember && section.id !== '__ungrouped__' && editingSectionId !== section.id" class="section-actions">
-            <button
-              @click="$emit('startEditingSection', section.id)"
-              class="section-icon-btn"
-              title="Rename section"
+          <Transition name="mode-blur" mode="out-in">
+            <div
+              v-if="section.id !== '__ungrouped__' && editingSectionId === section.id"
+              key="edit"
+              class="section-row"
             >
-              <Pencil :size="14" />
-            </button>
-            <button
-              @click="$emit('deleteSection', section.id)"
-              class="section-icon-btn section-icon-btn-danger"
-              title="Delete section"
-            >
-              <Trash2 :size="14" />
-            </button>
-          </div>
+              <input
+                :value="editingSectionTitle"
+                @input="$emit('update:editingSectionTitle', ($event.target as HTMLInputElement).value)"
+                type="text"
+                class="section-title-input"
+                @keyup.enter="$emit('saveSectionEdit')"
+                @keyup.escape="$emit('cancelSectionEdit')"
+              />
+              <!-- Save/Cancel live exactly where the edit icons were -->
+              <div class="section-actions">
+                <button @click="$emit('saveSectionEdit')" class="section-action-btn section-action-primary text-xs">Save</button>
+                <button @click="$emit('cancelSectionEdit')" class="section-action-btn text-xs">Cancel</button>
+              </div>
+            </div>
+            <div v-else key="view" class="section-row">
+              <h3 class="phase-title text-xs text-tertiary">
+                {{ section.title.toUpperCase() }}
+              </h3>
+              <div v-if="isUserMember && section.id !== '__ungrouped__'" class="section-actions">
+                <button
+                  @click="$emit('startEditingSection', section.id)"
+                  class="section-icon-btn"
+                  title="Rename section"
+                >
+                  <Pencil :size="14" />
+                </button>
+                <button
+                  @click="$emit('deleteSection', section.id)"
+                  class="section-icon-btn section-icon-btn-danger"
+                  title="Delete section"
+                >
+                  <Trash2 :size="14" />
+                </button>
+              </div>
+            </div>
+          </Transition>
         </div>
 
         <!-- Task Container — SortableJS init via onMounted + querySelectorAll -->
@@ -479,11 +489,17 @@ onBeforeUnmount(() => {
   color: var(--color-text-primary);
   border-color: var(--color-text-secondary);
 }
-.section-title-edit {
+.section-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   flex: 1;
+  min-width: 0;
+}
+
+.section-action-primary {
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
 }
 .section-title-input {
   flex: 1;

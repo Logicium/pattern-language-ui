@@ -1,6 +1,7 @@
 <template>
   <div class="stories-page">
     <section class="page-header gradient-bg">
+      <HeroBackdrop variant="ribbon" />
       <div class="container">
         <h1 class="page-title">Success Stories</h1>
         <p class="text-sm text-secondary">Your completed implementations and generated stories</p>
@@ -103,6 +104,7 @@
 </template>
 
 <script setup lang="ts">
+import HeroBackdrop from '@/components/hero/HeroBackdrop.vue'
 import { Toast } from '@/components'
 import DashboardStoryCard from '@/components/dashboard-stories/DashboardStoryCard.vue'
 import CompletedPlaybookCard from '@/components/dashboard-stories/CompletedPlaybookCard.vue'

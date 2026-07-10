@@ -1,6 +1,7 @@
 <template>
   <div class="playbooks-page">
     <section class="page-header gradient-bg">
+      <HeroBackdrop variant="ribbon" />
       <div class="container">
         <div class="header-content">
           <div class="header-text">
@@ -65,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+import HeroBackdrop from '@/components/hero/HeroBackdrop.vue'
 import { computed } from 'vue'
 import PlaybookCard from '@/components/playbooks/PlaybookCard.vue'
 import { usePlaybooksPage } from '@/composables/usePlaybooksPage'

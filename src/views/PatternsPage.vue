@@ -4,6 +4,7 @@
 
     <PageHero
       title="Pattern Library"
+      variant="lattice"
       :subtitle="`${allPatterns.length} modular solutions for rural revitalization.<br>Mix, match, and adapt to your community's needs.`"
     />
 

@@ -19,13 +19,11 @@
     
     <div class="form-group">
       <label class="form-label text-xs text-tertiary">Community Name</label>
-      <input
-        :value="formData.communityName"
-        @input="update('communityName', ($event.target as HTMLInputElement).value)"
-        type="text"
-        placeholder="e.g., Trinidad, Colorado"
-        class="form-input"
-        required
+      <CityInput
+        :model-value="formData.communityName"
+        placeholder="Start typing your town..."
+        @update:model-value="update('communityName', $event)"
+        @select="onCitySelect"
       />
     </div>
 
@@ -149,6 +147,7 @@ import { US_STATES, WICKED_CHALLENGES } from '@/utils/constants'
 import type { SignupFormData } from '@/composables/useSignupForm'
 import AppCheckbox from '@/components/AppCheckbox.vue'
 import AppDropdown from '@/components/AppDropdown.vue'
+import CityInput from '@/components/CityInput.vue'
 
 const props = defineProps<{
   formData: SignupFormData
@@ -166,6 +165,11 @@ const wickedChallenges = WICKED_CHALLENGES
 
 const update = (key: keyof SignupFormData, value: any) => {
   emit('update:formData', { ...props.formData, [key]: value })
+}
+
+// Selecting a city fills the state dropdown too, keeping town and state clean
+const onCitySelect = ({ city, state }: { city: string; state: string }) => {
+  emit('update:formData', { ...props.formData, communityName: city, state })
 }
 
 const toggleChallenge = (challenge: string) => {

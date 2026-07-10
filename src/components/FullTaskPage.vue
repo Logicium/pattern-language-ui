@@ -1,8 +1,6 @@
 <template>
   <SlideInModal v-model="isOpen" title="Task Details">
     <div v-if="task && playbook" class="full-task-page">
-      <button class="close-button" @click="isOpen = false" title="Close"><span class="chevron chevron--back"></span> Back</button>
-
       <TaskHeader
         :task="task"
         :is-editing-task="isEditingTask"
@@ -137,27 +135,5 @@ const handleSaveEditComment = (commentId: number, content: string) => { editComm
 .full-task-page {
   padding: 3rem;
   position: relative;
-}
-
-.close-button {
-  background: transparent;
-  border: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-normal);
-  font-size: 0.875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: color var(--transition-base);
-  padding: 0;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.close-button:hover {
-  color: var(--color-text-primary);
 }
 </style>

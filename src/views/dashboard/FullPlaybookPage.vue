@@ -44,7 +44,11 @@
               />
 
               <!-- Summary -->
-              <PlaybookSummary :playbook="playbook" />
+              <PlaybookSummary
+                :playbook="playbook"
+                :is-user-member="isUserMember"
+                @update-summary="saveSummary"
+              />
 
               <!-- KPIs -->
               <PlaybookKpis
@@ -108,12 +112,7 @@
               <PlaybookNotes
                 :playbook="playbook"
                 :is-user-member="isUserMember"
-                :is-editing-notes="isEditingNotes"
-                :editable-notes="editableNotes"
-                @start-editing-notes="startEditingNotes"
-                @update:editable-notes="editableNotes = $event"
-                @save-notes="saveNotes"
-                @cancel-editing-notes="cancelEditingNotes"
+                @save-notes="saveNotesInPlace"
               />
 
               <!-- Resources -->
@@ -292,9 +291,6 @@
     <!-- Pattern Slide-In Modal -->
     <SlideInModal v-model="showPatternModal">
       <div v-if="selectedPattern" class="pattern-modal-content">
-        <button class="close-button" @click="showPatternModal = false" title="Close">
-          <span class="chevron chevron--back"></span> Back
-        </button>
         <FullPatternPage :patternData="selectedPattern" :isModal="true" />
       </div>
     </SlideInModal>
@@ -302,9 +298,6 @@
     <!-- Challenge Slide-In Modal -->
     <SlideInModal v-model="showChallengeModal">
       <div v-if="selectedChallenge" class="challenge-modal-content">
-        <button class="close-button" @click="showChallengeModal = false" title="Close">
-          <span class="chevron chevron--back"></span> Back
-        </button>
         <FullChallengePage :challengeData="selectedChallenge" :isModal="true" />
       </div>
     </SlideInModal>
@@ -445,11 +438,6 @@ const {
 
 // Notes & Resources
 const {
-  isEditingNotes,
-  editableNotes,
-  startEditingNotes,
-  cancelEditingNotes,
-  saveNotes,
   isEditingResources,
   showDeleteResourceModal,
   startEditingResources,
@@ -483,6 +471,33 @@ const saveTitle = async (title: string) => {
     toastMessage.value = 'Failed to save title'
     showToast.value = true
   }
+}
+
+// In-place summary edits: autosave the touched field on blur
+const saveSummary = async (
+  field: 'problem' | 'approach' | 'success90Days' | 'solution',
+  value: string,
+) => {
+  if (!playbook.value) return
+  try {
+    if (field === 'solution') {
+      await playbooksStore.updatePlaybook(playbook.value.id, { solution: value })
+    } else {
+      await playbooksStore.updatePlaybook(playbook.value.id, {
+        summary: { ...playbook.value.summary, [field]: value },
+      })
+    }
+  } catch (error) {
+    console.error('Failed to save summary:', error)
+    toastMessage.value = 'Failed to save summary'
+    showToast.value = true
+  }
+}
+
+// In-place notes edit: autosave on blur
+const saveNotesInPlace = (value: string) => {
+  if (!playbook.value) return
+  playbooksStore.updatePlaybookNotes(playbook.value.id, value)
 }
 </script>
 
@@ -567,30 +582,6 @@ const saveTitle = async (title: string) => {
 .challenge-modal-content {
   padding: 0;
   min-height: 100vh;
-}
-
-.pattern-modal-content .close-button,
-.challenge-modal-content .close-button {
-  position: absolute;
-  top: 2rem;
-  left: 3rem;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #e0e0e0;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 400;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: all 0.2s;
-  z-index: 10;
-}
-
-.pattern-modal-content .close-button:hover,
-.challenge-modal-content .close-button:hover {
-  background: white;
-  color: var(--color-text-primary);
-  border-color: #2c2c2c;
 }
 
 @media (max-width: 768px) {

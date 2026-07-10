@@ -1,6 +1,7 @@
 <template>
   <div class="resources-page">
     <section class="page-header gradient-bg">
+      <HeroBackdrop variant="ribbon" />
       <div class="container">
         <div class="header-content">
           <div class="header-text">
@@ -66,9 +67,6 @@
 
     <SlideInModal v-model="showDetailModal">
       <div class="detail-modal-wrapper">
-        <button class="detail-close" @click="showDetailModal = false" aria-label="Close">
-          <X :size="20" />
-        </button>
         <FullPatternPage
           v-if="detailType === 'patterns' && detailResource"
           :pattern-data="detailResource"
@@ -90,8 +88,8 @@
 </template>
 
 <script setup lang="ts">
+import HeroBackdrop from '@/components/hero/HeroBackdrop.vue'
 import { ref } from 'vue'
-import { X } from 'lucide-vue-next'
 import Pagination from '@/components/Pagination.vue'
 import ResourceCardGrid from '@/components/resources/ResourceCardGrid.vue'
 import ResourceAddModal from '@/components/resources/ResourceAddModal.vue'
@@ -112,7 +110,9 @@ const tabs: { key: ResourceTab; label: string }[] = [
   { key: 'patterns', label: 'Patterns' },
   { key: 'stories', label: 'Stories' },
   { key: 'challenges', label: 'Challenges' },
-  { key: 'links', label: 'Links' },
+  { key: 'local', label: 'Local' },
+  { key: 'national', label: 'National' },
+  { key: 'all', label: 'All' },
 ]
 
 const showDetailModal = ref(false)
@@ -229,29 +229,6 @@ function openResource(resource: any, type: ResourceTab) {
   min-height: 100%;
 }
 
-.detail-close {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10002;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(42, 42, 42, 0.12);
-  background: var(--color-bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--color-text-primary);
-  transition: background 160ms ease, transform 160ms ease;
-  box-shadow: 0 4px 12px rgba(42, 42, 42, 0.12);
-}
-
-.detail-close:hover {
-  background: var(--color-bg-secondary);
-  transform: scale(1.05);
-}
 
 @media (max-width: 768px) {
   .page-header { padding: 2rem var(--container-padding); }

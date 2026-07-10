@@ -40,6 +40,65 @@
   padding: 0;
 }
 
+/* Allow height/width transitions to and from intrinsic keywords (auto),
+   so expanding cards animate instead of snapping (progressive enhancement). */
+:root {
+  interpolate-size: allow-keywords;
+}
+
+/* Dashboard page headers carry a decorative ribbon canvas behind their content */
+.page-header.gradient-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header.gradient-bg .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dashboard chrome: page headers share one fixed height with the sidebar's
+   brand section, and extend left underneath the translucent sidebar so the
+   gradient shows through its blur. */
+:root {
+  --dash-header-height: 170px;
+}
+
+@media (min-width: 769px) {
+  .dashboard-layout { --sidebar-width: 220px; }
+  .dashboard-layout.sidebar-collapsed { --sidebar-width: 72px; }
+
+  @media (max-width: 1024px) {
+    .dashboard-layout { --sidebar-width: 200px; }
+    .dashboard-layout.sidebar-collapsed { --sidebar-width: 72px; }
+  }
+
+  section.page-header.gradient-bg {
+    min-height: var(--dash-header-height);
+    display: flex;
+    align-items: center;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    margin-left: calc(-1 * var(--sidebar-width, 0px));
+    padding-left: calc(var(--container-padding) + var(--sidebar-width, 0px));
+    transition: margin-left var(--transition-base), padding-left var(--transition-base);
+  }
+
+  section.page-header.gradient-bg > .container { flex: 1; }
+}
+
+/* Shared fade/blur swap for in-place mode switches (view <-> edit controls) */
+.mode-blur-enter-active,
+.mode-blur-leave-active {
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+
+.mode-blur-enter-from,
+.mode-blur-leave-to {
+  opacity: 0;
+  filter: blur(6px);
+}
+
 body {
   font-family: var(--font-family);
   background: var(--color-bg-primary);

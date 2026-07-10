@@ -89,9 +89,6 @@
       </section>
 
       <SlideInModal v-model="showMemberModal" sidebar-width="0px">
-        <div class="modal-close-bar">
-          <button class="modal-close-btn" @click="showMemberModal = false">✕</button>
-        </div>
         <ProfilePage
           v-if="memberProfile"
           :profile="memberProfile"
@@ -395,9 +392,6 @@
         </section>
 
         <SlideInModal v-model="showChallengeModal" sidebar-width="0px">
-          <div class="modal-close-bar">
-            <button class="modal-close-btn" @click="showChallengeModal = false">✕</button>
-          </div>
           <FullChallengePage
             v-if="selectedChallengeId"
             :challenge-data="selectedChallenge"
@@ -677,9 +671,6 @@ const prosperityStatusClass = computed(() => {
 .score-number { font-size: 4rem; font-weight: var(--font-weight-light); letter-spacing: -0.04em; }
 .score-bar-lg { height: 6px; background: rgba(42, 42, 42, 0.1); max-width: 360px; }
 .score-fill-lg { height: 100%; background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2), var(--color-accent-3)); transition: width 0.6s ease; }
-.modal-close-bar { display: flex; justify-content: flex-end; padding: 1.5rem 2rem 0; position: sticky; top: 0; z-index: 10; background: var(--color-bg-primary); }
-.modal-close-btn { background: none; border: 1px solid rgba(42, 42, 42, 0.12); color: var(--color-text-secondary); font-size: 1rem; cursor: pointer; padding: 0.5rem 0.75rem; transition: all var(--transition-fast); font-family: var(--font-family); }
-.modal-close-btn:hover { color: var(--color-text-primary); border-color: var(--color-text-primary); }
 .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1px; background: rgba(42, 42, 42, 0.06); }
 .member-btn { all: unset; cursor: pointer; display: block; width: 100%; transition: opacity var(--transition-fast); }
 .member-btn:hover { opacity: 0.7; }

@@ -1,15 +1,7 @@
 <template>
   <aside class="dashboard-sidebar" :class="{ 'is-open': isOpen, 'is-collapsed': collapsed }">
     <div class="sidebar-header">
-      <BrandLogo to="/" :size="65" word="PATTERN LANGUAGE" word-size="0.78rem" class="sidebar-brand" />
-      <button
-        type="button"
-        class="collapse-toggle"
-        :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-        @click="toggle"
-      >
-        <component :is="collapsed ? ChevronRight : ChevronLeft" :size="14" />
-      </button>
+      <BrandLogo to="/" :size="48" word="PATTERN LANGUAGE" word-size="0.78rem" class="sidebar-brand" />
     </div>
 
     <nav class="sidebar-nav">
@@ -36,19 +28,25 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-details">
-          <div class="user-name">{{ userName }}</div>
-          <button
-            type="button"
-            class="logout-btn"
-            :title="collapsed ? 'Logout' : undefined"
-            @click="$emit('logout')"
-          >
-            <LogOut :size="16" />
-            <span class="logout-label">Logout</span>
-          </button>
-        </div>
+      <div class="user-name">{{ userName }}</div>
+      <div class="footer-actions">
+        <button
+          type="button"
+          class="footer-btn logout-btn"
+          :title="collapsed ? 'Logout' : undefined"
+          @click="$emit('logout')"
+        >
+          <LogOut :size="16" />
+          <span class="logout-label">Logout</span>
+        </button>
+        <button
+          type="button"
+          class="footer-btn collapse-toggle"
+          :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          @click="toggle"
+        >
+          <component :is="collapsed ? ChevronsRight : ChevronsLeft" :size="16" />
+        </button>
       </div>
     </div>
   </aside>
@@ -64,8 +62,8 @@ import {
   Layers,
   Settings,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-vue-next'
 import BrandLogo from '@/components/layout/BrandLogo.vue'
 import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
@@ -94,8 +92,12 @@ const navItems = computed(() => [
 </script>
 
 <style scoped>
+/* Translucent over the page-header gradient that extends beneath it,
+   blurred like the public navbar. */
 .dashboard-sidebar {
-  background: var(--color-bg-secondary);
+  background: color-mix(in srgb, var(--color-bg-secondary) 62%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid rgba(42, 42, 42, 0.08);
   display: flex;
   flex-direction: column;
@@ -110,23 +112,23 @@ const navItems = computed(() => [
 
 .dashboard-sidebar.is-collapsed { width: 72px; }
 
+/* Same height as the dashboard page headers so the bottom rules align. */
 .sidebar-header {
-  padding: 1.25rem 1rem 1rem;
+  height: var(--dash-header-height);
+  flex-shrink: 0;
+  padding: 0 1rem;
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  min-height: 90px;
-  position: relative;
   overflow: hidden;
+  transition: padding var(--transition-base);
 }
 
+/* Center the 48px mark inside 72px without a layout-mode jump */
 .dashboard-sidebar.is-collapsed .sidebar-header {
-  padding: 1.25rem 0.5rem 1rem;
-  justify-content: center;
+  padding: 0 0.75rem;
 }
 
-/* Brand: BrandLogo lays out as inline-flex mark + word. We allow the word to wrap to two lines so it never overflows the 220px sidebar. */
 .sidebar-brand {
   min-width: 0;
   align-items: center;
@@ -151,30 +153,6 @@ const navItems = computed(() => [
   margin-left: -0.625rem; /* cancels BrandLogo's gap so the mark sits centered */
 }
 
-/* Toggle: pinned to the top-right corner of the sidebar in BOTH states. */
-.collapse-toggle {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: var(--color-bg-secondary);
-  border: 1px solid rgba(42, 42, 42, 0.12);
-  border-radius: 50%;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  color: var(--color-text-secondary);
-  transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-base);
-  z-index: 2;
-}
-
-.collapse-toggle:hover {
-  color: var(--color-text-primary);
-  background: var(--color-bg-primary);
-}
-
 .sidebar-nav {
   flex: 1;
   padding: var(--spacing-md) 0;
@@ -183,6 +161,8 @@ const navItems = computed(() => [
   gap: 0.25rem;
 }
 
+/* Padding animates instead of switching justify-content, so icons glide
+   to their collapsed position rather than jumping. */
 .nav-item {
   display: flex;
   align-items: center;
@@ -192,9 +172,14 @@ const navItems = computed(() => [
   color: var(--color-text-secondary);
   font-size: 0.875rem;
   letter-spacing: 0.01em;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition: color var(--transition-fast), background var(--transition-fast), padding var(--transition-base);
   position: relative;
   white-space: nowrap;
+  overflow: hidden;
+}
+
+.dashboard-sidebar.is-collapsed .nav-item {
+  padding: 0.75rem 0 0.75rem 27px; /* (72px - 18px icon) / 2 */
 }
 
 .nav-item:hover { color: var(--color-text-primary); }
@@ -215,17 +200,6 @@ const navItems = computed(() => [
   stroke-width: 1.5;
 }
 
-.dashboard-sidebar.is-collapsed .nav-item {
-  justify-content: center;
-  padding: 0.75rem 0;
-}
-
-.dashboard-sidebar.is-collapsed .nav-label {
-  opacity: 0;
-  max-width: 0;
-  margin-left: -0.75rem;
-}
-
 .nav-label {
   font-size: 0.875rem;
   flex: 1;
@@ -234,6 +208,12 @@ const navItems = computed(() => [
   opacity: 1;
   max-width: 180px;
   transition: opacity 220ms ease, max-width 320ms ease, margin-left 320ms ease;
+}
+
+.dashboard-sidebar.is-collapsed .nav-label {
+  opacity: 0;
+  max-width: 0;
+  margin-left: -0.75rem;
 }
 
 .nav-badge {
@@ -258,33 +238,15 @@ const navItems = computed(() => [
   border-radius: 50%;
 }
 
+/* ── Footer: logout + collapse toggle live together at the bottom ── */
 .sidebar-footer {
   padding: var(--spacing-sm);
   border-top: 1px solid rgba(42, 42, 42, 0.08);
+  transition: padding var(--transition-base);
 }
 
 .dashboard-sidebar.is-collapsed .sidebar-footer {
   padding: var(--spacing-sm) 0.5rem;
-  display: flex;
-  justify-content: center;
-}
-
-.user-info { display: flex; align-items: center; width: 100%; }
-
-.dashboard-sidebar.is-collapsed .user-info {
-  width: auto;
-  justify-content: center;
-}
-
-.user-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.dashboard-sidebar.is-collapsed .user-details {
-  flex: 0 0 auto;
-  display: flex;
-  justify-content: center;
 }
 
 .user-name {
@@ -294,7 +256,7 @@ const navItems = computed(() => [
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.65rem;
   transition: opacity 220ms ease, max-height 320ms ease, margin-bottom 320ms ease;
   opacity: 1;
   max-height: 2rem;
@@ -307,7 +269,16 @@ const navItems = computed(() => [
   pointer-events: none;
 }
 
-.logout-btn {
+/* One row in both states — buttons never wrap or jump, labels collapse away */
+.footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.footer-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -317,9 +288,13 @@ const navItems = computed(() => [
   font-family: var(--font-family);
   font-size: 0.8125rem;
   cursor: pointer;
-  padding: 0;
+  padding: 0.4rem;
+  margin: -0.4rem 0;
   transition: color var(--transition-fast);
+  min-width: 0;
 }
+
+.footer-btn:hover { color: var(--color-text-primary); }
 
 .logout-label {
   transition: opacity 220ms ease, max-width 320ms ease;
@@ -334,18 +309,12 @@ const navItems = computed(() => [
   max-width: 0;
 }
 
-.logout-btn:hover { color: var(--color-text-primary); }
-
-.dashboard-sidebar.is-collapsed .logout-btn {
-  justify-content: center;
-  padding: 0.5rem;
-}
-
 @media (max-width: 768px) {
   .sidebar-header { display: none; }
 
   .dashboard-sidebar {
     width: 280px;
+    background: var(--color-bg-secondary);
     transform: translateX(-100%);
     transition: transform var(--transition-base);
     z-index: 999;
@@ -355,10 +324,13 @@ const navItems = computed(() => [
   .dashboard-sidebar.is-open { transform: translateX(0); }
   .dashboard-sidebar.is-collapsed { width: 280px; }
   .dashboard-sidebar.is-collapsed .nav-label,
-  .dashboard-sidebar.is-collapsed .user-name { display: block; }
-  .dashboard-sidebar.is-collapsed .nav-item { justify-content: flex-start; padding: 1rem var(--spacing-sm); }
-  .dashboard-sidebar.is-collapsed .sidebar-footer { padding: var(--spacing-sm); justify-content: flex-start; }
-  .dashboard-sidebar.is-collapsed .logout-btn { justify-content: flex-start; padding: 0; }
+  .dashboard-sidebar.is-collapsed .user-name { display: block; opacity: 1; max-width: none; max-height: none; }
+  .dashboard-sidebar.is-collapsed .nav-item { padding: 1rem var(--spacing-sm); }
+  .dashboard-sidebar.is-collapsed .sidebar-footer { padding: var(--spacing-sm); }
+  .dashboard-sidebar.is-collapsed .logout-label { opacity: 1; max-width: 80px; }
+
+  /* The collapse toggle is meaningless in the mobile drawer */
+  .collapse-toggle { display: none; }
 
   .nav-item { font-size: 1rem; padding: 1rem var(--spacing-sm); }
   .nav-label { font-size: 1rem; }
@@ -369,4 +341,3 @@ const navItems = computed(() => [
   .dashboard-sidebar { width: 200px; }
 }
 </style>
-

@@ -63,6 +63,8 @@ export interface Link {
   url: string
   description: string
   category?: string
+  scope?: string // 'town' | 'county' | 'state' | 'national'
+  state?: string
 }
 
 export interface ConstellationNode {

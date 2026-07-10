@@ -5,17 +5,6 @@
         <span class="accent-mark" aria-hidden="true"></span>
         Pattern {{ String(playbook.patternId).padStart(2, '0') }}
       </span>
-      <span v-if="index !== undefined" class="label-index">№ {{ String(index).padStart(2, '0') }}</span>
-    </div>
-
-    <h3 class="card-title">{{ playbookTitle(playbook) }}</h3>
-
-    <span class="pattern-chip">{{ playbook.patternTitle }}</span>
-
-    <div class="provenance-row">
-      <p class="card-provenance">
-        {{ playbook.location }}<template v-if="showCreator && playbook.user">&ensp;·&ensp;{{ playbook.user.name }}</template>
-      </p>
       <div v-if="memberList.length > 0" class="member-stack" :title="memberNames">
         <span
           v-for="member in memberList.slice(0, 4)"
@@ -26,6 +15,14 @@
         <span v-if="memberList.length > 4" class="member-more">+{{ memberList.length - 4 }}</span>
       </div>
     </div>
+
+    <h3 class="card-title">{{ playbookTitle(playbook) }}</h3>
+
+    <span class="pattern-chip">{{ playbook.patternTitle }}</span>
+
+    <p class="card-provenance">
+      {{ playbook.location }}<template v-if="showCreator && playbook.user">&ensp;·&ensp;{{ playbook.user.name }}</template>
+    </p>
 
     <dl class="caption">
       <div class="caption-row">
@@ -145,20 +142,12 @@ const memberNames = computed(() =>
 .playbook-card[data-accent="2"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-2) 30%, transparent); }
 .playbook-card[data-accent="3"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-3) 24%, transparent); }
 
-.provenance-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2.25rem;
-}
-
 .card-provenance {
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  margin: 0;
+  margin: 0 0 2.25rem;
 }
 
 .member-stack {
