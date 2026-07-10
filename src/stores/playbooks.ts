@@ -51,6 +51,7 @@ export interface Playbook {
   resources: Array<{ type: 'pattern' | 'story' | 'challenge' | 'link'; id: number; title: string; url?: string }>
   notes: string
   isPublic?: boolean // Collaboration feature
+  members?: any[] // Populated member records (user + role) for avatar stacks
 }
 
 export const usePlaybooksStore = defineStore('playbooks', () => {

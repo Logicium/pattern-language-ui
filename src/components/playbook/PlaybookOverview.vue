@@ -5,27 +5,35 @@
       <!-- Pattern & Challenge Grid -->
       <div class="overview-grid">
         <div class="overview-item">
-          <span class="section-label text-xs text-tertiary">Original Pattern</span>
-          <button 
-            @click="$emit('openPattern', playbook.patternId)" 
-            class="badge badge-pattern text-xs clickable-badge"
+          <span class="overview-label">
+            <span class="accent-mark" data-accent="1" aria-hidden="true"></span>
+            Original Pattern
+          </span>
+          <button
+            @click="$emit('openPattern', playbook.patternId)"
+            class="overview-chip"
+            data-accent="1"
           >
             {{ playbook.patternTitle }}
           </button>
         </div>
         <div class="overview-item">
-          <span class="section-label text-xs text-tertiary">{{ playbook.challenges && playbook.challenges.length > 0 ? 'Related Wicked Problems' : 'Challenge' }}</span>
+          <span class="overview-label">
+            <span class="accent-mark" data-accent="3" aria-hidden="true"></span>
+            {{ playbook.challenges && playbook.challenges.length > 0 ? 'Related Wicked Problems' : 'Challenge' }}
+          </span>
           <div class="challenges-list">
             <button
               v-if="playbook.challenges && playbook.challenges.length > 0"
-              v-for="challenge in playbook.challenges"
+              v-for="(challenge, i) in playbook.challenges"
               :key="challenge.id"
               @click="$emit('openChallenge', challenge.id)"
-              class="badge badge-challenge text-xs clickable-badge"
+              class="overview-chip"
+              :data-accent="((i + 2) % 3) + 1"
             >
               {{ challenge.title }}
             </button>
-            <div v-else class="badge badge-challenge text-xs">
+            <div v-else class="overview-chip" data-accent="3">
               {{ playbook.challenge }}
             </div>
           </div>
@@ -34,29 +42,11 @@
 
       <!-- Timeline -->
       <div class="overview-section">
-        <div class="timeline">
-          <div class="timeline-item">
-            <span class="timeline-label text-xs text-tertiary">STARTED</span>
-            <div class="timeline-value">
-              <div class="timeline-marker" data-accent="1"></div>
-              <p class="timeline-date text-sm">{{ formatDate(playbook.startDate) }}</p>
-            </div>
-          </div>
-          <div class="timeline-item">
-            <span class="timeline-label text-xs text-tertiary">TARGET COMPLETION</span>
-            <div class="timeline-value">
-              <div class="timeline-marker" data-accent="2"></div>
-              <p class="timeline-date text-sm">{{ formatDate(playbook.targetCompletionDate) }}</p>
-            </div>
-          </div>
-          <div v-if="playbook.completedDate" class="timeline-item">
-            <span class="timeline-label text-xs text-tertiary">COMPLETED</span>
-            <div class="timeline-value">
-              <div class="timeline-marker" data-accent="3"></div>
-              <p class="timeline-date text-sm">{{ formatDate(playbook.completedDate) }}</p>
-            </div>
-          </div>
-        </div>
+        <span class="overview-label">
+          <span class="accent-mark" data-accent="2" aria-hidden="true"></span>
+          Timeline
+        </span>
+        <PlaybookTimeline :playbook="playbook" />
       </div>
 
       <!-- Collaboration (moved to Team tab) -->
@@ -85,7 +75,8 @@
 </template>
 
 <script setup lang="ts">
-import { formatDate, getInitials } from '@/utils/formatters'
+import { getInitials } from '@/utils/formatters'
+import PlaybookTimeline from '@/components/playbook/PlaybookTimeline.vue'
 import type { PlaybookMember } from '@/types/collaboration'
 
 defineProps<{
@@ -129,10 +120,6 @@ defineEmits<{
   gap: 1rem;
 }
 
-.overview-item .badge {
-  align-self: flex-start;
-}
-
 .overview-item p {
   line-height: 1.7;
 }
@@ -143,13 +130,49 @@ defineEmits<{
   flex-wrap: wrap;
 }
 
-.clickable-badge {
-  cursor: pointer;
+/* Micro-caps label with the 8px accent square from the card language */
+.overview-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
 }
 
-.badge.clickable-badge:hover {
-  border-color: var(--color-accent-2);
+.accent-mark {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
 }
+
+.accent-mark[data-accent="1"] { background: var(--color-accent-1); }
+.accent-mark[data-accent="2"] { background: var(--color-accent-2); }
+.accent-mark[data-accent="3"] { background: var(--color-accent-3); }
+
+/* Tinted chips, identical to the playbook-card pattern chip */
+.overview-chip {
+  align-self: flex-start;
+  padding: 0.45rem 0.85rem;
+  border: none;
+  font-family: var(--font-family);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-fast);
+}
+
+button.overview-chip { cursor: pointer; }
+
+.overview-chip[data-accent="1"] { background: color-mix(in srgb, var(--color-accent-1) 24%, transparent); }
+.overview-chip[data-accent="2"] { background: color-mix(in srgb, var(--color-accent-2) 30%, transparent); }
+.overview-chip[data-accent="3"] { background: color-mix(in srgb, var(--color-accent-3) 24%, transparent); }
+
+button.overview-chip[data-accent="1"]:hover { background: color-mix(in srgb, var(--color-accent-1) 42%, transparent); }
+button.overview-chip[data-accent="2"]:hover { background: color-mix(in srgb, var(--color-accent-2) 50%, transparent); }
+button.overview-chip[data-accent="3"]:hover { background: color-mix(in srgb, var(--color-accent-3) 42%, transparent); }
 
 .challenges-list {
   display: flex;

@@ -12,9 +12,20 @@
 
     <span class="pattern-chip">{{ playbook.patternTitle }}</span>
 
-    <p class="card-provenance">
-      {{ playbook.location }}<template v-if="showCreator && playbook.user">&ensp;·&ensp;{{ playbook.user.name }}</template>
-    </p>
+    <div class="provenance-row">
+      <p class="card-provenance">
+        {{ playbook.location }}<template v-if="showCreator && playbook.user">&ensp;·&ensp;{{ playbook.user.name }}</template>
+      </p>
+      <div v-if="memberList.length > 0" class="member-stack" :title="memberNames">
+        <span
+          v-for="member in memberList.slice(0, 4)"
+          :key="member.id"
+          class="member-avatar"
+          :style="member.user?.profileImage ? { backgroundImage: `url(${member.user.profileImage})` } : undefined"
+        >{{ member.user?.profileImage ? '' : getInitials(member.user?.name || '?') }}</span>
+        <span v-if="memberList.length > 4" class="member-more">+{{ memberList.length - 4 }}</span>
+      </div>
+    </div>
 
     <dl class="caption">
       <div class="caption-row">
@@ -41,7 +52,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { playbookTitle } from '@/utils/formatters'
+import { playbookTitle, getInitials } from '@/utils/formatters'
 
 const props = defineProps<{
   playbook: any
@@ -53,6 +64,17 @@ const props = defineProps<{
 
 const tasksCompleted = computed(() =>
   props.playbook.tasks.filter((t: any) => t.completed).length
+)
+
+// Creator first, then collaborators; tolerates older cached data without members
+const memberList = computed(() => {
+  const members = props.playbook.members
+  if (!Array.isArray(members)) return []
+  return [...members].sort((a, b) => (a.role === 'creator' ? -1 : 0) - (b.role === 'creator' ? -1 : 0))
+})
+
+const memberNames = computed(() =>
+  memberList.value.map((m: any) => m.user?.name).filter(Boolean).join(', ')
 )
 </script>
 
@@ -123,12 +145,66 @@ const tasksCompleted = computed(() =>
 .playbook-card[data-accent="2"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-2) 30%, transparent); }
 .playbook-card[data-accent="3"] .pattern-chip { background: color-mix(in srgb, var(--color-accent-3) 24%, transparent); }
 
+.provenance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2.25rem;
+}
+
 .card-provenance {
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  margin: 0 0 2.25rem;
+  margin: 0;
+}
+
+.member-stack {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.member-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-bg-primary);
+  background-color: var(--color-bg-secondary);
+  background-size: cover;
+  background-position: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
+.member-avatar + .member-avatar,
+.member-avatar + .member-more {
+  margin-left: -8px;
+}
+
+.playbook-card[data-accent="1"] .member-avatar:not([style]) { background-color: color-mix(in srgb, var(--color-accent-1) 30%, var(--color-bg-primary)); }
+.playbook-card[data-accent="2"] .member-avatar:not([style]) { background-color: color-mix(in srgb, var(--color-accent-2) 36%, var(--color-bg-primary)); }
+.playbook-card[data-accent="3"] .member-avatar:not([style]) { background-color: color-mix(in srgb, var(--color-accent-3) 30%, var(--color-bg-primary)); }
+
+.member-more {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-bg-primary);
+  background: var(--color-bg-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
 }
 
 .caption {

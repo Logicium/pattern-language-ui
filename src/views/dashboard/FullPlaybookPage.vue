@@ -2,7 +2,7 @@
   <div class="full-playbook-page">
     <div v-if="playbook">
       <!-- Hero -->
-      <PlaybookHero :playbook="playbook" />
+      <PlaybookHero :playbook="playbook" :can-edit="isUserMember" @update-title="saveTitle" />
 
       <!-- Tab Navigation -->
       <div class="playbook-tabs-bar">
@@ -373,6 +373,7 @@ const {
   generateSuccessStory,
   handleDelete,
   refreshPlaybook,
+  playbooksStore,
 } = usePlaybookData()
 
 // Tasks
@@ -470,6 +471,18 @@ const onViewTask = (task: any) => {
 const onUpdateNotes = (taskId: string, value: string) => {
   taskNotes.value[taskId] = value
   saveTaskNotes(taskId)
+}
+
+// Inline hero-title edit: silently autosave the descriptive title
+const saveTitle = async (title: string) => {
+  if (!playbook.value) return
+  try {
+    await playbooksStore.updatePlaybook(playbook.value.id, { title })
+  } catch (error) {
+    console.error('Failed to save title:', error)
+    toastMessage.value = 'Failed to save title'
+    showToast.value = true
+  }
 }
 </script>
 
