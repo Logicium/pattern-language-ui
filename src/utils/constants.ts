@@ -77,4 +77,4 @@ export const WICKED_CHALLENGES = [
 
 // Max length for long free-text fields (bio, current work, goals).
 // Matches the backend DTO cap; DB columns are TEXT.
-export const LONG_TEXT_MAX = 2000
+export const LONG_TEXT_MAX = 10000

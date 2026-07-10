@@ -33,7 +33,7 @@
           type="text"
           placeholder="John"
           class="form-input"
-          required
+          :required="!isGoogleSignup"
         />
       </div>
       <div class="form-group">
@@ -44,7 +44,7 @@
           type="text"
           placeholder="Smith"
           class="form-input"
-          required
+          :required="!isGoogleSignup"
         />
       </div>
     </div>
@@ -57,11 +57,14 @@
         type="email"
         placeholder="you@example.com"
         class="form-input"
-        required
+        :required="!isGoogleSignup"
       />
     </div>
 
-    <div class="form-group">
+    <!-- Google-authenticated accounts have no password; removing the field
+         (not just hiding it) keeps native form validation from tripping on a
+         hidden required input ("not focusable") when submitting from step 2. -->
+    <div v-if="!isGoogleSignup" class="form-group">
       <label class="form-label text-xs text-tertiary">Password</label>
       <input
         :value="formData.password"

@@ -1,6 +1,6 @@
 <template>
-  <span class="char-count" :class="{ 'char-count--low': remaining <= 100 }">
-    {{ remaining.toLocaleString() }} {{ remaining === 1 ? 'character' : 'characters' }} left
+  <span class="char-count" :class="{ 'char-count--low': remaining <= 250 }">
+    {{ used.toLocaleString() }} / {{ max.toLocaleString() }}
   </span>
 </template>
 
@@ -15,7 +15,8 @@ const props = withDefaults(defineProps<{
   max: LONG_TEXT_MAX
 })
 
-const remaining = computed(() => Math.max(props.max - (props.value?.length ?? 0), 0))
+const used = computed(() => props.value?.length ?? 0)
+const remaining = computed(() => Math.max(props.max - used.value, 0))
 </script>
 
 <style scoped>
