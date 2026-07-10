@@ -19,7 +19,9 @@
         placeholder="Tell us about yourself..."
         class="form-textarea"
         rows="4"
+        :maxlength="LONG_TEXT_MAX"
       ></textarea>
+      <CharCount :value="formData.bio" />
     </div>
 
     <div class="form-row">
@@ -46,9 +48,10 @@
 
 <script setup lang="ts">
 import type { ProfileData } from '@/composables/useProfileEdit'
-import { US_STATES } from '@/utils/constants'
+import { US_STATES, LONG_TEXT_MAX } from '@/utils/constants'
 import AppDropdown from '@/components/AppDropdown.vue'
 import CityInput from '@/components/CityInput.vue'
+import CharCount from '@/components/CharCount.vue'
 
 const props = defineProps<{ formData: ProfileData }>()
 

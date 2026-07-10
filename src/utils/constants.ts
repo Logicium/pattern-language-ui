@@ -74,3 +74,7 @@ export const WICKED_CHALLENGES = [
   'Environmental Degradation',
   'Institutional Breakdown'
 ]
+
+// Max length for long free-text fields (bio, current work, goals).
+// Matches the backend DTO cap; DB columns are TEXT.
+export const LONG_TEXT_MAX = 2000

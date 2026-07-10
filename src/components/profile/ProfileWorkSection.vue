@@ -13,7 +13,9 @@
           placeholder="Tell us about initiatives, projects, or ideas you're exploring..."
           class="form-textarea"
           rows="4"
+          :maxlength="LONG_TEXT_MAX"
         ></textarea>
+        <CharCount :value="formData.currentWork" />
       </div>
 
       <div class="form-group">
@@ -25,7 +27,9 @@
           placeholder="Describe your vision for your community's future..."
           class="form-textarea"
           rows="4"
+          :maxlength="LONG_TEXT_MAX"
         ></textarea>
+        <CharCount :value="formData.goals" />
       </div>
     </div>
 
@@ -68,8 +72,9 @@
 
 <script setup lang="ts">
 import type { ProfileData } from '@/composables/useProfileEdit'
-import { WICKED_CHALLENGES } from '@/utils/constants'
+import { WICKED_CHALLENGES, LONG_TEXT_MAX } from '@/utils/constants'
 import AppCheckbox from '@/components/AppCheckbox.vue'
+import CharCount from '@/components/CharCount.vue'
 
 const props = defineProps<{ formData: ProfileData }>()
 
