@@ -108,13 +108,6 @@
             <span class="action-label text-xs">{{ isGenerating ? 'Generating...' : 'Generate Story' }}</span>
           </button>
           <button
-            @click="$emit('togglePause')"
-            class="action-card"
-          >
-            <span class="action-icon">{{ playbook.status === 'paused' ? '▶' : '⏸' }}</span>
-            <span class="action-label text-xs">{{ playbook.status === 'paused' ? 'Resume' : 'Pause' }}</span>
-          </button>
-          <button
             v-if="userRole === 'creator'"
             @click="$emit('showDelete')"
             class="action-card action-danger"
@@ -166,7 +159,6 @@ defineEmits<{
   togglePublish: []
   markComplete: []
   generateStory: []
-  togglePause: []
   showDelete: []
   requestJoin: []
   leave: []

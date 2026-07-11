@@ -1,5 +1,6 @@
 <template>
   <div class="playbook-full-preview">
+    <ModalBackButton overlay label="Back to Chat" @back="$emit('close')" />
     <PlaybookHero :playbook="playbook" />
 
     <section class="section preview-content">
@@ -66,6 +67,7 @@
 <script setup lang="ts">
 import PlaybookHero from './PlaybookHero.vue'
 import PlaybookSummary from './PlaybookSummary.vue'
+import ModalBackButton from '@/components/ModalBackButton.vue'
 import type { Playbook } from '@/stores/playbooks'
 
 defineProps<{ playbook: Playbook }>()

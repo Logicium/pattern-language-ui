@@ -41,7 +41,7 @@ export interface Playbook {
     currentProgress?: string // Can be a number or fraction (e.g., "5/10")
   }>
   location: string
-  status: 'active' | 'completed' | 'paused'
+  status: 'active' | 'completed'
   progress: number // 0-100
   startDate: string
   targetCompletionDate: string
@@ -131,17 +131,14 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     localStorage.removeItem('playbooks')
   }
 
-  // Computed
+  // Computed — anything not completed counts as active, which also absorbs
+  // legacy rows from the removed "paused" feature.
   const activePlaybooks = computed(() =>
-    playbooks.value.filter((p) => p.status === 'active')
+    playbooks.value.filter((p) => p.status !== 'completed')
   )
 
   const completedPlaybooks = computed(() =>
     playbooks.value.filter((p) => p.status === 'completed')
-  )
-
-  const pausedPlaybooks = computed(() =>
-    playbooks.value.filter((p) => p.status === 'paused')
   )
 
   // Local Actions (keep existing functionality)
@@ -303,7 +300,6 @@ export const usePlaybooksStore = defineStore('playbooks', () => {
     lastFetched,
     activePlaybooks,
     completedPlaybooks,
-    pausedPlaybooks,
     fetchPlaybooks,
     getPlaybookById,
     clearCache,

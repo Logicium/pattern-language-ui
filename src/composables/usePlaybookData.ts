@@ -109,15 +109,6 @@ export function usePlaybookData() {
     }
   }
 
-  const togglePause = () => {
-    if (playbook.value) {
-      const newStatus = playbook.value.status === 'paused' ? 'active' : 'paused'
-      playbooksStore.updatePlaybook(playbook.value.id, {
-        status: newStatus as 'active' | 'paused'
-      })
-    }
-  }
-
   const generateSuccessStory = async () => {
     if (!playbook.value || typeof playbook.value.id !== 'number') return
     isGenerating.value = true
@@ -200,7 +191,6 @@ export function usePlaybookData() {
     openPatternModal,
     openChallengeModal,
     markComplete,
-    togglePause,
     generateSuccessStory,
     handleDelete,
     refreshPlaybook,

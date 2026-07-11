@@ -88,8 +88,9 @@
     </section>
 
     <!-- Product preview panel -->
-    <SlideInModal v-model="showPreview" sidebar-width="0px" back-label="Back to the collection">
+    <SlideInModal v-model="showPreview" sidebar-width="0px">
       <div v-if="previewItem" class="preview-panel">
+        <ModalBackButton class="panel-back" label="Back to the Collection" @back="showPreview = false" />
         <div class="preview-layout">
           <div class="preview-media">
             <img
@@ -138,7 +139,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Navbar, Footer, PageHero, SlideInModal } from '@/components'
+import { Navbar, Footer, PageHero, SlideInModal, ModalBackButton } from '@/components'
 
 const SHOPIFY_DOMAIN = import.meta.env.VITE_SHOPIFY_DOMAIN as string | undefined
 const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN as string | undefined
@@ -471,6 +472,10 @@ onMounted(async () => {
 /* ─────────────── Preview panel ─────────────── */
 .preview-panel {
   padding: 2rem 3rem 5rem;
+}
+
+.panel-back {
+  margin-bottom: 1rem;
 }
 
 .preview-layout {

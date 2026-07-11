@@ -169,7 +169,8 @@
 
 <script setup lang="ts">
 import HeroBackdrop from '@/components/hero/HeroBackdrop.vue'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { useRouteTab } from '@/composables/useRouteTab'
 import InvitationCard from '@/components/invitations/InvitationCard.vue'
 import AppDropdown from '@/components/AppDropdown.vue'
 import { LoadingState } from '@/components'
@@ -177,7 +178,7 @@ import { useInvitationsPage } from '@/composables/useInvitationsPage'
 
 type InvitationsTab = 'received' | 'requests' | 'sent' | 'invite'
 
-const activeTab = ref<InvitationsTab>('invite')
+const activeTab = useRouteTab<InvitationsTab>(['invite', 'received', 'requests', 'sent'], 'invite')
 
 const {
   invitations, joinRequests, sentInvitations, myPlaybooks,

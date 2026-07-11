@@ -1,12 +1,13 @@
 import { ref, computed, watch } from 'vue'
 import { usePatterns } from '@/composables/usePatterns'
+import { useRoutePage } from '@/composables/useRoutePage'
 
 export function usePatternsPage() {
   const { patterns: allPatterns, loading, error } = usePatterns()
 
   const searchQuery = ref('')
   const activeFilters = ref<string[]>([])
-  const currentPage = ref(1)
+  const currentPage = useRoutePage()
   const itemsPerPage = ref(12)
   const perPageOptions = [9, 12, 15, 24]
 

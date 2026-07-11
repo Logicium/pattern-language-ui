@@ -21,12 +21,6 @@
   color: var(--color-accent-2);
 }
 
-.status-paused {
-  background: rgba(42, 42, 42, 0.05);
-  border-color: rgba(42, 42, 42, 0.2);
-  color: var(--color-text-secondary);
-}
-
 /* Progress Bars */
 .progress-info {
   display: flex;

@@ -2,7 +2,10 @@
   <div class="full-playbook-page">
     <div v-if="playbook">
       <!-- Hero -->
-      <PlaybookHero :playbook="playbook" :can-edit="isUserMember" @update-title="saveTitle" />
+      <div class="hero-wrap">
+        <ModalBackButton overlay label="All Playbooks" @back="goBack" />
+        <PlaybookHero :playbook="playbook" :can-edit="isUserMember" @update-title="saveTitle" />
+      </div>
 
       <!-- Tab Navigation -->
       <div class="playbook-tabs-bar">
@@ -148,7 +151,6 @@
                 @toggle-publish="togglePublishState"
                 @mark-complete="markComplete"
                 @generate-story="generateSuccessStory"
-                @toggle-pause="togglePause"
                 @show-delete="showDeleteModal = true"
                 @request-join="requestToJoin"
                 @leave="leavePlaybook"
@@ -291,6 +293,7 @@
     <!-- Pattern Slide-In Modal -->
     <SlideInModal v-model="showPatternModal">
       <div v-if="selectedPattern" class="pattern-modal-content">
+        <ModalBackButton overlay @back="showPatternModal = false" />
         <FullPatternPage :patternData="selectedPattern" :isModal="true" />
       </div>
     </SlideInModal>
@@ -298,6 +301,7 @@
     <!-- Challenge Slide-In Modal -->
     <SlideInModal v-model="showChallengeModal">
       <div v-if="selectedChallenge" class="challenge-modal-content">
+        <ModalBackButton overlay @back="showChallengeModal = false" />
         <FullChallengePage :challengeData="selectedChallenge" :isModal="true" />
       </div>
     </SlideInModal>
@@ -306,7 +310,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ConfirmModal, Toast, LoadingState } from '@/components'
+import { ConfirmModal, Toast, LoadingState, ModalBackButton } from '@/components'
 import FullTaskPage from '@/components/FullTaskPage.vue'
 import SlideInModal from '@/components/SlideInModal.vue'
 import FullPatternPage from '@/views/FullPatternPage.vue'
@@ -324,6 +328,9 @@ import PlaybookDiscussionTab from '@/components/playbook/PlaybookDiscussionTab.v
 import PlaybookActivityTab from '@/components/playbook/PlaybookActivityTab.vue'
 import PlaybookCalendarTab from '@/components/playbook/PlaybookCalendarTab.vue'
 
+import { useRouter } from 'vue-router'
+import { useRouteTab } from '@/composables/useRouteTab'
+import { PLAYBOOKS_LAST_TAB_KEY } from '@/composables/usePlaybooksPage'
 import { usePlaybookData } from '@/composables/usePlaybookData'
 import { usePlaybookTasks } from '@/composables/usePlaybookTasks'
 import { usePlaybookKpis } from '@/composables/usePlaybookKpis'
@@ -331,12 +338,15 @@ import { usePlaybookCollaboration } from '@/composables/usePlaybookCollaboration
 import { usePlaybookNotes } from '@/composables/usePlaybookNotes'
 import type { Task } from '@/types/collaboration'
 
-// Tabs
-const activeTab = ref<'playbook' | 'calendar' | 'collaboration' | 'discussion' | 'activity'>('playbook')
+// Tabs — synced to ?tab= so refresh and browser back keep the user's place
+const activeTab = useRouteTab(
+  ['playbook', 'calendar', 'collaboration', 'discussion', 'activity'] as const,
+  'playbook',
+)
 const tabs = [
   { id: 'playbook' as const, label: 'Playbook' },
-  { id: 'calendar' as const, label: 'Calendar' },
   { id: 'collaboration' as const, label: 'Team' },
+  { id: 'calendar' as const, label: 'Calendar' },
   { id: 'discussion' as const, label: 'Discussion' },
   { id: 'activity' as const, label: 'Activity' },
 ]
@@ -362,7 +372,6 @@ const {
   openPatternModal,
   openChallengeModal,
   markComplete,
-  togglePause,
   generateSuccessStory,
   handleDelete,
   refreshPlaybook,
@@ -499,12 +508,27 @@ const saveNotesInPlace = (value: string) => {
   if (!playbook.value) return
   playbooksStore.updatePlaybookNotes(playbook.value.id, value)
 }
+
+// Header back: always to the playbooks list, on the tab the user last browsed
+const router = useRouter()
+const goBack = () => {
+  const lastTab = sessionStorage.getItem(PLAYBOOKS_LAST_TAB_KEY)
+  router.push({
+    path: '/dashboard/playbooks',
+    query: lastTab && lastTab !== 'active' ? { tab: lastTab } : undefined,
+  })
+}
 </script>
 
 <style scoped>
 .full-playbook-page {
   min-height: 100vh;
   background: var(--color-bg-primary);
+}
+
+/* Anchor for the header back button overlaying the hero */
+.hero-wrap {
+  position: relative;
 }
 
 /* Tab Navigation */
@@ -582,6 +606,7 @@ const saveNotesInPlace = (value: string) => {
 .challenge-modal-content {
   padding: 0;
   min-height: 100vh;
+  position: relative;
 }
 
 @media (max-width: 768px) {

@@ -3,10 +3,6 @@
     <div v-if="isOpen" class="slide-in-modal-overlay">
       <div class="slide-in-modal" :style="{ left: resolvedSidebarWidth }">
         <div class="modal-container">
-          <!-- Standardized back affordance for every slide-in panel -->
-          <button v-if="!hideBack" type="button" class="modal-back" @click="close">
-            <span class="chevron chevron--back"></span> {{ backLabel }}
-          </button>
           <slot></slot>
         </div>
       </div>
@@ -21,14 +17,10 @@ import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
 interface Props {
   modelValue: boolean
   sidebarWidth?: string
-  backLabel?: string
-  hideBack?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  sidebarWidth: undefined,
-  backLabel: 'Back',
-  hideBack: false
+  sidebarWidth: undefined
 })
 
 const emit = defineEmits<{
@@ -93,39 +85,13 @@ defineExpose({ close })
   overflow-x: hidden;
 }
 
+/* Positioning anchor for ModalBackButton overlays inside modal bodies */
 .modal-container {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
-
-/* ── Standard back button ───────────────────────────────────────────
-   Text + arrow, left-aligned to the panel content padding (3rem),
-   sticky so it stays reachable while the panel scrolls. */
-.modal-back {
-  position: sticky;
-  top: 1rem;
-  z-index: 20;
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 1.5rem 0 -0.5rem calc(3rem - 0.85rem);
-  padding: 0.55rem 1rem 0.55rem 0.85rem;
-  background: color-mix(in srgb, var(--color-bg-primary) 88%, transparent);
-  backdrop-filter: blur(8px);
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-size: 0.6875rem;
-  font-weight: var(--font-weight-normal);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-  transition: color var(--transition-fast);
-}
-
-.modal-back:hover { color: var(--color-text-primary); }
 
 /* ── Slide-in with a slight 3D settle ───────────────────────────────
    The panel starts nearer to the viewer, slightly above its resting
@@ -181,10 +147,6 @@ defineExpose({ close })
     left: 0 !important;
     right: 0 !important;
     width: 100% !important;
-  }
-
-  .modal-back {
-    margin-left: calc(1.75rem - 0.85rem);
   }
 }
 

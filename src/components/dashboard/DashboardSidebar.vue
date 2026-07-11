@@ -294,6 +294,16 @@ const navItems = computed(() => [
   min-width: 0;
 }
 
+/* Icons keep their size no matter how tight the collapsed rail gets —
+   without this, flex squeezes the SVGs when the row runs out of room. */
+.footer-btn svg {
+  flex-shrink: 0;
+}
+
+.dashboard-sidebar.is-collapsed .footer-btn {
+  padding: 0.4rem 0.3rem;
+}
+
 .footer-btn:hover { color: var(--color-text-primary); }
 
 .logout-label {

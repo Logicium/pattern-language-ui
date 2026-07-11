@@ -79,7 +79,6 @@ defineProps<{
 
 .playbook-status.active { color: var(--color-accent-1); }
 .playbook-status.completed { color: var(--color-accent-2); }
-.playbook-status.paused { color: var(--color-text-tertiary); }
 
 .playbook-challenge {
   margin-bottom: 1rem;

@@ -5,6 +5,13 @@
     <div v-if="pattern">
       <section class="pattern-hero gradient-bg">
         <HeroBackdrop variant="lattice" />
+        <ModalBackButton
+          v-if="!isModal"
+          overlay
+          class="hero-back"
+          label="All Patterns"
+          @back="$router.push('/patterns')"
+        />
         <div class="container">
           <div class="hero-meta">
             <span class="pattern-number text-xs text-tertiary">Pattern {{ String(pattern.id).padStart(2, '0') }}</span>
@@ -80,7 +87,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Navbar, Footer, HeroBackdrop } from '@/components'
+import { Navbar, Footer, HeroBackdrop, ModalBackButton } from '@/components'
 import FullPatternContent from '@/components/full-pattern/FullPatternContent.vue'
 import FullPatternSidebar from '@/components/full-pattern/FullPatternSidebar.vue'
 import PatternLocationMap from '@/components/full-pattern/PatternLocationMap.vue'
@@ -147,6 +154,12 @@ const mapStories = computed(() => {
   padding: 12rem var(--container-padding) 6rem;
   position: relative;
   overflow: hidden;
+}
+
+/* Below the fixed navbar, above the lattice backdrop */
+.pattern-hero .hero-back {
+  top: 7rem;
+  z-index: 2;
 }
 
 .pattern-hero .container { position: relative; z-index: 1; }

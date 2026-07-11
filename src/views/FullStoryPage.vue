@@ -2,7 +2,14 @@
   <div class="story-page">
     <Navbar v-if="!isModal" />
 
-    <div v-if="story">
+    <div v-if="story" class="story-body">
+      <ModalBackButton
+        v-if="!isModal"
+        overlay
+        class="hero-back"
+        label="All Stories"
+        @back="$router.push('/stories')"
+      />
       <FullStoryHero :story="story" :get-pattern-route="getPatternRoute" />
 
       <section class="section story-content">
@@ -29,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer } from '@/components'
+import { Navbar, Footer, ModalBackButton } from '@/components'
 import FullStoryHero from '@/components/full-story/FullStoryHero.vue'
 import FullStoryContent from '@/components/full-story/FullStoryContent.vue'
 import FullStorySidebar from '@/components/full-story/FullStorySidebar.vue'
@@ -63,6 +70,16 @@ if (!props.isModal) {
 <style scoped>
 .story-page {
   min-height: 100vh;
+}
+
+/* Anchor for the hero back button; sits below the fixed navbar */
+.story-body {
+  position: relative;
+}
+
+.story-body .hero-back {
+  top: 7rem;
+  z-index: 2;
 }
 
 .story-content {

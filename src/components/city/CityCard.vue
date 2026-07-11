@@ -49,6 +49,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { cityStaticMapUrl } from '@/utils/cityMap'
 
 const props = defineProps<{
   city: {
@@ -67,24 +68,9 @@ const props = defineProps<{
 
 const mapFailed = ref(false)
 
-// Muted, label-free Static Maps render matching the site palette.
-const mapUrl = computed(() => {
-  if (!props.mapsKey) return null
-  const center = encodeURIComponent(
-    props.city.state ? `${props.city.name}, ${props.city.state}` : props.city.name
-  )
-  const styles = [
-    'feature:all|element:labels|visibility:off',
-    'feature:all|element:geometry|color:0xf4f1ea',
-    'feature:road|element:geometry|color:0xffffff',
-    'feature:water|element:geometry|color:0xc7d9cf',
-    'feature:poi|visibility:off',
-    'feature:transit|visibility:off',
-    'feature:administrative|visibility:off',
-  ].map(s => `&style=${encodeURIComponent(s)}`).join('')
-
-  return `https://maps.googleapis.com/maps/api/staticmap?center=${center}&zoom=13&size=640x400&scale=1${styles}&key=${props.mapsKey}`
-})
+const mapUrl = computed(() =>
+  props.mapsKey ? cityStaticMapUrl(props.city.name, props.city.state, props.mapsKey) : null
+)
 </script>
 
 <style scoped>

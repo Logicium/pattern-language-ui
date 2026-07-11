@@ -1,6 +1,12 @@
 <template>
   <div class="full-challenge-page">
     <section class="challenge-hero gradient-bg">
+      <ModalBackButton
+        v-if="!isModal"
+        overlay
+        label="All Patterns"
+        @back="$router.push('/patterns')"
+      />
       <div class="container">
         <div class="hero-label text-xs text-tertiary">Wicked Problem {{ String(challenge?.id).padStart(2, '0') }}</div>
         <h1 class="hero-title">{{ challenge?.title }}</h1>
@@ -39,6 +45,7 @@ import { useChallenges } from '@/composables/useChallenges'
 import { usePatterns } from '@/composables/usePatterns'
 import { useSeo } from '@/composables/useSeo'
 import ChallengeContent from '@/components/full-challenge/ChallengeContent.vue'
+import { ModalBackButton } from '@/components'
 
 interface Props {
   challengeData?: any
@@ -87,6 +94,7 @@ const navigateToPattern = (title: string) => {
 .challenge-hero {
   padding: 6rem var(--container-padding) 4rem;
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  position: relative;
 }
 
 .challenge-hero .container {

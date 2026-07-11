@@ -1,6 +1,7 @@
 <template>
   <SlideInModal v-model="isOpen" title="Task Details">
     <div v-if="task && playbook" class="full-task-page">
+      <ModalBackButton class="panel-back" label="Back to Playbook" @back="isOpen = false" />
       <TaskHeader
         :task="task"
         :is-editing-task="isEditingTask"
@@ -85,6 +86,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import SlideInModal from './SlideInModal.vue'
+import ModalBackButton from './ModalBackButton.vue'
 import ConfirmModal from './ConfirmModal.vue'
 import Toast from './Toast.vue'
 import TaskHeader from './task/TaskHeader.vue'
@@ -135,5 +137,9 @@ const handleSaveEditComment = (commentId: number, content: string) => { editComm
 .full-task-page {
   padding: 3rem;
   position: relative;
+}
+
+.panel-back {
+  margin-bottom: 2rem;
 }
 </style>

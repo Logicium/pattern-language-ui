@@ -2,9 +2,7 @@
   <div class="profile-edit-page">
     <div class="page-header">
       <div class="header-content">
-        <button @click="$emit('close')" class="close-btn" aria-label="Close">
-          <span class="close-icon">×</span>
-        </button>
+        <ModalBackButton @back="$emit('close')" />
         <h1 class="page-title">Edit Profile</h1>
         <button 
           @click="handleSave" 
@@ -38,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { Toast } from '@/components'
+import { Toast, ModalBackButton } from '@/components'
 import ProfilePhotoSection from '@/components/profile/ProfilePhotoSection.vue'
 import ProfileBasicInfo from '@/components/profile/ProfileBasicInfo.vue'
 import ProfileWorkSection from '@/components/profile/ProfileWorkSection.vue'
@@ -84,23 +82,6 @@ const {
   display: flex;
   align-items: center;
   gap: 2rem;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  color: var(--color-text-primary);
-  transition: opacity var(--transition-fast);
-}
-
-.close-btn:hover { opacity: 0.6; }
-
-.close-icon {
-  font-size: 2.5rem;
-  line-height: 1;
-  font-weight: var(--font-weight-light);
 }
 
 .page-title {

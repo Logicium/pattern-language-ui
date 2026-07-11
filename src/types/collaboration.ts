@@ -110,7 +110,7 @@ export interface PlaybookActivity {
     name: string
     profileImage?: string
   }
-  action: 'task_created' | 'task_completed' | 'task_comment' | 'member_joined' | 'member_invited' | 'playbook_published' | 'playbook_completed' | 'playbook_paused' | 'playbook_resumed' | 'note_updated' | 'kpi_updated' | 'discussion_message' | 'event_created'
+  action: 'task_created' | 'task_completed' | 'task_comment' | 'member_joined' | 'member_invited' | 'member_left' | 'playbook_published' | 'playbook_completed' | 'note_updated' | 'kpi_updated' | 'discussion_message' | 'event_created'
   details?: string
   targetTitle?: string
   createdAt: string

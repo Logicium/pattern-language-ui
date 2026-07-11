@@ -69,13 +69,14 @@ import { Navbar, Footer, CTASection, PageHero, Pagination } from '@/components'
 import FeaturedStory from '@/components/stories/FeaturedStory.vue'
 import StoryCardGrid from '@/components/stories/StoryCardGrid.vue'
 import { useStories } from '@/composables/useStories'
+import { useRoutePage } from '@/composables/useRoutePage'
 
 const { stories: allStories, loading, error, fetchStories } = useStories()
 
 onMounted(() => { fetchStories(true) })
 
 const featuredStories = computed(() => allStories.value.slice(0, 3))
-const currentPage = ref(1)
+const currentPage = useRoutePage()
 const itemsPerPage = ref(9)
 const perPageOptions = [6, 9, 12, 18]
 

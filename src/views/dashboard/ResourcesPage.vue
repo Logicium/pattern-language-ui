@@ -67,6 +67,7 @@
 
     <SlideInModal v-model="showDetailModal">
       <div class="detail-modal-wrapper">
+        <ModalBackButton overlay label="Back to Resources" @back="showDetailModal = false" />
         <FullPatternPage
           v-if="detailType === 'patterns' && detailResource"
           :pattern-data="detailResource"
@@ -94,6 +95,7 @@ import Pagination from '@/components/Pagination.vue'
 import ResourceCardGrid from '@/components/resources/ResourceCardGrid.vue'
 import ResourceAddModal from '@/components/resources/ResourceAddModal.vue'
 import SlideInModal from '@/components/SlideInModal.vue'
+import { ModalBackButton } from '@/components'
 import FullPatternPage from '@/views/FullPatternPage.vue'
 import FullStoryPage from '@/views/FullStoryPage.vue'
 import FullChallengePage from '@/views/FullChallengePage.vue'

@@ -1,6 +1,7 @@
 <template>
   <SlideInModal :model-value="modelValue" title="Invite Member" @update:model-value="$emit('update:modelValue', $event)">
     <div class="invite-member-content">
+      <ModalBackButton class="panel-back" @back="$emit('update:modelValue', false)" />
       <h2 class="modal-title">Invite Member</h2>
 
       <p class="text-sm text-secondary" style="margin-bottom: 20px;">
@@ -102,6 +103,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import SlideInModal from '@/components/SlideInModal.vue'
+import ModalBackButton from '@/components/ModalBackButton.vue'
 import { getInitials } from '@/utils/formatters'
 import type { SearchedUser } from '@/types/collaboration'
 
@@ -140,6 +142,10 @@ const sendEmailInvite = () => {
 .invite-member-content {
   padding: 3rem;
   position: relative;
+}
+
+.panel-back {
+  margin-bottom: 2rem;
 }
 
 .invite-member-content .modal-title {

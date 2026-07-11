@@ -85,8 +85,6 @@ function activityVerb(action: PlaybookActivity['action']): string {
     member_invited: 'invited a new member',
     playbook_published: 'published the playbook',
     playbook_completed: 'marked the playbook as complete',
-    playbook_paused: 'paused the playbook',
-    playbook_resumed: 'resumed the playbook',
     note_updated: 'updated notes',
     kpi_updated: 'updated a KPI',
     discussion_message: 'sent a message',
@@ -96,7 +94,6 @@ function activityVerb(action: PlaybookActivity['action']): string {
 
 function actionMarkerClass(action: PlaybookActivity['action']): string {
   if (action === 'task_completed' || action === 'playbook_completed') return 'marker-success'
-  if (action === 'playbook_paused') return 'marker-warning'
   if (action === 'member_joined' || action === 'member_invited') return 'marker-accent'
   if (action === 'discussion_message' || action === 'task_comment') return 'marker-neutral'
   return 'marker-default'

@@ -1,6 +1,8 @@
 import { ref, computed, watch } from 'vue'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import { useAuthStore } from '@/stores/auth'
+import { useRouteTab } from '@/composables/useRouteTab'
+import { useRoutePage } from '@/composables/useRoutePage'
 import { usePatterns } from '@/composables/usePatterns'
 import { useStories } from '@/composables/useStories'
 import { useChallenges } from '@/composables/useChallenges'
@@ -12,6 +14,8 @@ export type ResourceType = 'pattern' | 'story' | 'challenge' | 'link'
 
 export const LINK_TABS: ResourceTab[] = ['local', 'national', 'all']
 
+const RESOURCE_TABS: readonly ResourceTab[] = ['patterns', 'stories', 'challenges', 'local', 'national', 'all']
+
 export function useResourcesPage() {
   const { patterns: allPatterns } = usePatterns()
   const { stories: allStories } = useStories()
@@ -19,9 +23,9 @@ export function useResourcesPage() {
   const { resources: allLinks } = useResources()
   const playbooksStore = usePlaybooksStore()
 
-  const activeTab = ref<ResourceTab>('patterns')
+  const activeTab = useRouteTab<ResourceTab>(RESOURCE_TABS, 'patterns')
+  const currentPage = useRoutePage()
   const searchQuery = ref('')
-  const currentPage = ref(1)
   const itemsPerPage = ref(12)
   const showAddModal = ref(false)
   const selectedResource = ref<any>(null)

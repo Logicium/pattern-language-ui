@@ -7,17 +7,13 @@
 
     <template v-else-if="city">
       <section class="city-hero">
+        <ModalBackButton overlay class="hero-back" label="All Cities" @back="$router.push('/cities')" />
         <img
-          v-if="city.imageUrl"
-          :src="city.imageUrl"
-          :alt="city.name"
+          v-if="heroMapUrl"
+          :src="heroMapUrl"
+          alt=""
+          aria-hidden="true"
           class="hero-image"
-        />
-        <img
-          v-if="city.imageUrl"
-          :src="city.imageUrl"
-          :alt="city.name"
-          class="hero-image-blurred"
         />
         <div class="gradient-overlay"></div>
         <div class="container hero-content">
@@ -54,14 +50,67 @@
         </div>
       </section>
 
-      <template v-if="city.isGenerated">
-        <section class="section-compact">
-          <div class="container">
-            <div class="section-header"><span class="section-number"></span><h2 class="section-title">History</h2></div>
-            <p class="body-text text-secondary">{{ city.history }}</p>
+      <!-- Overview: summary text with the annotated photo as an aside -->
+      <section v-if="city.imageUrl || (city.isGenerated && city.history)" class="section-compact">
+        <div class="container">
+          <div class="section-header"><span class="section-number"></span><h2 class="section-title">Overview</h2></div>
+          <div class="overview-layout" :class="{ 'no-aside': !city.imageUrl }">
+            <p v-if="city.isGenerated && city.history" class="body-text text-secondary overview-text">
+              {{ city.history }}
+            </p>
+
+            <aside v-if="city.imageUrl" class="city-portrait">
+              <img
+                class="portrait-photo"
+                :src="city.imageUrl"
+                :alt="`${city.name}${city.state ? `, ${city.state}` : ''}`"
+                loading="lazy"
+              />
+              <div class="portrait-caption">
+                <div class="caption-title-row">
+                  <span class="caption-eyebrow">
+                    <span class="accent-mark" data-accent="1" aria-hidden="true"></span>
+                    {{ city.imageCaption || cityLabel }}
+                  </span>
+                  <a
+                    class="caption-attribution"
+                    :href="city.wikipediaUrl || `https://en.wikipedia.org/wiki/${encodeURIComponent(city.name.replace(/ /g, '_'))}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >Wikipedia</a>
+                </div>
+
+                <dl class="caption-rows">
+                  <div v-if="city.establishedYear" class="caption-row">
+                    <dt>Established</dt>
+                    <dd>{{ city.establishedYear }}</dd>
+                  </div>
+                  <div v-if="city.population" class="caption-row">
+                    <dt>Population</dt>
+                    <dd>{{ city.population.toLocaleString() }}</dd>
+                  </div>
+                  <div v-if="city.isGenerated && city.ruralReadinessScore != null" class="caption-row">
+                    <dt>Rural Readiness</dt>
+                    <dd>{{ city.ruralReadinessScore }} / 100</dd>
+                  </div>
+                  <div v-if="city.users?.length" class="caption-row">
+                    <dt>Members Here</dt>
+                    <dd>{{ city.users.length }}</dd>
+                  </div>
+                  <div v-if="city.playbooks?.length" class="caption-row">
+                    <dt>Public Playbooks</dt>
+                    <dd>{{ city.playbooks.length }}</dd>
+                  </div>
+                  <div v-if="city.wickedProblems?.length" class="caption-row">
+                    <dt>Wicked Problems</dt>
+                    <dd>{{ city.wickedProblems.length }}</dd>
+                  </div>
+                </dl>
+              </div>
+            </aside>
           </div>
-        </section>
-      </template>
+        </div>
+      </section>
 
       <section class="section-compact alt-section">
         <div class="container">
@@ -89,6 +138,7 @@
       </section>
 
       <SlideInModal v-model="showMemberModal" sidebar-width="0px">
+        <ModalBackButton overlay @back="showMemberModal = false" />
         <ProfilePage
           v-if="memberProfile"
           :profile="memberProfile"
@@ -392,6 +442,7 @@
         </section>
 
         <SlideInModal v-model="showChallengeModal" sidebar-width="0px">
+          <ModalBackButton overlay @back="showChallengeModal = false" />
           <FullChallengePage
             v-if="selectedChallengeId"
             :challenge-data="selectedChallenge"
@@ -436,12 +487,14 @@ import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import UserMiniProfile from '@/components/city/UserMiniProfile.vue'
 import SlideInModal from '@/components/SlideInModal.vue'
+import { ModalBackButton } from '@/components'
 import FullChallengePage from '@/views/FullChallengePage.vue'
 import CityProblemsList from '@/components/city/CityProblemsList.vue'
 import ProfilePage from '@/views/dashboard/ProfilePage.vue'
-import { usersApi } from '@/services/api'
+import { usersApi, configApi } from '@/services/api'
 import { useFullCityPage } from '@/composables/useFullCityPage'
 import { useSeo } from '@/composables/useSeo'
+import { cityStaticMapUrl } from '@/utils/cityMap'
 
 const {
   city, loading, error, generating,
@@ -465,6 +518,30 @@ type SectionKey = 'connectivity' | 'economy' | 'social' | 'housing' | 'health' |
 const showMemberModal = ref(false)
 const memberProfile = ref<any>(null)
 const memberLoading = ref(false)
+
+// "Name, ST" — tolerant of legacy city names that already embed the state
+// (free-text signups), so "Greenville, NC" doesn't become "Greenville, NC, NC".
+const cityLabel = computed(() => {
+  const name = city.value?.name?.trim() ?? ''
+  const state = city.value?.state?.trim()
+  if (!state) return name
+  if (name.toLowerCase().endsWith(`, ${state.toLowerCase()}`) || name.toLowerCase().endsWith(` ${state.toLowerCase()}`)) {
+    return name
+  }
+  return `${name}, ${state}`
+})
+
+// Stylized map backdrop for the hero (decoration — never blocks the page)
+const mapsKey = ref('')
+configApi.getMapsKey()
+  .then(({ key }) => { mapsKey.value = key || '' })
+  .catch(() => { mapsKey.value = '' })
+
+const heroMapUrl = computed(() =>
+  city.value && mapsKey.value
+    ? cityStaticMapUrl(city.value.name, city.value.state, mapsKey.value, { width: 1280, height: 480, zoom: 13 })
+    : null
+)
 
 async function openMemberProfile(userId: number) {
   showMemberModal.value = true
@@ -523,42 +600,28 @@ const prosperityStatusClass = computed(() => {
   background: var(--color-bg-primary);
 }
 
+/* Below the fixed navbar, above the map layers */
+.city-hero .hero-back {
+  top: 7rem;
+  z-index: 2;
+}
+
+/* Stylized static map backdrop — same treatment as the city cards */
 .hero-image {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(100%);
   z-index: 0;
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 70%);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 70%);
 }
 
-.hero-image-blurred {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(100%) blur(12px);
-  z-index: 0;
-  mask-image: linear-gradient(to bottom, transparent 0%, transparent 30%, black 70%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 30%, black 70%, transparent 100%);
-}
-
+/* Same uniform cream veil as the city cards — nothing else */
 .gradient-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(135deg,
-      rgba(232, 180, 160, 0.55) 0%,
-      rgba(184, 212, 200, 0.55) 25%,
-      rgba(201, 184, 232, 0.55) 50%,
-      rgba(184, 212, 200, 0.55) 75%,
-      rgba(232, 180, 160, 0.55) 100%),
-    linear-gradient(180deg, transparent 0%, var(--color-bg-primary) 100%);
+  background: color-mix(in srgb, var(--color-bg-primary) 50%, transparent);
   pointer-events: none;
 }
 
@@ -575,6 +638,121 @@ const prosperityStatusClass = computed(() => {
 .hero-left {
   flex: 1;
   min-width: 0;
+}
+
+/* ── Overview: summary text with the annotated photo as an aside ── */
+.overview-layout {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.overview-layout.no-aside {
+  grid-template-columns: 1fr;
+}
+
+.overview-text {
+  margin: 0;
+}
+
+.city-portrait {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  margin: 0;
+}
+
+.portrait-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.portrait-caption {
+  display: flex;
+  flex-direction: column;
+  font-variant-numeric: tabular-nums;
+}
+
+.caption-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.caption-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  min-width: 0;
+}
+
+.caption-attribution {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--hairline-strong);
+  padding-bottom: 2px;
+  white-space: nowrap;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.caption-attribution:hover {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-text-primary);
+}
+
+.caption-eyebrow .accent-mark {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+}
+
+.caption-eyebrow .accent-mark[data-accent="1"] { background: var(--color-accent-1); }
+
+.caption-rows {
+  margin: 0 0 1.75rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.caption-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.caption-row dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.caption-row dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-normal);
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .overview-layout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
 }
 
 .hero-label { letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; display: block; }

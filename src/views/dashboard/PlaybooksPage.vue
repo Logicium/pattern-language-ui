@@ -73,14 +73,13 @@ import { usePlaybooksPage } from '@/composables/usePlaybooksPage'
 
 const {
   activeTab, localPlaybooks, allPublishedPlaybooks,
-  activePlaybooks, completedPlaybooks, pausedPlaybooks,
+  activePlaybooks, completedPlaybooks,
   filteredPlaybooks, formatDate
 } = usePlaybooksPage()
 
 const tabs = computed(() => [
   { key: 'active' as const, label: 'Active', count: activePlaybooks.value.length },
   { key: 'completed' as const, label: 'Completed', count: completedPlaybooks.value.length },
-  { key: 'paused' as const, label: 'Paused', count: pausedPlaybooks.value.length },
   { key: 'local' as const, label: 'Local Playbooks', count: localPlaybooks.value.length },
   { key: 'all' as const, label: 'All Playbooks', count: allPublishedPlaybooks.value.length },
 ])
