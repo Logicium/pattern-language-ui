@@ -1,6 +1,5 @@
 <template>
   <div class="stories-page">
-    <Navbar />
 
     <PageHero
       title="Success Stories"
@@ -65,7 +64,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Navbar, Footer, CTASection, PageHero, Pagination } from '@/components'
+import { Footer, CTASection, PageHero, Pagination } from '@/components'
 import FeaturedStory from '@/components/stories/FeaturedStory.vue'
 import StoryCardGrid from '@/components/stories/StoryCardGrid.vue'
 import { useStories } from '@/composables/useStories'

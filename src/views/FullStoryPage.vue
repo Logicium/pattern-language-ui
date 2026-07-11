@@ -1,6 +1,5 @@
 <template>
   <div class="story-page">
-    <Navbar v-if="!isModal" />
 
     <div v-if="story" class="story-body">
       <ModalBackButton
@@ -36,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer, ModalBackButton } from '@/components'
+import { Footer, ModalBackButton } from '@/components'
 import FullStoryHero from '@/components/full-story/FullStoryHero.vue'
 import FullStoryContent from '@/components/full-story/FullStoryContent.vue'
 import FullStorySidebar from '@/components/full-story/FullStorySidebar.vue'

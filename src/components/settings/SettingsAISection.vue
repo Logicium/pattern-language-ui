@@ -1,10 +1,14 @@
 <template>
   <div class="settings-section" data-accent="2">
     <h2 class="section-title">AI Assistant</h2>
+    <p class="text-sm text-secondary section-blurb">
+      Shape how the assistant talks to you. These apply to every conversation.
+    </p>
+
     <div class="form-group">
       <label class="form-label text-xs text-tertiary">Conversation Style</label>
       <AppDropdown
-        v-model="aiPreferences.conversationStyle"
+        v-model="prefs.conversationStyle"
         :options="[
           { value: 'concise', label: 'Concise & Direct' },
           { value: 'detailed', label: 'Detailed & Explanatory' },
@@ -12,53 +16,75 @@
         ]"
       />
     </div>
-    <div class="form-group">
-      <label class="form-label text-xs text-tertiary">Suggestion Frequency</label>
-      <AppDropdown
-        v-model="aiPreferences.suggestionFrequency"
-        :options="[
-          { value: 'low', label: 'Low' },
-          { value: 'medium', label: 'Medium' },
-          { value: 'high', label: 'High' },
-        ]"
-      />
-    </div>
+
     <div class="checkbox-list">
       <label class="checkbox-label text-sm">
-        <AppCheckbox v-model="aiPreferences.autoSuggestions" />
-        <span>Enable automatic pattern suggestions</span>
+        <AppCheckbox v-model="prefs.communityGrounding" />
+        <span>
+          <strong>Ground answers in my community</strong>
+          <span class="text-xs text-tertiary">Tailor advice to your town, state, and the challenges on your profile</span>
+        </span>
       </label>
       <label class="checkbox-label text-sm">
-        <AppCheckbox v-model="aiPreferences.relatedPatterns" />
-        <span>Show related patterns in responses</span>
+        <AppCheckbox v-model="prefs.patternReferences" />
+        <span>
+          <strong>Reference patterns from the library</strong>
+          <span class="text-xs text-tertiary">Cite specific patterns and wicked problems you can explore on the platform</span>
+        </span>
+      </label>
+      <label class="checkbox-label text-sm">
+        <AppCheckbox v-model="prefs.actionSteps" />
+        <span>
+          <strong>End with next steps</strong>
+          <span class="text-xs text-tertiary">Close substantive answers with two or three concrete, doable actions</span>
+        </span>
       </label>
     </div>
-    <button class="btn" @click="save">Save Preferences</button>
+
+    <button class="btn" :disabled="saving" @click="save">
+      {{ saving ? 'Saving…' : 'Save Preferences' }}
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import AppCheckbox from '@/components/AppCheckbox.vue'
 import AppDropdown from '@/components/AppDropdown.vue'
+import { settingsApi } from '@/services/api'
 
 const emit = defineEmits<{ 'saved': [message: string] }>()
 
-const aiPreferences = reactive({
+// Defaults mirror the backend's (detailed, grounded, referenced, no step lists)
+const prefs = reactive({
   conversationStyle: 'detailed',
-  suggestionFrequency: 'medium',
-  autoSuggestions: true,
-  relatedPatterns: true
+  communityGrounding: true,
+  patternReferences: true,
+  actionSteps: false,
 })
 
-onMounted(() => {
-  const saved = localStorage.getItem('ai_preferences')
-  if (saved) Object.assign(aiPreferences, JSON.parse(saved))
+const saving = ref(false)
+
+onMounted(async () => {
+  try {
+    const settings = await settingsApi.get()
+    if (settings.aiPreferences) Object.assign(prefs, settings.aiPreferences)
+  } catch (error) {
+    console.error('Failed to load AI preferences:', error)
+  }
 })
 
-const save = () => {
-  localStorage.setItem('ai_preferences', JSON.stringify(aiPreferences))
-  emit('saved', 'AI preferences saved')
+const save = async () => {
+  saving.value = true
+  try {
+    await settingsApi.update({ aiPreferences: { ...prefs } })
+    emit('saved', 'AI preferences saved')
+  } catch (error) {
+    console.error('Failed to save AI preferences:', error)
+    emit('saved', 'Failed to save AI preferences')
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
@@ -78,8 +104,10 @@ const save = () => {
   font-size: 1.5rem;
   font-weight: var(--font-weight-normal);
   letter-spacing: -0.01em;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
 }
+
+.section-blurb { margin-bottom: 2rem; }
 
 .form-group { margin-bottom: 1.5rem; }
 
@@ -90,26 +118,10 @@ const save = () => {
   text-transform: uppercase;
 }
 
-.form-input {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  border: 1px solid rgba(42, 42, 42, 0.08);
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  font-family: var(--font-family);
-  font-size: 0.9375rem;
-  font-weight: var(--font-weight-normal);
-  letter-spacing: -0.01em;
-  transition: all var(--transition-base);
-}
-
-.form-input:focus { outline: none; border-color: var(--color-accent-2); background: var(--color-bg-primary); }
-.form-input:hover { border-color: rgba(42, 42, 42, 0.15); }
-
 .checkbox-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
   background: var(--color-bg-secondary);
@@ -117,7 +129,7 @@ const save = () => {
 
 .checkbox-label {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
   cursor: pointer;
   padding: 0.75rem;
@@ -131,15 +143,14 @@ const save = () => {
   padding-left: 1rem;
 }
 
-.checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  flex-shrink: 0;
-  accent-color: var(--color-accent-2);
+.checkbox-label > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  line-height: 1.5;
 }
 
-.checkbox-label span { line-height: 1.5; }
+.checkbox-label strong { font-weight: var(--font-weight-medium); }
 
 @media (max-width: 768px) {
   .settings-section { padding: 2rem; }

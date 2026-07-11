@@ -14,9 +14,12 @@
             :messages="messages"
             :is-typing="isTyping"
             :typed-content="typedContent"
+            :reveal-trail="revealTrail"
             :format-time="formatTime"
             @add-playbook="handleAddPlaybook"
             @view-full-playbook="openFullPlaybook"
+            @edit-message="editMessage"
+            @retry-message="retryMessage"
           />
         </div>
       </div>
@@ -24,9 +27,10 @@
     </div>
 
     <ChatInput
+      ref="chatInputEl"
       v-model="inputMessage"
       :loading="loading"
-      @send="sendMessage"
+      @send="sendMessage()"
       @auto-resize="autoResize"
     />
 
@@ -52,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import ChatHeader from '@/components/chat/ChatHeader.vue'
 import ChatWelcome from '@/components/chat/ChatWelcome.vue'
 import ChatMessageList from '@/components/chat/ChatMessageList.vue'
@@ -65,11 +69,18 @@ import type { Playbook } from '@/stores/playbooks'
 import { useChatPage } from '@/composables/useChatPage'
 
 const {
-  inputMessage, messagesArea, avatarState, isTyping, typedContent,
+  inputMessage, textarea, messagesArea, avatarState, isTyping, typedContent, revealTrail,
   showSuccessModal, messages, loading, showJumpToBottom,
-  autoResize, sendMessage, handleAddPlaybook, goToPlaybooks,
+  autoResize, sendMessage, retryMessage, editMessage, handleAddPlaybook, goToPlaybooks,
   sendSuggestion, formatTime, scrollToBottom,
 } = useChatPage()
+
+// Bind the composable's textarea ref to ChatInput's exposed element so
+// autoResize and edit-message focus actually reach the real input.
+const chatInputEl = ref<InstanceType<typeof ChatInput>>()
+watchEffect(() => {
+  textarea.value = chatInputEl.value?.textareaRef
+})
 
 const showFullPlaybook = ref(false)
 const previewPlaybook = ref<Playbook | null>(null)

@@ -1,6 +1,5 @@
 <template>
   <div class="signup-page">
-    <Navbar />
     
     <section class="signup-hero gradient-bg">
       <RibbonCanvas />
@@ -69,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer, ErrorModal, RibbonCanvas } from '@/components'
+import { Footer, ErrorModal, RibbonCanvas } from '@/components'
 import SignupStepAccount from '@/components/signup/SignupStepAccount.vue'
 import SignupStepCommunity from '@/components/signup/SignupStepCommunity.vue'
 import SignupSidebar from '@/components/signup/SignupSidebar.vue'

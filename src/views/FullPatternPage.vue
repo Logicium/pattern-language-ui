@@ -1,6 +1,5 @@
 <template>
   <div class="pattern-page">
-    <Navbar v-if="!isModal" />
 
     <div v-if="pattern">
       <section class="pattern-hero gradient-bg">
@@ -87,7 +86,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Navbar, Footer, HeroBackdrop, ModalBackButton } from '@/components'
+import { Footer, HeroBackdrop, ModalBackButton } from '@/components'
 import FullPatternContent from '@/components/full-pattern/FullPatternContent.vue'
 import FullPatternSidebar from '@/components/full-pattern/FullPatternSidebar.vue'
 import PatternLocationMap from '@/components/full-pattern/PatternLocationMap.vue'

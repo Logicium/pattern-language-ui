@@ -1,6 +1,5 @@
 <template>
   <div class="all-cities-page">
-    <Navbar />
 
     <PageHero
       label="Community Directory"
@@ -74,7 +73,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import PageHero from '@/components/layout/PageHero.vue'
 import CityCard from '@/components/city/CityCard.vue'

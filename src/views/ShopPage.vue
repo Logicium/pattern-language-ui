@@ -1,6 +1,5 @@
 <template>
   <div class="shop-page">
-    <Navbar />
 
     <PageHero
       label="Shop"
@@ -139,7 +138,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Navbar, Footer, PageHero, SlideInModal, ModalBackButton } from '@/components'
+import { Footer, PageHero, SlideInModal, ModalBackButton } from '@/components'
 
 const SHOPIFY_DOMAIN = import.meta.env.VITE_SHOPIFY_DOMAIN as string | undefined
 const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN as string | undefined

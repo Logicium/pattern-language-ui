@@ -1,6 +1,5 @@
 <template>
   <div class="about-page">
-    <Navbar />
     
     <section class="about-hero gradient-bg">
       <RibbonCanvas />
@@ -75,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer, CTASection, RibbonCanvas } from '@/components'
+import { Footer, CTASection, RibbonCanvas } from '@/components'
 import AboutPrinciples from '@/components/about/AboutPrinciples.vue'
 import AboutTeam from '@/components/about/AboutTeam.vue'
 </script>

@@ -1,6 +1,5 @@
 <template>
   <div class="full-city-page">
-    <Navbar />
 
     <div v-if="loading" class="section container"><p class="text-secondary">Loading…</p></div>
     <div v-else-if="error" class="section container"><p class="text-secondary">{{ error }}</p></div>
@@ -483,7 +482,6 @@
 
 <script setup lang="ts">
 import { reactive, computed, ref } from 'vue'
-import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import UserMiniProfile from '@/components/city/UserMiniProfile.vue'
 import SlideInModal from '@/components/SlideInModal.vue'

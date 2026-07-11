@@ -1,6 +1,5 @@
 <template>
   <div class="patterns-page">
-    <Navbar />
 
     <PageHero
       title="Pattern Library"
@@ -61,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer, CTASection, PageHero, Pagination } from '@/components'
+import { Footer, CTASection, PageHero, Pagination } from '@/components'
 import PatternSearchFilters from '@/components/patterns/PatternSearchFilters.vue'
 import PatternResultsGrid from '@/components/patterns/PatternResultsGrid.vue'
 import { usePatternsPage } from '@/composables/usePatternsPage'

@@ -1,5 +1,8 @@
 <template>
   <div class="app-shell">
+    <!-- One persistent navbar outside the page transition — pages don't
+         mount their own, so it never flickers between navigations. -->
+    <Navbar v-if="showNavbar" />
     <RouterView v-slot="{ Component }">
       <Transition name="page-blur" mode="out-in">
         <component :is="Component" />
@@ -10,12 +13,20 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { useHead } from '@unhead/vue'
+import Navbar from '@/components/layout/Navbar.vue'
 import BetaBanner from '@/components/layout/BetaBanner.vue'
 import { useSeo, SITE_NAME } from '@/composables/useSeo'
 
 const route = useRoute()
+
+const showNavbar = computed(() =>
+  route.matched.length > 0 &&
+  !route.meta.requiresAuth &&
+  !route.meta.noNavbar
+)
 
 useHead({
   titleTemplate: (title?: string) =>

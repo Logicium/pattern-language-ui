@@ -28,6 +28,7 @@ const InvitationsPage = () => import('@/views/dashboard/InvitationsPage.vue')
 const TermsPage = () => import('@/views/TermsPage.vue')
 const PrivacyPage = () => import('@/views/PrivacyPage.vue')
 const BetaPage = () => import('@/views/BetaPage.vue')
+const FeatureLogPage = () => import('@/views/FeatureLogPage.vue')
 const ShopPage = () => import('@/views/ShopPage.vue')
 const LogoutPage = () => import('@/views/LogoutPage.vue')
 const NotFoundPage = () => import('@/views/NotFoundPage.vue')
@@ -111,6 +112,16 @@ const router = createRouter({
       }
     },
     {
+      path: '/feature-log',
+      name: 'feature-log',
+      component: FeatureLogPage,
+      meta: {
+        seoTitle: 'Feature Log',
+        seoDescription:
+          'What\'s new on Pattern Language — features shipped, progress made, and the road as we pave it.'
+      }
+    },
+    {
       path: '/beta',
       name: 'beta',
       component: BetaPage,
@@ -148,7 +159,7 @@ const router = createRouter({
       path: '/logout',
       name: 'logout',
       component: LogoutPage,
-      meta: { noindex: true }
+      meta: { noindex: true, noNavbar: true }
     },
     {
       path: '/dashboard',
@@ -211,7 +222,7 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFoundPage,
-      meta: { seoTitle: 'Page Not Found', noindex: true }
+      meta: { seoTitle: 'Page Not Found', noindex: true, noNavbar: true }
     }
   ],
   scrollBehavior(to, from, savedPosition) {

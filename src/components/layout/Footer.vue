@@ -17,6 +17,7 @@
         <div class="footer-col">
           <span class="footer-title">About</span>
           <router-link to="/about">About</router-link>
+          <router-link to="/feature-log">Feature Log</router-link>
           <router-link to="/beta">Beta Program</router-link>
           <router-link to="/terms">Terms of Service</router-link>
           <router-link to="/privacy">Privacy Policy</router-link>

@@ -1,6 +1,5 @@
 <template>
   <div class="login-page">
-    <Navbar />
     
     <section class="login-hero gradient-bg">
       <RibbonCanvas />
@@ -99,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { Navbar, Footer, ErrorModal, RibbonCanvas } from '@/components'
+import { Footer, ErrorModal, RibbonCanvas } from '@/components'
 import LoginSidebar from '@/components/login/LoginSidebar.vue'
 import { useLoginPage } from '@/composables/useLoginPage'
 

@@ -27,6 +27,12 @@ export const teamMembers: TeamMember[] = [
   },
   {
     id: 2,
+    name: 'Kisora Thomas',
+    role: 'Site Architect',
+    bio: 'Designs and engineers the Pattern Language platform — from the collaboration tools to the editorial design system.'
+  },
+  {
+    id: 3,
     name: 'Community Contributors',
     role: 'Rural Leaders Network',
     bio: 'Patterns co-created with practitioners across rural America—mayors, organizers, entrepreneurs, and neighbors building resilience.'

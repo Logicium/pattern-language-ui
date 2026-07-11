@@ -238,6 +238,12 @@ ${linkList(cities.map((c) => ({ href: `/cities/${c.id}`, label: c.state ? `${c.n
     description: 'Books, prints, and goods from the Pattern Language project.'
   },
   {
+    path: '/feature-log',
+    title: 'Feature Log',
+    description:
+      "What's new on Pattern Language — features shipped, progress made, and the road as we pave it."
+  },
+  {
     path: '/beta',
     title: 'Beta Program',
     description:
