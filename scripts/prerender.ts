@@ -244,10 +244,22 @@ ${linkList(cities.map((c) => ({ href: `/cities/${c.id}`, label: c.state ? `${c.n
       "What's new on Pattern Language — features shipped, progress made, and the road as we pave it."
   },
   {
+    path: '/events',
+    title: 'Events',
+    description:
+      'Upcoming Pattern Language gatherings — the Cañon City workshop on September 19, live PAL walkthroughs, and Hack Trinidad Forward 2026.'
+  },
+  {
     path: '/beta',
     title: 'Beta Program',
     description:
       'Pattern Language is in beta. Learn what that means and how to share feedback that shapes the platform.'
+  },
+  {
+    path: '/try',
+    title: 'Try PAL',
+    description:
+      'Chat with PAL, the Pattern Language assistant, without an account. Explore patterns for your community — your progress saves in your browser.'
   },
   { path: '/terms', title: 'Terms of Service' },
   { path: '/privacy', title: 'Privacy Policy' },

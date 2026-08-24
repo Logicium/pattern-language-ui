@@ -3,19 +3,9 @@ import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import { useChatScroll } from '@/composables/useChatScroll'
+import { useTypingReveal } from '@/composables/useTypingReveal'
 import type { AvatarState } from '@/types'
 import type { Playbook } from '@/stores/playbooks'
-
-// Responses start typing at a natural pace, then glide up to a fast — but
-// still readable — cruise. Words stream one at a time; the trailing words
-// wear a graded blur that resolves word by word at exactly the typing pace.
-const NORMAL_DELAY_MS = 30   // per word during the natural intro
-const NORMAL_WORDS = 18      // how many words type at natural pace
-const DECAY = 0.88           // gentle per-word delay decay while accelerating
-const CRUISE_DELAY_MS = 8    // steady top speed (~120 words/sec)
-const LONG_RESPONSE_WORDS = 350 // beyond this, cruise doubles up to stay snappy
-const REVEAL_TRAIL = 8       // how many trailing words carry the blur gradient
-const DRAIN_STEP_MS = 45     // per-word focus settle after the last word lands
 
 export function useChatPage() {
   const router = useRouter()
@@ -26,13 +16,10 @@ export function useChatPage() {
   const textarea = ref<HTMLTextAreaElement>()
   const messagesArea = ref<HTMLDivElement>()
   const avatarState = ref<AvatarState>('idle')
-  const isTyping = ref(false)
-  const typedContent = ref('')
-  // Trailing words carrying the blur gradient; drains to 0 as the message settles
-  const revealTrail = ref(REVEAL_TRAIL)
   const showSuccessModal = ref(false)
 
   const { showJumpToBottom, scrollToBottom, maybeScrollToBottom } = useChatScroll(messagesArea)
+  const { isTyping, typedContent, revealTrail, typeOut, reset } = useTypingReveal(maybeScrollToBottom)
 
   onMounted(async () => {
     await chatStore.fetchSessions()
@@ -58,8 +45,6 @@ export function useChatPage() {
     maybeScrollToBottom()
   })
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
   const sendMessage = async (overrideText?: string) => {
     const messageText = (overrideText ?? inputMessage.value).trim()
     if (!messageText || loading.value || isTyping.value) return
@@ -79,9 +64,6 @@ export function useChatPage() {
       const response = await chatStore.sendMessage(messageText)
 
       avatarState.value = 'chatting'
-      isTyping.value = true
-      typedContent.value = ''
-      revealTrail.value = REVEAL_TRAIL
 
       const fullResponse = response.content
       const playbookData = chatStore.extractPlaybookFromMessage(fullResponse)
@@ -93,42 +75,7 @@ export function useChatPage() {
         extractedPlaybook = playbookData.playbook
       }
 
-      // Phase 1 — natural typing. Phase 2 — per-word delay decays rapidly.
-      // Phase 3 — the rest floods in as growing chunks under a slight blur.
-      const words = contentToType.split(/(?<=\s)/)
-      let delay = NORMAL_DELAY_MS
-      let i = 0
-
-      for (; i < words.length && i < NORMAL_WORDS; i++) {
-        typedContent.value += words[i]
-        if (i % 3 === 0) maybeScrollToBottom()
-        await sleep(delay)
-      }
-
-      // Glide from the natural pace down to cruise speed
-      for (; i < words.length && delay > CRUISE_DELAY_MS; i++) {
-        typedContent.value += words[i]
-        if (i % 3 === 0) maybeScrollToBottom()
-        delay = Math.max(delay * DECAY, CRUISE_DELAY_MS)
-        await sleep(delay)
-      }
-
-      // Cruise: a steady stream of single words so the reveal stays smooth.
-      // Very long responses step up to two words per tick, never more.
-      const wordsPerTick = words.length - i > LONG_RESPONSE_WORDS ? 2 : 1
-      while (i < words.length) {
-        typedContent.value += words.slice(i, i + wordsPerTick).join('')
-        i += wordsPerTick
-        if (i % 4 === 0) maybeScrollToBottom()
-        await sleep(CRUISE_DELAY_MS)
-      }
-
-      // Drain: the last words settle into focus one by one
-      for (let trail = REVEAL_TRAIL - 1; trail >= 0; trail--) {
-        revealTrail.value = trail
-        await sleep(DRAIN_STEP_MS)
-      }
-      maybeScrollToBottom()
+      await typeOut(contentToType)
 
       chatStore.addMessageToCurrentSession('assistant', contentToType)
 
@@ -140,17 +87,13 @@ export function useChatPage() {
         }
       }
 
-      isTyping.value = false
-      typedContent.value = ''
-      revealTrail.value = REVEAL_TRAIL
+      reset()
       avatarState.value = 'idle'
       maybeScrollToBottom()
     } catch (error) {
       console.error('Error sending message:', error)
       avatarState.value = 'idle'
-      isTyping.value = false
-      typedContent.value = ''
-      revealTrail.value = REVEAL_TRAIL
+      reset()
       alert('Failed to send message. Please try again.')
     }
   }

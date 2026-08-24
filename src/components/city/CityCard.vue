@@ -17,6 +17,7 @@
         <span class="label-id">
           <span class="accent-mark" aria-hidden="true"></span>
           <span v-if="city.state">{{ city.state }}</span>
+          <span v-if="city.isDemo" class="demo-chip">Demo</span>
         </span>
         <span v-if="city.establishedYear" class="label-meta">Est. {{ city.establishedYear }}</span>
       </div>
@@ -49,7 +50,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { cityStaticMapUrl } from '@/utils/cityMap'
+import { cityStaticMapUrl, coordsOf } from '@/utils/cityMap'
 
 const props = defineProps<{
   city: {
@@ -60,6 +61,9 @@ const props = defineProps<{
     population?: number
     ruralReadinessScore?: number
     isGenerated: boolean
+    isDemo?: boolean
+    latitude?: number
+    longitude?: number
     memberCount?: number
   }
   accent?: number
@@ -69,7 +73,11 @@ const props = defineProps<{
 const mapFailed = ref(false)
 
 const mapUrl = computed(() =>
-  props.mapsKey ? cityStaticMapUrl(props.city.name, props.city.state, props.mapsKey) : null
+  props.mapsKey
+    ? cityStaticMapUrl(props.city.name, props.city.state, props.mapsKey, {
+        coords: coordsOf(props.city),
+      })
+    : null
 )
 </script>
 
@@ -146,6 +154,14 @@ const mapUrl = computed(() =>
 .city-card[data-accent="3"] .accent-mark { background: var(--color-accent-3); }
 
 .label-meta { white-space: nowrap; }
+
+.demo-chip {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--color-accent-3);
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-accent-3) 20%, transparent);
+  letter-spacing: 0.16em;
+}
 
 .card-name {
   font-size: 1.625rem;

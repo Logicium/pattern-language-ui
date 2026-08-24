@@ -8,7 +8,7 @@
       <div class="hero-content">
         <div class="hero-text">
           <h1 class="hero-title">
-            Designing Thriving<br>Rural Communities
+            {{ content.hero.titleLead }}<br>{{ content.hero.titleTrail }}
           </h1>
           <div class="typing-container">
             <span class="typed-text">{{ currentTypedText }}</span>
@@ -18,14 +18,14 @@
 
         <div class="hero-description">
           <p class="text-secondary">
-            A collaborative tool empowering rural communities<br>
-            to design, plan, and implement innovative solutions<br>
-            to complex challenges.
+            {{ content.hero.descLead }}<br>
+            {{ content.hero.descMid }}<br>
+            {{ content.hero.descTrail }}
           </p>
         </div>
       </div>
 
-      <router-link to="/patterns" class="floating-cta btn">Explore</router-link>
+      <router-link to="/patterns" class="floating-cta btn">{{ content.hero.exploreLabel }}</router-link>
     </div>
   </section>
 </template>
@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useTypingAnimation } from '@/composables/useTypingAnimation'
+import { content } from '@/data/site'
 import { PatternConstellation } from '@/components'
 
 const { currentTypedText, isTyping, startTypingAnimation } = useTypingAnimation()

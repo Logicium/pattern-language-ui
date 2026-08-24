@@ -1,25 +1,54 @@
 <template>
   <div class="welcome-state">
-    <h2>Ask about patterns, implementation strategies, or community challenges</h2>
-    
+    <h2>{{ heading }}</h2>
+
     <div class="suggestions">
-      <button @click="$emit('sendSuggestion', 'How do I start a Community Anchor Point?')" class="suggestion-btn text-xs">
-        How do I start a Community Anchor Point?
-      </button>
-      <button @click="$emit('sendSuggestion', 'What patterns work well together?')" class="suggestion-btn text-xs">
-        What patterns work well together?
-      </button>
-      <button @click="$emit('sendSuggestion', 'How can I build trust in my community?')" class="suggestion-btn text-xs">
-        How can I build trust in my community?
+      <button
+        v-for="s in activeSuggestions"
+        :key="s"
+        class="suggestion-btn text-xs"
+        @click="$emit('sendSuggestion', s)"
+      >
+        {{ s }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+
 defineEmits<{
   sendSuggestion: [suggestion: string]
 }>()
+
+const authStore = useAuthStore()
+
+const DEFAULT_SUGGESTIONS = [
+  'How do I start a Community Anchor Point?',
+  'What patterns work well together?',
+  'How can I build trust in my community?',
+]
+
+// Prompts from the Cottonwood Springs workshop profile — demo citizens get
+// scenario-specific starting points instead of the generic ones.
+const DEMO_SUGGESTIONS = [
+  'Which five patterns fit Cottonwood Springs best, and what evidence points to each?',
+  'Give me three different three-pattern stacks for Cottonwood Springs.',
+  'Design a 90-day experiment under $20,000 that uses at least three existing assets.',
+  "From Sofia's perspective, what are the biggest barriers — and which patterns would change her mind about leaving?",
+]
+
+const isDemo = computed(() => authStore.currentUser?.isDemo === true)
+
+const heading = computed(() =>
+  isDemo.value
+    ? 'You know Cottonwood Springs now. Where would you start?'
+    : 'Ask about patterns, implementation strategies, or community challenges'
+)
+
+const activeSuggestions = computed(() => (isDemo.value ? DEMO_SUGGESTIONS : DEFAULT_SUGGESTIONS))
 </script>
 
 <style scoped>
@@ -63,19 +92,19 @@ defineEmits<{
   transform: translateX(4px);
 }
 
-.suggestion-btn:nth-child(2) {
+.suggestion-btn:nth-child(3n + 2) {
   border-left-color: var(--color-accent-3);
 }
 
-.suggestion-btn:nth-child(2):hover {
+.suggestion-btn:nth-child(3n + 2):hover {
   border-left-color: var(--color-accent-2);
 }
 
-.suggestion-btn:nth-child(3) {
+.suggestion-btn:nth-child(3n) {
   border-left-color: var(--color-accent-1);
 }
 
-.suggestion-btn:nth-child(3):hover {
+.suggestion-btn:nth-child(3n):hover {
   border-left-color: var(--color-accent-3);
 }
 

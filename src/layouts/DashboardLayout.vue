@@ -29,6 +29,7 @@
     ></div>
 
     <main class="dashboard-main">
+      <DemoCitizenBanner />
       <RouterView v-slot="{ Component }">
         <Transition name="page-blur" mode="out-in">
           <component :is="Component" />
@@ -40,6 +41,7 @@
 
 <script setup lang="ts">
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar.vue'
+import DemoCitizenBanner from '@/components/dashboard/DemoCitizenBanner.vue'
 import { useDashboardLayout } from '@/composables/useDashboardLayout'
 import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
 

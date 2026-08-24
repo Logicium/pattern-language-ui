@@ -17,17 +17,34 @@
         <div class="gradient-overlay"></div>
         <div class="container hero-content">
           <div class="hero-left">
-            <p class="hero-label text-xs text-tertiary">{{ city.state ?? 'Community' }}</p>
+            <p class="hero-label text-xs text-tertiary">
+              {{ city.state ?? 'Community' }}
+              <span v-if="city.isDemo" class="demo-chip">Demo</span>
+            </p>
             <h1 class="hero-title">{{ city.name }}</h1>
             <div class="hero-meta text-sm text-secondary">
               <span v-if="city.establishedYear">Est. {{ city.establishedYear }}</span>
               <span v-if="city.population" class="meta-sep">·</span>
               <span v-if="city.population">Pop. {{ city.population.toLocaleString() }}</span>
             </div>
+            <p v-if="city.isDemo" class="demo-note text-sm text-secondary">
+              A fictional community for workshops &amp; demos — every person, organization,
+              and number here is invented.
+            </p>
+            <template v-if="city.isDemo && !isAuthenticated">
+              <button class="btn mt-md" :disabled="enteringDemo" @click="enterAsCitizen">
+                {{ enteringDemo ? 'Moving you in…' : 'Try it as a citizen' }}
+              </button>
+              <p class="demo-cta-hint text-sm text-tertiary">
+                No account needed. You'll get a citizen name, the full dashboard, and PAL —
+                everything stays in the sandbox until you decide to keep it.
+              </p>
+              <p v-if="demoError" class="demo-cta-error text-sm">{{ demoError }}</p>
+            </template>
             <button v-if="!city.isGenerated && isAuthenticated" class="btn mt-md" :disabled="generating" @click="generate">
               {{ generating ? 'Generating…' : 'Generate Community Info' }}
             </button>
-            <p v-if="!city.isGenerated && !isAuthenticated" class="not-generated text-sm text-tertiary">
+            <p v-if="!city.isGenerated && !isAuthenticated && !city.isDemo" class="not-generated text-sm text-tertiary">
               <router-link to="/login">Sign in</router-link> to generate community info for this city.
             </p>
           </div>
@@ -71,7 +88,9 @@
                     <span class="accent-mark" data-accent="1" aria-hidden="true"></span>
                     {{ city.imageCaption || cityLabel }}
                   </span>
+                  <span v-if="city.isDemo" class="caption-attribution">Fictional</span>
                   <a
+                    v-else
                     class="caption-attribution"
                     :href="city.wikipediaUrl || `https://en.wikipedia.org/wiki/${encodeURIComponent(city.name.replace(/ /g, '_'))}`"
                     target="_blank"
@@ -489,10 +508,15 @@ import { ModalBackButton } from '@/components'
 import FullChallengePage from '@/views/FullChallengePage.vue'
 import CityProblemsList from '@/components/city/CityProblemsList.vue'
 import ProfilePage from '@/views/dashboard/ProfilePage.vue'
-import { usersApi, configApi } from '@/services/api'
+import { useRouter } from 'vue-router'
+import { usersApi, configApi, demoApi } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 import { useFullCityPage } from '@/composables/useFullCityPage'
 import { useSeo } from '@/composables/useSeo'
-import { cityStaticMapUrl } from '@/utils/cityMap'
+import { cityStaticMapUrl, coordsOf } from '@/utils/cityMap'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const {
   city, loading, error, generating,
@@ -537,9 +561,32 @@ configApi.getMapsKey()
 
 const heroMapUrl = computed(() =>
   city.value && mapsKey.value
-    ? cityStaticMapUrl(city.value.name, city.value.state, mapsKey.value, { width: 1280, height: 480, zoom: 13 })
+    ? cityStaticMapUrl(city.value.name, city.value.state, mapsKey.value, {
+        width: 1280,
+        height: 480,
+        zoom: 13,
+        coords: coordsOf(city.value),
+      })
     : null
 )
+
+// "Try it as a citizen" — spin up a demo-citizen session for the sandbox city.
+const enteringDemo = ref(false)
+const demoError = ref('')
+async function enterAsCitizen() {
+  if (enteringDemo.value) return
+  enteringDemo.value = true
+  demoError.value = ''
+  try {
+    const session = await demoApi.createCitizen()
+    authStore.enterDemoSession(session)
+    router.push('/dashboard')
+  } catch (e) {
+    demoError.value = e instanceof Error ? e.message : 'Could not start the demo. Please try again.'
+  } finally {
+    enteringDemo.value = false
+  }
+}
 
 async function openMemberProfile(userId: number) {
   showMemberModal.value = true
@@ -830,6 +877,33 @@ const prosperityStatusClass = computed(() => {
 
 .not-generated { margin-top: 1.5rem; }
 .not-generated a { color: var(--color-text-primary); }
+
+/* Demo (fictional) city affordances */
+.demo-chip {
+  display: inline-block;
+  margin-left: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--color-accent-3);
+  background: color-mix(in srgb, var(--color-accent-3) 20%, transparent);
+  color: var(--color-text-primary);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.demo-note {
+  margin-top: 0.75rem;
+  max-width: 46ch;
+}
+
+.demo-cta-hint {
+  margin-top: 0.75rem;
+  max-width: 44ch;
+}
+
+.demo-cta-error {
+  margin-top: 0.5rem;
+  color: var(--color-accent-warm);
+}
 
 @media (max-width: 768px) {
   .hero-content {

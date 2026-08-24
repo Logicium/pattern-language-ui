@@ -1,15 +1,20 @@
 <template>
   <nav class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
     <div class="container navbar-container">
-      <BrandLogo to="/" word="PATTERN LANGUAGE.AI" :size="65" word-size="1rem" class="logo" />
-      
+      <span class="brand">
+        <BrandLogo to="/" word="PATTERN LANGUAGE.AI" :size="65" word-size="1rem" class="logo" />
+        <router-link to="/beta" class="beta-chip" title="Pattern Language is in beta">beta</router-link>
+      </span>
+
       <!-- Desktop Nav Links -->
       <div class="nav-links">
         <router-link to="/about">About</router-link>
         <router-link to="/patterns">Patterns</router-link>
         <router-link to="/stories">Stories</router-link>
         <router-link to="/cities">Cities</router-link>
+        <router-link to="/events">Events</router-link>
         <router-link to="/shop">Shop</router-link>
+        <router-link v-if="!isAuthenticated" to="/try">Try PAL</router-link>
         <router-link v-if="isAuthenticated" to="/dashboard" class="btn">Dashboard</router-link>
         <router-link v-else to="/signup" class="btn">Start</router-link>
       </div>
@@ -35,7 +40,9 @@
       <router-link to="/patterns" @click="closeMobileMenu">Patterns</router-link>
       <router-link to="/stories" @click="closeMobileMenu">Stories</router-link>
       <router-link to="/cities" @click="closeMobileMenu">Cities</router-link>
+      <router-link to="/events" @click="closeMobileMenu">Events</router-link>
       <router-link to="/shop" @click="closeMobileMenu">Shop</router-link>
+      <router-link v-if="!isAuthenticated" to="/try" @click="closeMobileMenu">Try PAL</router-link>
       <router-link v-if="isAuthenticated" to="/dashboard" class="btn" @click="closeMobileMenu">Dashboard</router-link>
       <router-link v-else to="/signup" class="btn" @click="closeMobileMenu">Start</router-link>
     </div>
@@ -50,12 +57,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import BrandLogo from '@/components/layout/BrandLogo.vue'
 
 const authStore = useAuthStore()
-const isAuthenticated = authStore.isAuthenticated
+// Computed (not unwrapped at setup) so the navbar reacts to login/logout
+// without needing a remount.
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 const isMobileMenuOpen = ref(false)
 const isScrolled = ref(false)
@@ -108,6 +117,31 @@ const closeMobileMenu = () => {
   align-items: center;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  z-index: 1001;
+  position: relative;
+}
+
+/* Always-visible beta marker; the dismissible BetaBanner handles the details */
+.beta-chip {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-accent-warm);
+  border: 1px solid rgba(212, 123, 95, 0.4);
+  padding: 0.15rem 0.4rem;
+  text-decoration: none;
+  line-height: 1;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.beta-chip:hover {
+  border-color: var(--color-accent-warm);
 }
 
 .logo {

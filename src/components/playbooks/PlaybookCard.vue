@@ -18,7 +18,9 @@
 
     <h3 class="card-title">{{ playbookTitle(playbook) }}</h3>
 
-    <span class="pattern-chip">{{ playbook.patternTitle }}</span>
+    <span class="pattern-chip">
+      {{ playbook.patternTitle }}<template v-if="extraPatternCount"> +{{ extraPatternCount }}</template>
+    </span>
 
     <p class="card-provenance">
       {{ playbook.location }}<template v-if="showCreator && playbook.user">&ensp;·&ensp;{{ playbook.user.name }}</template>
@@ -62,6 +64,12 @@ const props = defineProps<{
 const tasksCompleted = computed(() =>
   props.playbook.tasks.filter((t: any) => t.completed).length
 )
+
+// "+N" on the chip when this is a merged multi-pattern playbook
+const extraPatternCount = computed(() => {
+  const count = props.playbook.patterns?.length ?? 0
+  return count > 1 ? count - 1 : 0
+})
 
 // Creator first, then collaborators; tolerates older cached data without members
 const memberList = computed(() => {

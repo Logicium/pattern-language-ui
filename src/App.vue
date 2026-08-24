@@ -8,7 +8,9 @@
         <component :is="Component" />
       </Transition>
     </RouterView>
-    <BetaBanner />
+    <!-- Chrome-free routes (presentation, logout, 404, guest demo) skip the
+         banner; everywhere else — including the dashboard — keeps it. -->
+    <BetaBanner v-if="!route.meta.noNavbar" />
   </div>
 </template>
 

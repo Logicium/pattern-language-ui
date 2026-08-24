@@ -119,6 +119,93 @@ export const chatApi = {
     }),
 }
 
+// Demo (guest PAL) API — anonymous by design: no auth header, no server-side
+// persistence. The guest's transcript lives in localStorage and is replayed
+// with every request.
+export const demoApi = {
+  sendMessage: async (
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    message: string,
+    location?: string,
+    state?: string
+  ): Promise<{ content: string }> => {
+    const response = await fetch(`${API_URL}/demo/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages, message, location, state }),
+    })
+
+    if (response.status === 429) {
+      throw new Error("PAL needs a quick breather — you've sent a lot of messages. Try again in a minute.")
+    }
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null)
+      const msg = error?.message
+      throw new Error(
+        Array.isArray(msg) ? msg.join(', ') : msg || `API error: ${response.statusText}`
+      )
+    }
+
+    return response.json()
+  },
+
+  /**
+   * Become a demo citizen of Cottonwood Springs. Returns a normal
+   * { access_token, user } pair — the demo profile is a real (flagged)
+   * account scoped to the fictional city.
+   */
+  createCitizen: async (): Promise<{ access_token: string; user: any }> => {
+    const response = await fetch(`${API_URL}/demo/citizen`, { method: 'POST' })
+
+    if (response.status === 429) {
+      throw new Error('Lots of new citizens right now — give it a minute and try again.')
+    }
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null)
+      const msg = error?.message
+      throw new Error(
+        Array.isArray(msg) ? msg.join(', ') : msg || `API error: ${response.statusText}`
+      )
+    }
+
+    return response.json()
+  },
+}
+
+// Events API — public RSVP for upcoming events (the events themselves are
+// static content in src/data/events.ts).
+export const eventsApi = {
+  signup: async (data: {
+    eventSlug: string
+    name: string
+    email: string
+    organization?: string
+    note?: string
+  }): Promise<{ ok: true }> => {
+    const response = await fetch(`${API_URL}/events/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+
+    if (response.status === 429) {
+      throw new Error('Too many sign-ups from this connection — try again in a minute.')
+    }
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null)
+      const msg = error?.message
+      throw new Error(
+        Array.isArray(msg) ? msg.join(', ') : msg || `API error: ${response.statusText}`
+      )
+    }
+
+    return response.json()
+  },
+}
+
 // Playbooks API
 export const playbooksApi = {
   getAll: () => authFetch('/playbooks'),

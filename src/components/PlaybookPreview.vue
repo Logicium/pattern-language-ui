@@ -10,9 +10,12 @@
 
     <h3 class="card-title">{{ playbookTitle(playbook) }}</h3>
 
-    <span class="pattern-chip">
-      Pattern {{ String(playbook.patternId).padStart(2, '0') }} — {{ playbook.patternTitle }}
-    </span>
+    <div class="pattern-chips">
+      <span v-for="p in patternChips" :key="p.id" class="pattern-chip">
+        Pattern {{ String(p.id).padStart(2, '0') }} — {{ p.title }}
+      </span>
+      <span v-if="patternChips.length > 1" class="merged-note">merged stack</span>
+    </div>
 
     <dl class="caption">
       <div class="caption-row">
@@ -59,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { playbookTitle } from '@/utils/formatters'
 import type { Playbook } from '@/stores/playbooks'
 
@@ -68,6 +71,14 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+// Merged multi-pattern playbooks carry a patterns[] stack; older/single ones
+// fall back to the scalar pattern fields.
+const patternChips = computed(() =>
+  props.playbook.patterns?.length
+    ? props.playbook.patterns
+    : [{ id: props.playbook.patternId, title: props.playbook.patternTitle }]
+)
 const emit = defineEmits<{
   addToPlaybooks: [playbook: Playbook]
   viewFull: [playbook: Playbook]
@@ -150,15 +161,37 @@ const formatDate = (dateString: string) => {
   margin: 0 0 1rem;
 }
 
+.pattern-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
 .pattern-chip {
-  align-self: flex-start;
   padding: 0.45rem 0.85rem;
   font-size: 0.625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-primary);
   background: color-mix(in srgb, var(--color-accent-3) 24%, transparent);
-  margin-bottom: 1.5rem;
+}
+
+/* Vary the wash across a merged stack so each pattern reads distinct */
+.pattern-chips .pattern-chip:nth-child(3n + 2) {
+  background: color-mix(in srgb, var(--color-accent-2) 28%, transparent);
+}
+
+.pattern-chips .pattern-chip:nth-child(3n) {
+  background: color-mix(in srgb, var(--color-accent-1) 26%, transparent);
+}
+
+.merged-note {
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
 }
 
 .caption {

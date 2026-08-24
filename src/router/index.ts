@@ -29,8 +29,13 @@ const TermsPage = () => import('@/views/TermsPage.vue')
 const PrivacyPage = () => import('@/views/PrivacyPage.vue')
 const BetaPage = () => import('@/views/BetaPage.vue')
 const FeatureLogPage = () => import('@/views/FeatureLogPage.vue')
+const EventsPage = () => import('@/views/EventsPage.vue')
 const ShopPage = () => import('@/views/ShopPage.vue')
 const LogoutPage = () => import('@/views/LogoutPage.vue')
+const PresentationPage = () => import('@/views/PresentationPage.vue')
+const SpeakerNotesPage = () => import('@/views/SpeakerNotesPage.vue')
+const TryPalPage = () => import('@/views/TryPalPage.vue')
+const AvatarLabPage = () => import('@/views/AvatarLabPage.vue')
 const NotFoundPage = () => import('@/views/NotFoundPage.vue')
 
 const router = createRouter({
@@ -122,6 +127,16 @@ const router = createRouter({
       }
     },
     {
+      path: '/events',
+      name: 'events',
+      component: EventsPage,
+      meta: {
+        seoTitle: 'Events',
+        seoDescription:
+          'Upcoming Pattern Language gatherings — the Cañon City workshop on September 19, live PAL walkthroughs, and Hack Trinidad Forward 2026.'
+      }
+    },
+    {
       path: '/beta',
       name: 'beta',
       component: BetaPage,
@@ -144,6 +159,24 @@ const router = createRouter({
       meta: { seoTitle: 'Privacy Policy' }
     },
     {
+      path: '/avatar',
+      name: 'avatar-lab',
+      component: AvatarLabPage,
+      meta: { seoTitle: 'PAL Avatar', noindex: true }
+    },
+    {
+      path: '/try',
+      name: 'try',
+      component: TryPalPage,
+      meta: {
+        guestOnly: true,
+        noNavbar: true,
+        seoTitle: 'Try PAL',
+        seoDescription:
+          'Chat with PAL, the Pattern Language assistant, without an account. Explore patterns for your community — your progress saves in your browser.'
+      }
+    },
+    {
       path: '/signup',
       name: 'signup',
       component: SignupPage,
@@ -160,6 +193,18 @@ const router = createRouter({
       name: 'logout',
       component: LogoutPage,
       meta: { noindex: true, noNavbar: true }
+    },
+    {
+      path: '/presentation',
+      name: 'presentation',
+      component: PresentationPage,
+      meta: { seoTitle: 'Presentation', noindex: true, noNavbar: true, noEditor: true }
+    },
+    {
+      path: '/presentation/notes',
+      name: 'presentation-notes',
+      component: SpeakerNotesPage,
+      meta: { seoTitle: 'Speaker Notes', noindex: true, noNavbar: true, noEditor: true }
     },
     {
       path: '/dashboard',
@@ -257,6 +302,13 @@ router.beforeEach((to, from, next) => {
   }
 
   next()
+})
+
+// The Apotome editor bar mounts once into <body>, outside the router's view,
+// so routes that must stay chrome-free (the deck, the stage notes) flag
+// themselves here and global.css hides the bar while they're open.
+router.afterEach((to) => {
+  document.body.classList.toggle('no-editor', to.meta.noEditor === true)
 })
 
 export default router

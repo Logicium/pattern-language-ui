@@ -12,6 +12,7 @@
           <router-link to="/patterns">Pattern Library</router-link>
           <router-link to="/stories">Stories</router-link>
           <router-link to="/cities">Cities</router-link>
+          <router-link to="/events">Events</router-link>
           <router-link to="/shop">Shop</router-link>
         </div>
         <div class="footer-col">

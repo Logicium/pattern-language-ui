@@ -9,37 +9,27 @@
     <div class="cta-container">
       <div class="cta-content">
         <h2 id="cta-title" class="cta-title">
-          Ready to transform<br />your community?
+          {{ content.cta.titleLead }}<br />{{ content.cta.titleTrail }}
         </h2>
-        <p class="cta-lede">
-          A growing library of proven patterns, paired with the people putting
-          them to work in places like yours.
-        </p>
+        <p class="cta-lede">{{ content.cta.lede }}</p>
         <div class="cta-actions">
-          <router-link to="/signup" class="btn btn-lg btn-light">Create Profile</router-link>
+          <router-link to="/signup" class="btn btn-lg btn-light">
+            {{ content.cta.actionLabel }}
+          </router-link>
         </div>
       </div>
 
       <ol class="cta-steps" aria-label="How it works">
-        <li class="step step-1">
-          <span class="step-num" aria-hidden="true">01</span>
+        <li
+          v-for="(step, i) in content.cta.steps"
+          :key="step.num"
+          class="step"
+          :class="`step-${i + 1}`"
+        >
+          <span class="step-num" aria-hidden="true">{{ step.num }}</span>
           <div class="step-body">
-            <span class="step-label">Discover</span>
-            <p class="step-text">Browse a curated library of regenerative patterns drawn from real projects.</p>
-          </div>
-        </li>
-        <li class="step step-2">
-          <span class="step-num" aria-hidden="true">02</span>
-          <div class="step-body">
-            <span class="step-label">Design</span>
-            <p class="step-text">Match each pattern to the people, place, and constraints of your community.</p>
-          </div>
-        </li>
-        <li class="step step-3">
-          <span class="step-num" aria-hidden="true">03</span>
-          <div class="step-body">
-            <span class="step-label">Collaborate</span>
-            <p class="step-text">Connect with practitioners and document what works as you build it together.</p>
+            <span class="step-label">{{ step.label }}</span>
+            <p class="step-text">{{ step.text }}</p>
           </div>
         </li>
       </ol>
@@ -50,6 +40,7 @@
 </template>
 
 <script setup lang="ts">
+import { content } from '@/data/site'
 import { defineAsyncComponent } from 'vue'
 
 // Async so three.js stays out of the initial bundle and loads after first paint.

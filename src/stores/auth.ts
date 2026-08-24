@@ -11,6 +11,8 @@ export interface User {
   location?: string
   state?: string
   interests?: string[]
+  /** Demo citizen of the fictional Cottonwood Springs sandbox. */
+  isDemo?: boolean
   createdAt: string
 }
 
@@ -41,6 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
     return true
   })
   const currentUser = computed(() => user.value)
+  const isDemoUser = computed(() => user.value?.isDemo === true)
 
   // Actions
   async function login(email: string, password: string) {
@@ -87,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     goals?: string;
     interests?: string[];
     inviteToken?: string;
+    guestData?: import('@/stores/guestChat').GuestSignupData;
   }) {
     try {
       const response = await fetch(`${API_URL}/auth/signup`, {
@@ -158,6 +162,7 @@ export const useAuthStore = defineStore('auth', () => {
     goals?: string
     interests?: string[]
     inviteToken?: string
+    guestData?: import('@/stores/guestChat').GuestSignupData
   }) {
     try {
       const response = await fetch(`${API_URL}/auth/google-signup`, {
@@ -192,6 +197,48 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user')
+  }
+
+  /**
+   * Adopt a session issued by POST /demo/citizen — a real (flagged) account
+   * scoped to Cottonwood Springs. From here on the normal authed flows apply.
+   */
+  function enterDemoSession(data: { access_token: string; user: User }) {
+    // A previous session's cached data must not bleed into the fresh citizen.
+    localStorage.removeItem('chatSessions')
+    localStorage.removeItem('playbooks')
+    localStorage.removeItem('notifications')
+    token.value = data.access_token
+    user.value = data.user
+    localStorage.setItem('auth_token', data.access_token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+  }
+
+  /**
+   * Flip the current demo-citizen profile into a real account (keeps all
+   * playbooks/chats/memberships — same user row on the server).
+   */
+  async function claimDemo(claim: { email: string; name: string; password: string }) {
+    const response = await fetch(`${API_URL}/auth/claim-demo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token.value}`,
+      },
+      body: JSON.stringify(claim),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Could not claim this profile')
+    }
+
+    const data = await response.json()
+    token.value = data.access_token
+    user.value = { ...data.user, isDemo: false }
+    localStorage.setItem('auth_token', data.access_token)
+    localStorage.setItem('user', JSON.stringify(user.value))
+    return data
   }
 
   // Check if the current token is valid (not expired)
@@ -238,11 +285,14 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isAuthenticated,
     currentUser,
+    isDemoUser,
     login,
     signup,
     googleLogin,
     googleSignup,
     logout,
+    enterDemoSession,
+    claimDemo,
     updateUser,
     checkTokenValidity
   }

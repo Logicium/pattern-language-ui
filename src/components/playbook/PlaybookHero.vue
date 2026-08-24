@@ -2,8 +2,12 @@
   <section class="playbook-hero gradient-bg">
     <div class="container">
       <div class="hero-meta">
-        <span class="pattern-number text-xs text-tertiary">
-          Pattern {{ String(playbook.patternId).padStart(2, '0') }} — {{ playbook.patternTitle }}
+        <span
+          v-for="p in heroPatterns"
+          :key="p.id"
+          class="pattern-number text-xs text-tertiary"
+        >
+          Pattern {{ String(p.id).padStart(2, '0') }} — {{ p.title }}
         </span>
         <span
           class="status-badge text-xs"
@@ -46,13 +50,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { playbookTitle } from '@/utils/formatters'
 
 const props = defineProps<{
   playbook: any
   canEdit?: boolean
 }>()
+
+// Merged multi-pattern playbooks list every pattern; older ones just the one.
+const heroPatterns = computed(() =>
+  props.playbook.patterns?.length
+    ? props.playbook.patterns
+    : [{ id: props.playbook.patternId, title: props.playbook.patternTitle }]
+)
 
 const emit = defineEmits<{
   updateTitle: [title: string]

@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useGuestChatStore } from '@/stores/guestChat'
 
 export interface SignupFormData {
   firstName: string
@@ -21,6 +22,7 @@ export function useSignupForm() {
   const router = useRouter()
   const route = useRoute()
   const authStore = useAuthStore()
+  const guestChatStore = useGuestChatStore()
 
   // Playbook email-invitation token (from /signup?invite=<token>); signing up
   // with it automatically adds the new user to the inviting playbook.
@@ -104,6 +106,10 @@ export function useSignupForm() {
 
     isSubmitting.value = true
 
+    // Progress made in guest/demo mode rides along with the signup and
+    // becomes real chats/playbooks on the new account.
+    const guestData = guestChatStore.exportForSignup()
+
     try {
       if (isGoogleSignup.value) {
         await authStore.googleSignup({
@@ -116,6 +122,7 @@ export function useSignupForm() {
           goals: formData.value.goals,
           interests: formData.value.selectedChallenges,
           inviteToken: inviteToken.value,
+          guestData,
         })
       } else {
         await authStore.signup({
@@ -129,9 +136,14 @@ export function useSignupForm() {
           currentWork: formData.value.currentWork,
           goals: formData.value.goals,
           interests: formData.value.selectedChallenges,
-          inviteToken: inviteToken.value
+          inviteToken: inviteToken.value,
+          guestData,
         })
       }
+
+      // The guest progress now lives in the account — clear the local copy so
+      // it can't leak into someone else's future guest session.
+      guestChatStore.clear()
 
       await new Promise(resolve => setTimeout(resolve, 100))
       await router.push('/dashboard')

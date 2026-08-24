@@ -362,6 +362,14 @@ h1, h2, h3, h4, h5, h6 {
   /*animation: gradientFlow 12s linear infinite;*/
 }
 
+/* Chrome-free routes (the deck, the stage notes) hide the Apotome editor bar.
+   The bar mounts its own app into <body>, so the router toggles this class
+   rather than unmounting it — leaving the editor session intact for the
+   moment the presenter navigates back to an editable page. */
+body.no-editor .apotome-editor-host {
+  display: none !important;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   :root {

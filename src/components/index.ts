@@ -12,6 +12,7 @@ export { default as CTASection } from './sections/CTASection.vue'
 export { default as AiAvatar } from './AiAvatar.vue'
 // The three.js canvases are decorative and heavy; async so three.js stays out
 // of the initial bundle and loads after first paint.
+export const AiAvatar3D = defineAsyncComponent(() => import('./AiAvatar3D.vue'))
 export const RibbonCanvas = defineAsyncComponent(() => import('./RibbonCanvas.vue'))
 export const LatticeCanvas = defineAsyncComponent(() => import('./hero/LatticeCanvas.vue'))
 export const OrbitCanvas = defineAsyncComponent(() => import('./hero/OrbitCanvas.vue'))

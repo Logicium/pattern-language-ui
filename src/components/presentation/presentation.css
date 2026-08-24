@@ -1,0 +1,394 @@
+/*
+ * Deck-wide styles for the SoCo Startup Week presentation.
+ * Two visual languages share this file:
+ *  - "htf"  — Hack Trinidad Forward poster brand: black canvas, #00ff88 / #d4d4d4
+ *             mosaic blocks, Space Grotesk 900 uppercase, highlighter bars.
+ *  - "pl"   — Pattern Language site brand: warm paper, Geist 200, tri-accent line,
+ *             ribbon canvas behind everything.
+ * All classes are prefixed .pres- / .htf- / .pld- so nothing leaks into the site.
+ */
+
+.pres {
+  --htf-green: #00ff88;
+  --htf-gray: #d4d4d4;
+  --htf-pink: #f7b8d8;
+  --htf-yellow: #f2e860;
+  --htf-font: 'Space Grotesk', 'Geist', sans-serif;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  z-index: 10;
+  user-select: none;
+}
+
+/* ---------- background layers ---------- */
+
+.pres-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  pointer-events: none;
+}
+
+.pres-bg.is-active {
+  opacity: 1;
+}
+
+.pres-bg--htf {
+  background: #000;
+}
+
+.pres-bg--pl {
+  background: var(--color-bg-primary);
+}
+
+/* ---------- slide frame ---------- */
+
+.pres-stage {
+  position: absolute;
+  inset: 0;
+}
+
+.pres-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(2rem, 6vw, 7rem);
+  padding-bottom: clamp(4rem, 9vh, 8rem);
+}
+
+/* directional cross-blur between slides */
+.deck-next-enter-active,
+.deck-next-leave-active,
+.deck-prev-enter-active,
+.deck-prev-leave-active {
+  transition:
+    opacity 0.55s ease,
+    transform 0.55s ease,
+    filter 0.55s ease;
+}
+
+.deck-next-enter-from {
+  opacity: 0;
+  transform: translateX(3.5rem);
+  filter: blur(14px);
+}
+
+.deck-next-leave-to {
+  opacity: 0;
+  transform: translateX(-3.5rem);
+  filter: blur(14px);
+}
+
+.deck-prev-enter-from {
+  opacity: 0;
+  transform: translateX(-3.5rem);
+  filter: blur(14px);
+}
+
+.deck-prev-leave-to {
+  opacity: 0;
+  transform: translateX(3.5rem);
+  filter: blur(14px);
+}
+
+/* plain cross-fade used entering/leaving the bridge slide — no transform, so
+ * the bridge's position:fixed pixel curtain stays glued to the viewport */
+.deck-fade-enter-active,
+.deck-fade-leave-active {
+  transition: opacity 0.6s ease;
+}
+
+.deck-fade-enter-from,
+.deck-fade-leave-to {
+  opacity: 0;
+}
+
+/* ---------- entrance choreography ---------- */
+
+.rise {
+  opacity: 0;
+  animation: presRise 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes presRise {
+  from {
+    opacity: 0;
+    transform: translateY(1.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pop {
+  opacity: 0;
+  animation: presPop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes presPop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---------- HTF poster language ---------- */
+
+.htf-display {
+  font-family: var(--htf-font);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+  color: #fff;
+  margin: 0;
+}
+
+.htf-display--xl {
+  font-size: clamp(3rem, 9.5vw, 9rem);
+}
+
+.htf-display--lg {
+  font-size: clamp(2.2rem, 6.5vw, 6rem);
+}
+
+.htf-display--md {
+  font-size: clamp(1.4rem, 3.2vw, 3rem);
+}
+
+/* Headlines whose lines wear highlighter boxes need extra leading so a box
+ * never paints over the line above it */
+.htf-display--boxed {
+  line-height: 1.16;
+}
+
+.htf-label {
+  font-family: var(--htf-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: clamp(0.7rem, 1.1vw, 1rem);
+  color: #fff;
+}
+
+.htf-body {
+  font-family: var(--htf-font);
+  font-weight: 500;
+  font-size: clamp(0.9rem, 1.5vw, 1.25rem);
+  line-height: 1.5;
+  color: var(--htf-gray);
+  max-width: 46ch;
+}
+
+/* highlighter bars — the deck's signature text treatment */
+.htf-hl {
+  display: inline;
+  background: var(--htf-green);
+  color: #000;
+  padding: 0.05em 0.28em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.htf-hl--pink {
+  background: var(--htf-pink);
+}
+
+.htf-hl--yellow {
+  background: var(--htf-yellow);
+}
+
+.htf-hl--white {
+  background: #fff;
+}
+
+.htf-hl--black {
+  background: #000;
+  color: #fff;
+}
+
+.htf-hl--gray {
+  background: var(--htf-gray);
+  color: #000;
+}
+
+/* ---------- Pattern Language deck language ---------- */
+
+.pld-label {
+  font-size: clamp(0.7rem, 1vw, 0.85rem);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-text-tertiary);
+  font-weight: 400;
+}
+
+.pld-display {
+  font-weight: 200;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.pld-display--xl {
+  font-size: clamp(2.6rem, 6.5vw, 6rem);
+}
+
+.pld-display--lg {
+  font-size: clamp(2rem, 4.5vw, 4.25rem);
+}
+
+.pld-body {
+  font-weight: 300;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  max-width: 58ch;
+}
+
+.pld-accent-line {
+  height: 3px;
+  width: clamp(4rem, 8vw, 7rem);
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-1),
+    var(--color-accent-2),
+    var(--color-accent-3)
+  );
+}
+
+.pld-number {
+  font-size: clamp(0.75rem, 1vw, 0.9rem);
+  letter-spacing: 0.2em;
+  color: var(--color-text-tertiary);
+  font-weight: 300;
+}
+
+/* ---------- HUD ---------- */
+
+.pres-hud {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.1rem clamp(1.5rem, 4vw, 3.5rem);
+  z-index: 40;
+  pointer-events: none;
+  transition: color 1.4s ease;
+}
+
+.pres--htf .pres-hud {
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--htf-font);
+  font-weight: 500;
+}
+
+.pres--pl .pres-hud {
+  color: var(--color-text-tertiary);
+  font-weight: 300;
+}
+
+.pres-hud__counter {
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  min-width: 5.5em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pres-hud__track {
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, currentColor 25%, transparent);
+  position: relative;
+}
+
+.pres-hud__fill {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 3px;
+  transition:
+    width 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background 1.4s ease;
+}
+
+.pres--htf .pres-hud__fill {
+  background: var(--htf-green);
+}
+
+.pres--pl .pres-hud__fill {
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-1),
+    var(--color-accent-2),
+    var(--color-accent-3)
+  );
+}
+
+.pres-hud__hint {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+.pres-hud__hint.is-faded {
+  opacity: 0;
+}
+
+/* invisible edge click zones for clicker-less navigation */
+.pres-tap {
+  position: absolute;
+  top: 0;
+  bottom: 6rem;
+  width: 18%;
+  z-index: 30;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.pres-tap--prev {
+  left: 0;
+}
+
+.pres-tap--next {
+  right: 0;
+  width: 40%;
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .pres *,
+  .pres *::before,
+  .pres *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .rise,
+  .pop {
+    opacity: 1;
+  }
+}
