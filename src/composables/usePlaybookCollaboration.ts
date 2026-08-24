@@ -119,9 +119,20 @@ export function usePlaybookCollaboration(
     if (!playbook.value || typeof playbook.value.id !== 'number' || !authStore.user) return
     loading.value = true
     try {
-      await playbooksApi.requestToJoin(playbook.value.id, 'Request to join this playbook')
-      toastMessage.value = 'Join request sent to playbook creator'
-      showToast.value = true
+      const request = await playbooksApi.requestToJoin(
+        playbook.value.id,
+        'Request to join this playbook'
+      )
+      // Sandbox playbooks approve on the spot — say so, and show the
+      // membership rather than leaving a stale "waiting on the creator".
+      if (request?.status === 'accepted') {
+        toastMessage.value = "You're in — welcome to the team"
+        showToast.value = true
+        await refreshPlaybook()
+      } else {
+        toastMessage.value = 'Join request sent to playbook creator'
+        showToast.value = true
+      }
     } catch (error: any) {
       console.error('Failed to request join:', error)
       toastMessage.value = error.message || 'Failed to send request'

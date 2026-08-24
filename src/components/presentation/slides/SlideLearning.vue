@@ -1,38 +1,28 @@
 <script setup lang="ts">
-const wentWell = [
-  'Students keep showing up for the after-school employer projects.',
-  'Thursday after-work and Saturday generate the strongest traffic.',
-  'Two ventures sell across multiple days; a third clearly works as an event business.',
-  'A Thursday micro-class fills because people are already in the building.'
-]
+import { content } from '@/data/site'
 
-const wentWrong = [
-  'Sunday traffic is weak for most of the entrepreneurs.',
-  'Saturday-only sales make concepts look stronger than they are.',
-  'Tuesday-evening public workshops draw almost nobody.',
-  'Childcare can\'t simply be added — licensing and staffing are harder than expected.',
-  'The coordinator and volunteers become overloaded.'
-]
-
-const loop = ['See', 'Combine', 'Test', 'Learn', 'Adapt']
+const s = content.presentation.learning
+const wentWell = s.wentWell
+const wentWrong = s.wentWrong
+const loop = s.loop
 </script>
 
 <template>
   <div class="slide">
     <header class="head">
-      <p class="pld-number rise" style="--d: 0.1s">08</p>
-      <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">Then reality shows up.</h2>
+      <p class="pld-number rise" style="--d: 0.1s">{{ s.num }}</p>
+      <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">{{ s.heading }}</h2>
     </header>
 
     <div class="columns">
       <div class="col rise" style="--d: 0.4s">
-        <h3 class="col__title col__title--well">What worked</h3>
+        <h3 class="col__title col__title--well">{{ s.wellTitle }}</h3>
         <ul class="col__list">
           <li v-for="item in wentWell" :key="item">{{ item }}</li>
         </ul>
       </div>
       <div class="col rise" style="--d: 0.55s">
-        <h3 class="col__title col__title--wrong">What didn't</h3>
+        <h3 class="col__title col__title--wrong">{{ s.wrongTitle }}</h3>
         <ul class="col__list">
           <li v-for="item in wentWrong" :key="item">{{ item }}</li>
         </ul>
@@ -41,11 +31,10 @@ const loop = ['See', 'Combine', 'Test', 'Learn', 'Adapt']
 
     <div class="pivot rise" style="--d: 0.85s">
       <p class="pivot__line">
-        The visible problem was space. <em>The hidden problem was capacity.</em>
+        <span>{{ s.pivotLead }}</span> <em>{{ s.pivotEmphasis }}</em>
       </p>
       <p class="pivot__next">
-        Next pattern: <span class="pivot__chip">Local Capacity Backbone</span> — a small
-        coordinating team that owns partners, schedules, funding, and follow-through.
+        <span>{{ s.nextLead }}</span> <span class="pivot__chip">{{ s.nextChip }}</span> <span>{{ s.nextTrail }}</span>
       </p>
     </div>
 

@@ -1,24 +1,19 @@
 <script setup lang="ts">
-const pairs = [
-  { problem: 'Youth flight & talent drain', pattern: 'Youth Return Pathway', accent: 'var(--color-accent-1)' },
-  { problem: 'Low civic trust', pattern: 'Community Anchor Point', accent: 'var(--color-accent-2)' },
-  { problem: 'Isolation & disconnection', pattern: 'Shared Cultural Story', accent: 'var(--color-accent-3)' },
-  { problem: 'Economic stagnation', pattern: 'Main Street Reawakening', accent: 'var(--color-accent-warm)' }
-]
+import { content } from '@/data/site'
+
+const s = content.presentation.language
+const pairs = s.pairs
 </script>
 
 <template>
   <div class="slide">
     <header class="head">
-      <p class="pld-number rise" style="--d: 0.1s">01</p>
+      <p class="pld-number rise" style="--d: 0.1s">{{ s.num }}</p>
       <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">
-        A language for community change
+        {{ s.heading }}
       </h2>
       <p class="pld-body rise" style="--d: 0.4s">
-        In 1977, architect Christopher Alexander showed that good places are built from
-        recurring, nameable patterns. The <em>Rural Pattern Language</em> applies that idea to
-        the hardest problems small towns face — 50 proven patterns, each one a solution that
-        has worked somewhere real.
+        <span>{{ s.bodyLead }}</span> <em>{{ s.bodyEmphasis }}</em> <span>{{ s.bodyTrail }}</span>
       </p>
     </header>
 
@@ -27,7 +22,7 @@ const pairs = [
         v-for="(p, i) in pairs"
         :key="p.pattern"
         class="pair rise"
-        :style="{ '--d': `${0.55 + i * 0.15}s`, '--accent': p.accent }"
+        :style="{ '--d': `${0.55 + i * 0.15}s`, '--accent': p.swatch }"
       >
         <span class="pair__problem">{{ p.problem }}</span>
         <span class="pair__arrow chevron" aria-hidden="true" />

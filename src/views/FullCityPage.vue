@@ -508,15 +508,11 @@ import { ModalBackButton } from '@/components'
 import FullChallengePage from '@/views/FullChallengePage.vue'
 import CityProblemsList from '@/components/city/CityProblemsList.vue'
 import ProfilePage from '@/views/dashboard/ProfilePage.vue'
-import { useRouter } from 'vue-router'
-import { usersApi, configApi, demoApi } from '@/services/api'
-import { useAuthStore } from '@/stores/auth'
+import { usersApi, configApi } from '@/services/api'
+import { useDemoCitizen } from '@/composables/useDemoCitizen'
 import { useFullCityPage } from '@/composables/useFullCityPage'
 import { useSeo } from '@/composables/useSeo'
 import { cityStaticMapUrl, coordsOf } from '@/utils/cityMap'
-
-const router = useRouter()
-const authStore = useAuthStore()
 
 const {
   city, loading, error, generating,
@@ -570,23 +566,10 @@ const heroMapUrl = computed(() =>
     : null
 )
 
-// "Try it as a citizen" — spin up a demo-citizen session for the sandbox city.
-const enteringDemo = ref(false)
-const demoError = ref('')
-async function enterAsCitizen() {
-  if (enteringDemo.value) return
-  enteringDemo.value = true
-  demoError.value = ''
-  try {
-    const session = await demoApi.createCitizen()
-    authStore.enterDemoSession(session)
-    router.push('/dashboard')
-  } catch (e) {
-    demoError.value = e instanceof Error ? e.message : 'Could not start the demo. Please try again.'
-  } finally {
-    enteringDemo.value = false
-  }
-}
+// "Try it as a citizen" — resumes the visitor's existing citizen when they
+// have one, so signing out and coming back doesn't strand their playbooks.
+const { entering: enteringDemo, error: demoError, enterDemo } = useDemoCitizen()
+const enterAsCitizen = () => enterDemo()
 
 async function openMemberProfile(userId: number) {
   showMemberModal.value = true

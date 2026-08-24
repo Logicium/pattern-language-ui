@@ -1,22 +1,9 @@
 <script setup lang="ts">
-const sponsors = [
-  'CrowdStrike',
-  'CDW-G',
-  'Mt. San Rafael Hospital',
-  'Emergent Campus',
-  'Trinidad State College',
-  'Cyderes',
-  'CSI',
-  'Multicard',
-  "Gobin's Inc.",
-  'Way Out West Coffee Co.',
-  'Disruptive Innovations',
-  'Creo En Ti Foundation',
-  'InBank',
-  'ELLKAY',
-  'Biometrica',
-  'Apotome Labs'
-]
+import { content } from '@/data/site'
+
+/* `c`, not `s`: the sponsor v-for already binds `s` as its item */
+const c = content.presentation.community
+const sponsors = c.sponsors
 </script>
 
 <template>
@@ -24,13 +11,12 @@ const sponsors = [
     <div class="slide__bg" aria-hidden="true" />
     <div class="lede">
       <h2 class="htf-display htf-display--lg htf-display--boxed rise" style="--d: 0.1s">
-        <span class="htf-hl htf-hl--black">Proof that we come together</span><br />
-        <span class="htf-hl htf-hl--black">as a community</span><br />
-        <span class="htf-hl htf-hl--black">when we need it most.</span>
+        <span class="htf-hl htf-hl--black">{{ c.headLine1 }}</span><br />
+        <span class="htf-hl htf-hl--black">{{ c.headLine2 }}</span><br />
+        <span class="htf-hl htf-hl--black">{{ c.headLine3 }}</span>
       </h2>
       <p class="htf-body rise" style="--d: 0.4s">
-        Sixteen partners — from Fortune-500 security firms to the coffee shop on Main Street —
-        contributed cash, swag, food, venue space, and logistics.
+        {{ c.lede }}
       </p>
     </div>
 

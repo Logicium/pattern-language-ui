@@ -34,7 +34,7 @@ const ShopPage = () => import('@/views/ShopPage.vue')
 const LogoutPage = () => import('@/views/LogoutPage.vue')
 const PresentationPage = () => import('@/views/PresentationPage.vue')
 const SpeakerNotesPage = () => import('@/views/SpeakerNotesPage.vue')
-const TryPalPage = () => import('@/views/TryPalPage.vue')
+const DemoEntryPage = () => import('@/views/DemoEntryPage.vue')
 const AvatarLabPage = () => import('@/views/AvatarLabPage.vue')
 const NotFoundPage = () => import('@/views/NotFoundPage.vue')
 
@@ -165,17 +165,19 @@ const router = createRouter({
       meta: { seoTitle: 'PAL Avatar', noindex: true }
     },
     {
-      path: '/try',
-      name: 'try',
-      component: TryPalPage,
+      path: '/demo',
+      name: 'demo',
+      component: DemoEntryPage,
       meta: {
-        guestOnly: true,
         noNavbar: true,
         seoTitle: 'Try PAL',
         seoDescription:
-          'Chat with PAL, the Pattern Language assistant, without an account. Explore patterns for your community — your progress saves in your browser.'
+          'Step into Cottonwood Springs — a fictional town built for exploring the Rural Pattern Language. No account needed: you get a citizen profile, the full dashboard, and PAL.'
       }
     },
+    // The old localStorage-only guest chat is retired; its links now open the
+    // Cottonwood Springs sandbox, which keeps work on a real (demo) account.
+    { path: '/try', redirect: '/demo' },
     {
       path: '/signup',
       name: 'signup',
@@ -307,8 +309,13 @@ router.beforeEach((to, from, next) => {
 // The Apotome editor bar mounts once into <body>, outside the router's view,
 // so routes that must stay chrome-free (the deck, the stage notes) flag
 // themselves here and global.css hides the bar while they're open.
+//
+// Except when someone came to edit: opening the deck as /presentation?edit
+// keeps the bar, so slide copy can be revised in place. Presenting from a
+// plain /presentation URL stays clean even with a live editor session.
 router.afterEach((to) => {
-  document.body.classList.toggle('no-editor', to.meta.noEditor === true)
+  const wantsEditor = /[?&#]edit\b/.test(window.location.href) || /[?&]apk=/.test(window.location.search)
+  document.body.classList.toggle('no-editor', to.meta.noEditor === true && !wantsEditor)
 })
 
 export default router

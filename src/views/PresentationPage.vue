@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@unhead/vue'
 import { RibbonCanvas } from '@/components'
+import { useContentEditor } from '@/kit/editor/useContentEditor'
 import '@/components/presentation/presentation.css'
 
 import SlideTitle from '@/components/presentation/slides/SlideTitle.vue'
@@ -102,6 +103,17 @@ function go(target: number) {
 const nextSlide = () => go(index.value + 1)
 const prevSlide = () => go(index.value - 1)
 
+// The editor binds copy to DOM elements once, when edit mode is switched on.
+// A deck swaps its whole DOM on every slide, so the new slide arrives unbound
+// — re-run the binder after the transition settles, but only while editing.
+const { editMode: editorOn, enable: rebindEditor } = useContentEditor()
+let rebindTimer: ReturnType<typeof setTimeout> | undefined
+watch(index, () => {
+  if (!editorOn.value) return
+  clearTimeout(rebindTimer)
+  rebindTimer = setTimeout(() => rebindEditor(), 650)
+})
+
 function toggleFullscreen() {
   if (document.fullscreenElement) {
     document.exitFullscreen()
@@ -110,8 +122,18 @@ function toggleFullscreen() {
   }
 }
 
+/** True while the caret sits in text the Apotome editor made editable. */
+function isTypingTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null
+  if (!el || !el.closest) return false
+  return !!el.closest('[contenteditable="true"], [contenteditable="plaintext-only"], input, textarea')
+}
+
 function onKeydown(e: KeyboardEvent) {
   if (e.metaKey || e.ctrlKey || e.altKey) return
+  // While someone is editing slide copy, the deck's shortcuts would eat their
+  // typing — space and Enter would advance, "f" would go fullscreen.
+  if (isTypingTarget(e.target)) return
   switch (e.key) {
     case 'ArrowRight':
     case 'ArrowDown':
@@ -192,6 +214,7 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
   document.body.style.overflow = ''
   if (hintTimer) clearTimeout(hintTimer)
+  if (rebindTimer) clearTimeout(rebindTimer)
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
 })
 </script>

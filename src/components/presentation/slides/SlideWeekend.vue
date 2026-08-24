@@ -1,39 +1,13 @@
 <script setup lang="ts">
-const days = [
-  {
-    name: 'Friday_',
-    hl: 'htf-hl',
-    items: [
-      ['6:00 PM', 'Sign-in & mixer'],
-      ['7:00 PM', 'Intro & team formation'],
-      ['8:00 PM', 'Hacking begins!']
-    ]
-  },
-  {
-    name: 'Saturday_',
-    hl: 'htf-hl htf-hl--pink',
-    items: [
-      ['10:00 AM', 'Keynote — Tasha Upchurch: Vibe Coding Your Project'],
-      ['12:00 PM', 'Lunch & mentor sessions'],
-      ['2:00 PM', 'Keynote — Brad Rowland: Why the Future is HERE'],
-      ['6:00 PM', 'Dinner with Trinidad State College']
-    ]
-  },
-  {
-    name: 'Sunday_',
-    hl: 'htf-hl htf-hl--yellow',
-    items: [
-      ['11:00 AM', 'Submissions due'],
-      ['1:00 PM', 'Demos & judging'],
-      ['2:30 PM', 'Awards ceremony']
-    ]
-  }
-]
+import { content } from '@/data/site'
+
+const s = content.presentation.weekend
+const days = s.days
 </script>
 
 <template>
   <div class="slide">
-    <h2 class="htf-display htf-display--md rise" style="--d: 0.1s">The weekend_</h2>
+    <h2 class="htf-display htf-display--md rise" style="--d: 0.1s">{{ s.heading }}</h2>
 
     <div class="days">
       <div
@@ -43,7 +17,7 @@ const days = [
         :style="{ '--d': `${0.25 + di * 0.15}s` }"
       >
         <h3 class="htf-display htf-display--md day__name">
-          <span :class="day.hl">{{ day.name }}</span>
+          <span :class="day.swatch">{{ day.name }}</span>
         </h3>
         <ul class="day__list">
           <li v-for="[time, what] in day.items" :key="time" class="day__item">
@@ -55,8 +29,7 @@ const days = [
     </div>
 
     <p class="htf-body note rise" style="--d: 0.85s">
-      Borrowed laptops at the front desk. A snack station in the hallway. Mentors on call all
-      weekend. Nobody got turned away for not being "technical enough."
+      {{ s.note }}
     </p>
   </div>
 </template>

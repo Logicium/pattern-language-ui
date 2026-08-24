@@ -1,37 +1,43 @@
+<script setup lang="ts">
+import { content } from '@/data/site'
+
+const s = content.presentation.hackathon
+</script>
+
 <template>
   <div class="slide">
     <h2 class="htf-display htf-display--lg htf-display--boxed rise" style="--d: 0.1s">
-      Trinidad's first<br />
-      <span class="htf-hl">hackathon_</span>
+      <span>{{ s.headLead }}</span><br />
+      <span class="htf-hl">{{ s.headHl }}</span>
     </h2>
 
     <p class="htf-body wide rise" style="--d: 0.3s">
-      Focused on civic innovation — inspiring and amplifying the voices of our residents to
-      create real impact in a town of 8,000 people.
+      {{ s.lede }}
     </p>
 
     <div class="stats">
       <div class="stat rise" style="--d: 0.45s">
-        <span class="stat__value">48</span>
-        <span class="htf-label stat__label">hours of hacking</span>
+        <span class="stat__value">{{ s.stats.hours.value }}</span>
+        <span class="htf-label stat__label">{{ s.stats.hours.label }}</span>
       </div>
       <div class="stat rise" style="--d: 0.55s">
-        <span class="stat__value">16</span>
-        <span class="htf-label stat__label">sponsors &amp; partners</span>
+        <span class="stat__value">{{ s.stats.sponsors.value }}</span>
+        <span class="htf-label stat__label">{{ s.stats.sponsors.label }}</span>
       </div>
       <div class="stat rise" style="--d: 0.65s">
-        <span class="stat__value">$1.6K</span>
-        <span class="htf-label stat__label">in prizes awarded</span>
+        <span class="stat__value">{{ s.stats.prizes.value }}</span>
+        <span class="htf-label stat__label">{{ s.stats.prizes.label }}</span>
       </div>
       <div class="stat rise" style="--d: 0.75s">
-        <span class="stat__value">6</span>
-        <span class="htf-label stat__label">projects took home prizes</span>
+        <span class="stat__value">{{ s.stats.projects.value }}</span>
+        <span class="htf-label stat__label">{{ s.stats.projects.label }}</span>
       </div>
     </div>
 
     <p class="htf-label footer rise" style="--d: 0.9s">
-      <span class="htf-hl htf-hl--yellow">November 14–16, 2025</span>&nbsp;&nbsp;
-      <span class="htf-hl htf-hl--gray">Emergent Campus · Trinidad, CO</span>
+      <span class="htf-hl htf-hl--yellow">{{ s.when }}</span
+      >&nbsp;&nbsp;
+      <span class="htf-hl htf-hl--gray">{{ s.where }}</span>
     </p>
   </div>
 </template>

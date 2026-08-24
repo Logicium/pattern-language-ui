@@ -1,22 +1,19 @@
 <script setup lang="ts">
-const stats = [
-  { value: '11,200', label: 'city population' },
-  { value: '51', label: 'median age' },
-  { value: '$53K', label: 'median household income' },
-  { value: '24%', label: 'downtown vacancy' },
-  { value: '68%', label: 'of seniors expect to leave' },
-  { value: '70%', label: "of employers can't hire" }
-]
+import { content } from '@/data/site'
+
+/* `c`, not `s`: the stats v-for already binds `s` as its item */
+const c = content.presentation.cottonwood
+const stats = c.stats
 </script>
 
 <template>
   <div class="slide">
     <header class="head">
       <p class="pld-number rise" style="--d: 0.1s">
-        05 &nbsp;·&nbsp; <span class="demo-tag">a fictional town, built for this workshop</span>
+        <span>{{ c.num }}</span> &nbsp;·&nbsp; <span class="demo-tag">{{ c.tag }}</span>
       </p>
       <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">
-        Meet Cottonwood Springs, Colorado
+        {{ c.heading }}
       </h2>
     </header>
 
@@ -35,15 +32,14 @@ const stats = [
         </div>
 
         <blockquote class="quote rise" style="--d: 1s">
-          "We have ideas. We just don't seem to get them across the finish line."
+          {{ c.quote }}
         </blockquote>
       </div>
 
       <div class="right rise" style="--d: 0.6s">
         <img src="/demo/cottonwood-springs.svg" alt="" class="illustration" />
         <p class="kicker rise" style="--d: 1.25s">
-          Question to the room: what is Cottonwood Springs'
-          <em>real</em> problem?
+          <span>{{ c.kickerLead }}</span> <em>{{ c.kickerEmphasis }}</em> <span>{{ c.kickerTrail }}</span>
         </p>
       </div>
     </div>

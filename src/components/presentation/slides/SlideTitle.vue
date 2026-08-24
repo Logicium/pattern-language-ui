@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import PixelMosaic from '../PixelMosaic.vue'
+import { content } from '@/data/site'
+
+const s = content.presentation.title
 </script>
 
 <template>
@@ -11,21 +14,21 @@ import PixelMosaic from '../PixelMosaic.vue'
 
     <div class="content">
       <h1 class="htf-display htf-display--xl">
-        <span class="rise line" style="--d: 0.1s">Hack_</span>
-        <span class="rise line" style="--d: 0.25s">Trinidad_</span>
-        <span class="rise line" style="--d: 0.4s">Forward_</span>
+        <span class="rise line" style="--d: 0.1s">{{ s.line1 }}</span>
+        <span class="rise line" style="--d: 0.25s">{{ s.line2 }}</span>
+        <span class="rise line" style="--d: 0.4s">{{ s.line3 }}</span>
       </h1>
 
       <p class="tags">
-        <span class="htf-label htf-hl rise" style="--d: 0.7s">SoCo Startup Week 2026</span>
+        <span class="htf-label htf-hl rise" style="--d: 0.7s">{{ s.tagPrimary }}</span>
         <br />
-        <span class="htf-label htf-hl htf-hl--pink rise" style="--d: 0.85s"
-          >What a small town builds in 48 hours</span
-        >
+        <span class="htf-label htf-hl htf-hl--pink rise" style="--d: 0.85s">{{
+          s.tagSecondary
+        }}</span>
       </p>
 
       <p class="htf-label byline rise" style="--d: 1.1s">
-        Kisora Thomas &nbsp;·&nbsp; Joze Petrich &nbsp;·&nbsp; Trinidad, CO
+        {{ s.byline }}
       </p>
     </div>
   </div>

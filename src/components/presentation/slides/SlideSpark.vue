@@ -1,26 +1,20 @@
 <script setup lang="ts">
-const problems = [
-  'Youth flight & talent drain',
-  'Low civic trust',
-  'Isolation & disconnection',
-  'Economic stagnation',
-  'Underused local assets',
-  'Civic apathy'
-]
+import { content } from '@/data/site'
+
+const s = content.presentation.spark
+const problems = s.problems
 </script>
 
 <template>
   <div class="slide">
     <div class="text">
-      <p class="htf-label eyebrow rise" style="--d: 0.1s">Finding the spark_</p>
+      <p class="htf-label eyebrow rise" style="--d: 0.1s">{{ s.eyebrow }}</p>
       <h2 class="htf-display htf-display--lg rise" style="--d: 0.2s">
-        Where did the<br />
-        ideas come from?
+        <span>{{ s.headLine1 }}</span><br />
+        <span>{{ s.headLine2 }}</span>
       </h2>
       <p class="htf-body rise" style="--d: 0.4s">
-        Before anyone wrote a line of code, we put an ideation framework on the table:
-        Joze's <strong>Rural Pattern Language</strong> — the wicked problems rural
-        communities face, each mapped to practical, proven patterns.
+        <span>{{ s.bodyLead }}</span> <strong>{{ s.bodyStrong }}</strong> <span>{{ s.bodyTrail }}</span>
       </p>
       <ul class="problems">
         <li
@@ -36,12 +30,12 @@ const problems = [
 
     <div class="pivot">
       <p class="htf-display htf-display--md rise" style="--d: 1.1s">
-        The hackathon ended<br />
-        Sunday at 2:30 PM.
+        <span>{{ s.pivotLine1 }}</span><br />
+        <span>{{ s.pivotLine2 }}</span>
       </p>
       <p class="htf-display htf-display--md htf-display--boxed rise" style="--d: 1.5s">
-        <span class="htf-hl">The framework was</span><br />
-        <span class="htf-hl">just getting started_</span>
+        <span class="htf-hl">{{ s.pivotBoxed1 }}</span><br />
+        <span class="htf-hl">{{ s.pivotBoxed2 }}</span>
       </p>
     </div>
   </div>

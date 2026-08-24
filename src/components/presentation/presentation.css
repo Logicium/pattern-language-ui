@@ -376,6 +376,21 @@
   width: 40%;
 }
 
+/* While the Apotome editor is in edit mode these invisible zones sit over the
+   copy and would swallow every click meant for the text — stand them down so
+   slide text can be selected. Arrow keys still move between slides. */
+.apk-editing .pres-tap {
+  display: none;
+}
+
+/* The deck disables text selection so a stray drag never highlights a
+   headline mid-talk; editing needs it back. */
+.apk-editing .pres,
+.apk-editing .pres * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* ---------- reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {

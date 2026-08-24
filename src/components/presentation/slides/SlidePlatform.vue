@@ -1,33 +1,19 @@
 <script setup lang="ts">
-const pillars = [
-  {
-    title: 'Patterns',
-    accent: 'var(--color-accent-1)',
-    desc: '50 proven approaches to rural regeneration — each with the problem it solves, the solution, and concrete implementation steps.'
-  },
-  {
-    title: 'Stories',
-    accent: 'var(--color-accent-2)',
-    desc: 'Real towns, real outcomes. What communities tried, what worked, and what changed — so nobody starts from zero.'
-  },
-  {
-    title: 'Cities',
-    accent: 'var(--color-accent-3)',
-    desc: 'A living map of the towns using the language — their challenges, their active patterns, and their progress.'
-  }
-]
+import { content } from '@/data/site'
+
+const s = content.presentation.platform
+const pillars = s.pillars
 </script>
 
 <template>
   <div class="slide">
     <header class="head">
-      <p class="pld-number rise" style="--d: 0.1s">02</p>
+      <p class="pld-number rise" style="--d: 0.1s">{{ s.num }}</p>
       <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">
-        ruralpatternlanguage.com
+        {{ s.heading }}
       </h2>
       <p class="pld-body rise" style="--d: 0.4s">
-        We took the framework off the whiteboard and made it a platform — the same one that
-        sparked the hackathon ideas, now open to any community.
+        {{ s.lede }}
       </p>
     </header>
 
@@ -36,7 +22,7 @@ const pillars = [
         v-for="(p, i) in pillars"
         :key="p.title"
         class="pillar rise"
-        :style="{ '--d': `${0.55 + i * 0.15}s`, '--accent': p.accent }"
+        :style="{ '--d': `${0.55 + i * 0.15}s`, '--accent': p.swatch }"
       >
         <span class="pillar__dot" aria-hidden="true" />
         <h3 class="pillar__title">{{ p.title }}</h3>

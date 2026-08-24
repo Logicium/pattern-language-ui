@@ -12,9 +12,8 @@
         <router-link to="/patterns">Patterns</router-link>
         <router-link to="/stories">Stories</router-link>
         <router-link to="/cities">Cities</router-link>
-        <router-link to="/events">Events</router-link>
         <router-link to="/shop">Shop</router-link>
-        <router-link v-if="!isAuthenticated" to="/try">Try PAL</router-link>
+        <router-link v-if="!isAuthenticated" to="/demo" class="btn btn-try">Try PAL</router-link>
         <router-link v-if="isAuthenticated" to="/dashboard" class="btn">Dashboard</router-link>
         <router-link v-else to="/signup" class="btn">Start</router-link>
       </div>
@@ -40,9 +39,13 @@
       <router-link to="/patterns" @click="closeMobileMenu">Patterns</router-link>
       <router-link to="/stories" @click="closeMobileMenu">Stories</router-link>
       <router-link to="/cities" @click="closeMobileMenu">Cities</router-link>
-      <router-link to="/events" @click="closeMobileMenu">Events</router-link>
       <router-link to="/shop" @click="closeMobileMenu">Shop</router-link>
-      <router-link v-if="!isAuthenticated" to="/try" @click="closeMobileMenu">Try PAL</router-link>
+      <router-link
+        v-if="!isAuthenticated"
+        to="/demo"
+        class="btn btn-try"
+        @click="closeMobileMenu"
+      >Try PAL</router-link>
       <router-link v-if="isAuthenticated" to="/dashboard" class="btn" @click="closeMobileMenu">Dashboard</router-link>
       <router-link v-else to="/signup" class="btn" @click="closeMobileMenu">Start</router-link>
     </div>
@@ -180,6 +183,18 @@ const closeMobileMenu = () => {
 
 .nav-links a.btn:hover {
   color: var(--color-bg-primary);
+}
+
+/* Try PAL sits next to Start, so it carries a tint instead of a second
+   identical outline — an invitation rather than a competing primary. */
+.btn-try {
+  background: color-mix(in srgb, var(--color-accent-2) 30%, transparent);
+  border-color: transparent;
+  color: var(--color-text-primary);
+}
+
+.mobile-menu-links .btn-try {
+  display: inline-block;
 }
 
 /* Hamburger Menu */

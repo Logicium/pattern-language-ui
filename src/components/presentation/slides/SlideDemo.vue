@@ -1,29 +1,16 @@
 <script setup lang="ts">
-const steps = [
-  {
-    title: 'Open the town',
-    desc: 'ruralpatternlanguage.com → Cities → Cottonwood Springs.'
-  },
-  {
-    title: 'Become a citizen',
-    desc: 'Tap "Try it as a citizen" — no account, you\'ll get a citizen name like Willow Finch.'
-  },
-  {
-    title: 'Choose your patterns',
-    desc: 'Ask PAL for a three-pattern stack and let it merge them into one playbook.'
-  },
-  {
-    title: 'Team up',
-    desc: 'Trade citizen names with a neighbor and invite them onto your playbook.'
-  }
-]
+import { content } from '@/data/site'
+
+/* `d`, not `s`: the steps v-for already binds `s` as its item */
+const d = content.presentation.demo
+const steps = d.steps
 </script>
 
 <template>
   <div class="slide">
-    <p class="pld-number rise" style="--d: 0.1s">09 &nbsp;·&nbsp; interactive — phones out</p>
+    <p class="pld-number rise" style="--d: 0.1s">{{ d.eyebrow }}</p>
     <h2 class="pld-display pld-display--xl rise" style="--d: 0.2s">
-      Now <em>you</em> are the<br />Cottonwood Springs team.
+      <span>{{ d.headLead }}</span> <em>{{ d.headEmphasis }}</em> <span>{{ d.headTrail }}</span><br /><span>{{ d.headLine2 }}</span>
     </h2>
 
     <ol class="steps">
@@ -40,9 +27,9 @@ const steps = [
     </ol>
 
     <p class="url rise" style="--d: 1.1s">
-      ruralpatternlanguage.com<span class="url__path">/cities</span>
+      <span>{{ d.web }}</span><span class="url__path">{{ d.webPath }}</span>
     </p>
-    <p class="kicker rise" style="--d: 1.3s">Would you solve it the same way they did?</p>
+    <p class="kicker rise" style="--d: 1.3s">{{ d.kicker }}</p>
   </div>
 </template>
 

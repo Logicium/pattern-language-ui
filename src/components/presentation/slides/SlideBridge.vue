@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BrandLogo from '@/components/layout/BrandLogo.vue'
+import { content } from '@/data/site'
+
+const s = content.presentation.bridge
 
 /**
  * The Act I → Act II transition. The deck background has already crossfaded to
@@ -28,10 +31,10 @@ const cells = computed(() =>
   <div class="slide">
     <div class="reveal">
       <BrandLogo to="" mark-only :size="110" class="reveal__mark rise" style="--d: 1.6s" />
-      <h2 class="pld-display pld-display--xl rise" style="--d: 1.9s">pattern language</h2>
+      <h2 class="pld-display pld-display--xl rise" style="--d: 1.9s">{{ s.wordmark }}</h2>
       <div class="pld-accent-line rise" style="--d: 2.3s" />
       <p class="pld-body rise" style="--d: 2.6s">
-        A living framework for towns that refuse to fade.
+        {{ s.tagline }}
       </p>
     </div>
 

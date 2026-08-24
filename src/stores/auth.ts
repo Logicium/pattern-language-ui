@@ -4,6 +4,9 @@ import { isTokenExpired } from '@/utils/jwt'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+// Survives logout on purpose — see enterDemoSession().
+const DEMO_SESSION_KEY = 'pl_demo_citizen'
+
 export interface User {
   id: string
   email: string
@@ -202,9 +205,14 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Adopt a session issued by POST /demo/citizen — a real (flagged) account
    * scoped to Cottonwood Springs. From here on the normal authed flows apply.
+   *
+   * The session is also remembered under its own key, which `logout()`
+   * deliberately leaves alone: a visitor who signs out and comes back through
+   * the city should land in the citizen they already built playbooks as, not
+   * a brand-new stranger.
    */
   function enterDemoSession(data: { access_token: string; user: User }) {
-    // A previous session's cached data must not bleed into the fresh citizen.
+    // A previous session's cached data must not bleed into this citizen.
     localStorage.removeItem('chatSessions')
     localStorage.removeItem('playbooks')
     localStorage.removeItem('notifications')
@@ -212,6 +220,38 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = data.user
     localStorage.setItem('auth_token', data.access_token)
     localStorage.setItem('user', JSON.stringify(data.user))
+    try {
+      localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(data))
+    } catch {
+      /* private mode: the citizen simply won't survive a sign-out */
+    }
+  }
+
+  /**
+   * A previously issued demo citizen, if one is still usable. Expired tokens
+   * are dropped so the caller falls back to minting a fresh citizen.
+   */
+  function storedDemoSession(): { access_token: string; user: User } | null {
+    try {
+      const raw = localStorage.getItem(DEMO_SESSION_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as { access_token?: string; user?: User }
+      if (!parsed?.access_token || !parsed.user || isTokenExpired(parsed.access_token)) {
+        localStorage.removeItem(DEMO_SESSION_KEY)
+        return null
+      }
+      return { access_token: parsed.access_token, user: parsed.user }
+    } catch {
+      return null
+    }
+  }
+
+  function forgetDemoSession() {
+    try {
+      localStorage.removeItem(DEMO_SESSION_KEY)
+    } catch {
+      /* ignore */
+    }
   }
 
   /**
@@ -238,6 +278,8 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = { ...data.user, isDemo: false }
     localStorage.setItem('auth_token', data.access_token)
     localStorage.setItem('user', JSON.stringify(user.value))
+    // The citizen is now a real account; never resurrect the demo shortcut.
+    forgetDemoSession()
     return data
   }
 
@@ -292,6 +334,8 @@ export const useAuthStore = defineStore('auth', () => {
     googleSignup,
     logout,
     enterDemoSession,
+    storedDemoSession,
+    forgetDemoSession,
     claimDemo,
     updateUser,
     checkTokenValidity

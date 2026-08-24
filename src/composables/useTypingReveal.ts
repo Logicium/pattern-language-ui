@@ -6,10 +6,14 @@ import { ref } from 'vue'
 const NORMAL_DELAY_MS = 30   // per word during the natural intro
 const NORMAL_WORDS = 18      // how many words type at natural pace
 const DECAY = 0.88           // gentle per-word delay decay while accelerating
-const CRUISE_DELAY_MS = 8    // steady top speed (~120 words/sec)
+const CRUISE_DELAY_MS = 14   // steady top speed (~70 words/sec)
 const LONG_RESPONSE_WORDS = 350 // beyond this, cruise doubles up to stay snappy
-export const REVEAL_TRAIL = 8   // how many trailing words carry the blur gradient
-const DRAIN_STEP_MS = 45     // per-word focus settle after the last word lands
+// How many trailing words carry the blur gradient. A long band is the point:
+// at cruise the leading edge outruns a short trail, and the reveal is over
+// before the eye finds it. Every word now stays soft for ~26 words after it
+// lands, so the blur reads as a wave following the text down the page.
+export const REVEAL_TRAIL = 26
+const DRAIN_STEP_MS = 40     // per-word focus settle after the last word lands
 
 /**
  * The word-by-word reveal animation PAL replies type in with, shared by the

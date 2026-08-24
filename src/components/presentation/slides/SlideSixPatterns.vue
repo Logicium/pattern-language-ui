@@ -1,44 +1,16 @@
 <script setup lang="ts">
-const patterns = [
-  {
-    name: 'Community Anchor Point',
-    desc: 'A visible place where relationships and activity can gather.',
-    accent: 'var(--color-accent-1)'
-  },
-  {
-    name: 'Youth Stay Pathways',
-    desc: 'Make local futures visible before young people decide they must leave.',
-    accent: 'var(--color-accent-2)'
-  },
-  {
-    name: 'Main Street Reawakening',
-    desc: 'Bring activity and experimentation back into downtown.',
-    accent: 'var(--color-accent-3)'
-  },
-  {
-    name: 'Regenerative Micro-Enterprise',
-    desc: 'Help small local ventures start, test, and grow.',
-    accent: 'var(--color-accent-warm)'
-  },
-  {
-    name: 'Local Capacity Backbone',
-    desc: 'Give coordination, ownership, and implementation a home.',
-    accent: 'var(--color-accent-2)'
-  },
-  {
-    name: 'Trust Infrastructure',
-    desc: 'Create routines and structures that build trust through action.',
-    accent: 'var(--color-accent-1)'
-  }
-]
+import { content } from '@/data/site'
+
+const s = content.presentation.sixPatterns
+const patterns = s.patterns
 </script>
 
 <template>
   <div class="slide">
     <header class="head">
-      <p class="pld-number rise" style="--d: 0.1s">06</p>
-      <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">Where would you start?</h2>
-      <p class="pld-body rise" style="--d: 0.35s">Six patterns go on the table.</p>
+      <p class="pld-number rise" style="--d: 0.1s">{{ s.num }}</p>
+      <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">{{ s.heading }}</h2>
+      <p class="pld-body rise" style="--d: 0.35s">{{ s.lede }}</p>
     </header>
 
     <div class="grid">
@@ -46,7 +18,7 @@ const patterns = [
         v-for="(p, i) in patterns"
         :key="p.name"
         class="card rise"
-        :style="{ '--d': `${0.45 + i * 0.1}s`, '--accent': p.accent }"
+        :style="{ '--d': `${0.45 + i * 0.1}s`, '--accent': p.swatch }"
       >
         <span class="card__dot" aria-hidden="true" />
         <h3 class="card__name">{{ p.name }}</h3>
@@ -55,7 +27,7 @@ const patterns = [
     </div>
 
     <p class="kicker rise" style="--d: 1.2s">
-      If you could choose only <em>three</em> — which would you start with?
+      <span>{{ s.kickerLead }}</span> <em>{{ s.kickerEmphasis }}</em> <span>{{ s.kickerTrail }}</span>
     </p>
   </div>
 </template>

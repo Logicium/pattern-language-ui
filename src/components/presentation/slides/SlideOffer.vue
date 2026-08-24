@@ -1,18 +1,22 @@
+<script setup lang="ts">
+import { content } from '@/data/site'
+
+const s = content.presentation.offer
+</script>
+
 <template>
   <div class="slide">
     <h2 class="pld-display pld-display--xl rise" style="--d: 0.15s">
-      Be an early voice.
+      {{ s.heading }}
     </h2>
     <p class="pld-body center rise" style="--d: 0.4s">
-      Sign up this fall and the whole platform is <em>free for the coming months</em> —
-      PAL, playbooks, teams, your town's page, all of it. Help us shape the language while
-      it's still being written.
+      <span>{{ s.bodyLead }}</span> <em>{{ s.bodyEmphasis }}</em> <span>{{ s.bodyTrail }}</span>
     </p>
     <p class="url rise" style="--d: 0.65s">
-      ruralpatternlanguage.com<span class="url__path">/signup</span>
+      <span>{{ s.web }}</span><span class="url__path">{{ s.webPath }}</span>
     </p>
     <div class="pld-accent-line rise" style="--d: 0.9s" />
-    <p class="small rise" style="--d: 1.05s">No card. Just a community.</p>
+    <p class="small rise" style="--d: 1.05s">{{ s.small }}</p>
   </div>
 </template>
 

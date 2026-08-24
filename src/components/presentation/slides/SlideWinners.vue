@@ -1,41 +1,15 @@
 <script setup lang="ts">
-const winners = [
-  {
-    place: '1st',
-    prize: '$700',
-    name: 'Stories of Trinidad',
-    desc: 'QR-coded historical audio tour of downtown — scan a plaque, hear the town speak.',
-    hl: 'htf-hl'
-  },
-  {
-    place: '2nd',
-    prize: '$300',
-    name: 'Local Resources App',
-    desc: 'One place to find every service, program, and helping hand in Las Animas County.',
-    hl: 'htf-hl htf-hl--pink'
-  },
-  {
-    place: '3rd',
-    prize: '$200',
-    name: 'Adopt a Pocket',
-    desc: 'Neighbors adopting neglected pockets of public space, one block at a time.',
-    hl: 'htf-hl htf-hl--yellow'
-  },
-  {
-    place: '3rd',
-    prize: '$200',
-    name: 'The Tool Library',
-    desc: 'A lending library for tools — buy nothing, build everything.',
-    hl: 'htf-hl htf-hl--yellow'
-  }
-]
+import { content } from '@/data/site'
+
+const s = content.presentation.winners
+const winners = s.winners
 </script>
 
 <template>
   <div class="slide">
     <h2 class="htf-display htf-display--lg rise" style="--d: 0.1s">
-      What they<br />
-      built_
+      <span>{{ s.headLine1 }}</span><br />
+      <span>{{ s.headLine2 }}</span>
     </h2>
 
     <div class="grid">
@@ -46,7 +20,7 @@ const winners = [
         :style="{ '--d': `${0.3 + i * 0.12}s` }"
       >
         <p class="htf-label win-card__place">
-          <span :class="w.hl">{{ w.place }} — {{ w.prize }}</span>
+          <span :class="w.swatch"><span>{{ w.place }}</span> — <span>{{ w.prize }}</span></span>
         </p>
         <h3 class="htf-display htf-display--md">{{ w.name }}</h3>
         <p class="htf-body win-card__desc">{{ w.desc }}</p>
@@ -54,8 +28,8 @@ const winners = [
     </div>
 
     <p class="htf-body foot rise" style="--d: 0.85s">
-      Every single project pointed at a real local problem. Judged on innovation, execution,
-      design, presentation — and above all, <span class="htf-hl">civic impact</span>.
+      <span>{{ s.footLead }}</span> <span class="htf-hl">{{ s.footHl }}</span
+      >.
     </p>
   </div>
 </template>

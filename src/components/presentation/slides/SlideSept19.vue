@@ -1,25 +1,29 @@
+<script setup lang="ts">
+import { content } from '@/data/site'
+
+const s = content.presentation.sept19
+</script>
+
 <template>
   <div class="slide">
     <div class="date rise" style="--d: 0.15s">
-      <span class="date__month">Sep</span>
-      <span class="date__day">19</span>
-      <span class="date__year">2026</span>
+      <span class="date__month">{{ s.month }}</span>
+      <span class="date__day">{{ s.day }}</span>
+      <span class="date__year">{{ s.year }}</span>
     </div>
 
     <div class="body">
-      <p class="pld-number rise" style="--d: 0.1s">10 &nbsp;·&nbsp; Cañon City, Colorado</p>
+      <p class="pld-number rise" style="--d: 0.1s">{{ s.eyebrow }}</p>
       <h2 class="pld-display pld-display--xl rise" style="--d: 0.25s">
-        We stop pretending.
+        {{ s.heading }}
       </h2>
       <p class="pld-body rise" style="--d: 0.5s">
-        Cottonwood Springs was practice. On September 19 we put <em>Cañon City's</em> real
-        challenges, real assets, and real people on the table — a working session to find its
-        pattern stack and sketch the first 90-day experiment.
+        <span>{{ s.bodyLead }}</span> <em>{{ s.bodyEmphasis }}</em> <span>{{ s.bodyTrail }}</span>
       </p>
       <p class="url rise" style="--d: 0.75s">
-        ruralpatternlanguage.com<span class="url__path">/events</span>
+        <span>{{ s.web }}</span><span class="url__path">{{ s.webPath }}</span>
       </p>
-      <p class="note rise" style="--d: 0.95s">Sign up today — bring your neighbors.</p>
+      <p class="note rise" style="--d: 0.95s">{{ s.note }}</p>
     </div>
   </div>
 </template>

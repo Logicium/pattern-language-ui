@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import AiAvatar from '@/components/AiAvatar.vue'
+import { content } from '@/data/site'
+
+const s = content.presentation.pal
 </script>
 
 <template>
   <div class="slide">
     <div class="intro">
-      <p class="pld-number rise" style="--d: 0.1s">03</p>
-      <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">Meet PAL</h2>
+      <p class="pld-number rise" style="--d: 0.1s">{{ s.num }}</p>
+      <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">{{ s.heading }}</h2>
       <p class="pld-body rise" style="--d: 0.4s">
-        The Pattern Language Assistant. Describe what your town is struggling with, in your
-        own words — PAL finds the patterns that fit and turns them into a
-        <strong>playbook</strong>: tasks, KPIs, and a 90-day definition of success your whole
-        community can work from.
+        <span>{{ s.bodyLead }}</span> <strong>{{ s.bodyStrong }}</strong
+        ><span>{{ s.bodyTrail }}</span>
       </p>
       <div class="avatar rise" style="--d: 0.55s">
         <AiAvatar state="idle" />
@@ -20,19 +21,17 @@ import AiAvatar from '@/components/AiAvatar.vue'
 
     <div class="demo">
       <div class="bubble bubble--user rise" style="--d: 0.7s">
-        Our young people leave for the city and never come back.
+        {{ s.userBubble }}
       </div>
       <div class="bubble bubble--pal rise" style="--d: 1.05s">
-        That's one of the wicked problems the language names directly — let's look at
-        <strong>Pattern 9: Youth Return Pathway</strong>. I can build you a playbook for it.
+        <span>{{ s.palLead }}</span> <strong>{{ s.palStrong }}</strong
+        ><span>{{ s.palTrail }}</span>
       </div>
       <div class="playbook rise" style="--d: 1.45s">
-        <p class="playbook__label">Generated playbook</p>
-        <h3 class="playbook__title">Youth Return Pathway — Trinidad, CO</h3>
+        <p class="playbook__label">{{ s.playbookLabel }}</p>
+        <h3 class="playbook__title">{{ s.playbookTitle }}</h3>
         <ul class="playbook__meta">
-          <li>12 tasks across 3 phases</li>
-          <li>4 measurable KPIs</li>
-          <li>90-day success plan</li>
+          <li v-for="m in s.playbookMeta" :key="m">{{ m }}</li>
         </ul>
         <div class="playbook__progress">
           <div class="playbook__fill" />

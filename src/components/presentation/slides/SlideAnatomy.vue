@@ -1,28 +1,34 @@
+<script setup lang="ts">
+import { content } from '@/data/site'
+
+const s = content.presentation.anatomy
+</script>
+
 <template>
   <div class="slide">
     <header class="head">
-      <p class="pld-number rise" style="--d: 0.1s">04</p>
+      <p class="pld-number rise" style="--d: 0.1s">{{ s.num }}</p>
       <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">
-        A pattern is not a blueprint.
+        {{ s.heading }}
       </h2>
     </header>
 
     <div class="formula rise" style="--d: 0.45s">
-      <span class="term" style="--accent: var(--color-accent-1)">Recurring problem</span>
+      <span class="term" style="--accent: var(--color-accent-1)">{{ s.term1 }}</span>
       <span class="op">+</span>
-      <span class="term" style="--accent: var(--color-accent-2)">Context</span>
+      <span class="term" style="--accent: var(--color-accent-2)">{{ s.term2 }}</span>
       <span class="op">+</span>
-      <span class="term" style="--accent: var(--color-accent-3)">Adaptable response</span>
+      <span class="term" style="--accent: var(--color-accent-3)">{{ s.term3 }}</span>
       <span class="op op--neq">≠</span>
-      <span class="term term--fixed">a fixed program</span>
+      <span class="term term--fixed">{{ s.termFixed }}</span>
     </div>
 
     <p class="pld-body travel rise" style="--d: 0.75s">
-      The pattern can travel. <em>The solution has to be local.</em>
+      <span>{{ s.travelLead }}</span> <em>{{ s.travelEmphasis }}</em>
     </p>
 
     <p class="kicker rise" style="--d: 1.05s">
-      So what does that look like when a community actually tries it?
+      {{ s.kicker }}
     </p>
   </div>
 </template>

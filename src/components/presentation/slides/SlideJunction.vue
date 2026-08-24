@@ -1,54 +1,26 @@
 <script setup lang="ts">
-const stack = [
-  { name: 'Community Anchor Point', accent: 'var(--color-accent-1)' },
-  { name: 'Youth Stay Pathways', accent: 'var(--color-accent-2)' },
-  { name: 'Regenerative Micro-Enterprise', accent: 'var(--color-accent-3)' }
-]
+import { content } from '@/data/site'
 
-const functions = [
-  {
-    title: 'Youth + Employer Project Lab',
-    desc: 'Student teams work real problems brought by local employers — after school, twice a week.'
-  },
-  {
-    title: 'Entrepreneur Test Market',
-    desc: 'Six early-stage ventures rotate through a Thu–Sun market: test products, pricing, and demand before any lease.'
-  },
-  {
-    title: 'Skills + Learning Corner',
-    desc: 'The college runs short practical sessions while the building is already busy.'
-  },
-  {
-    title: 'Community Connection Space',
-    desc: 'Mixers, showcases, dinners, idea nights — once or twice a month.'
-  }
-]
-
-const funding = [
-  { label: 'Foundation', amount: 5, color: 'var(--color-accent-1)' },
-  { label: 'City', amount: 4, color: 'var(--color-accent-2)' },
-  { label: 'Employers', amount: 3, color: 'var(--color-accent-3)' },
-  { label: 'College', amount: 3, color: 'var(--color-accent-warm)' },
-  { label: 'Bank', amount: 2, color: 'var(--color-text-tertiary)' },
-  { label: 'Donations', amount: 1, color: 'var(--color-text-secondary)' }
-]
+const s = content.presentation.junction
+const stack = s.stack
+const functions = s.functions
+const funding = s.funding
 </script>
 
 <template>
   <div class="slide">
     <header class="head">
-      <p class="pld-number rise" style="--d: 0.1s">07 &nbsp;·&nbsp; Cottonwood chooses a three-pattern stack</p>
-      <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">The Junction</h2>
+      <p class="pld-number rise" style="--d: 0.1s">{{ s.eyebrow }}</p>
+      <h2 class="pld-display pld-display--lg rise" style="--d: 0.2s">{{ s.heading }}</h2>
       <div class="stack rise" style="--d: 0.4s">
         <template v-for="(p, i) in stack" :key="p.name">
-          <span class="stack__chip" :style="{ '--accent': p.accent }">{{ p.name }}</span>
+          <span class="stack__chip" :style="{ '--accent': p.swatch }">{{ p.name }}</span>
           <span v-if="i < stack.length - 1" class="stack__plus" aria-hidden="true">+</span>
         </template>
-        <span class="stack__note">→ one merged playbook, not three parallel plans</span>
+        <span class="stack__note">{{ s.stackNote }}</span>
       </div>
       <p class="pld-body rise" style="--d: 0.55s">
-        A 90-day experiment in 3,000 sq ft of the empty department store, connecting youth,
-        employers, entrepreneurs, and learning. Not a permanent center. <em>Not yet.</em>
+        <span>{{ s.body }}</span> <em>{{ s.bodyEmphasis }}</em>
       </p>
     </header>
 
@@ -68,21 +40,21 @@ const funding = [
     </div>
 
     <div class="funding rise" style="--d: 1.2s">
-      <span class="funding__label">$18K cash stack</span>
+      <span class="funding__label">{{ s.fundingLabel }}</span>
       <div class="funding__bar">
         <span
           v-for="f in funding"
           :key="f.label"
           class="funding__seg"
-          :style="{ flexGrow: f.amount, background: f.color }"
+          :style="{ flexGrow: f.amount, background: f.swatch }"
           :title="`${f.label} $${f.amount}K`"
         />
       </div>
       <span class="funding__legend">
         <template v-for="(f, i) in funding" :key="f.label">
-          {{ f.label }} ${{ f.amount }}K<template v-if="i < funding.length - 1"> · </template>
+          <span>{{ f.label }}</span> ${{ f.amount }}K<template v-if="i < funding.length - 1"> · </template>
         </template>
-        &nbsp;+ donated space &amp; time
+        &nbsp;<span>{{ s.fundingSuffix }}</span>
       </span>
     </div>
   </div>

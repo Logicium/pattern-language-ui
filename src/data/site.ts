@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { typingPhrases } from '@/utils/data'
+import { presentation } from './presentation'
 
 /**
  * The marketing copy, lifted into one reactive object.
@@ -52,4 +53,11 @@ export const content = reactive({
       },
     ],
   },
+
+  /**
+   * The SoCo Startup Week deck. Every slide's copy, one key per slide, kept
+   * in its own module because it is longer than the rest of this file put
+   * together — see data/presentation.ts for how the shapes are chosen.
+   */
+  presentation,
 })

@@ -256,10 +256,10 @@ ${linkList(cities.map((c) => ({ href: `/cities/${c.id}`, label: c.state ? `${c.n
       'Pattern Language is in beta. Learn what that means and how to share feedback that shapes the platform.'
   },
   {
-    path: '/try',
+    path: '/demo',
     title: 'Try PAL',
     description:
-      'Chat with PAL, the Pattern Language assistant, without an account. Explore patterns for your community — your progress saves in your browser.'
+      'Step into Cottonwood Springs — a fictional town built for exploring the Rural Pattern Language. No account needed: you get a citizen profile, the full dashboard, and PAL.'
   },
   { path: '/terms', title: 'Terms of Service' },
   { path: '/privacy', title: 'Privacy Policy' },
