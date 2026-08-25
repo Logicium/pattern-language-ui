@@ -26,9 +26,12 @@ const steps = d.steps
       </li>
     </ol>
 
-    <p class="url rise" style="--d: 1.1s">
-      <span>{{ d.web }}</span><span class="url__path">{{ d.webPath }}</span>
-    </p>
+    <div class="launch rise" style="--d: 1.1s">
+      <img src="/presentation/demo-qr.png" alt="" class="launch__qr" />
+      <p class="url">
+        <span>{{ d.web }}</span><span class="url__path">{{ d.webPath }}</span>
+      </p>
+    </div>
     <p class="kicker rise" style="--d: 1.3s">{{ d.kicker }}</p>
   </div>
 </template>
@@ -87,6 +90,19 @@ const steps = d.steps
   font-size: clamp(0.75rem, 1.1vw, 0.95rem);
   line-height: 1.5;
   color: var(--color-text-secondary);
+}
+
+.launch {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2.25rem);
+}
+
+/* Sized to the URL's cap height so the pair reads as one lockup. */
+.launch__qr {
+  width: clamp(4.5rem, 8vw, 7.5rem);
+  aspect-ratio: 1;
+  display: block;
 }
 
 .url {

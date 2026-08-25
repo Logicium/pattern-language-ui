@@ -14,44 +14,30 @@
           <div class="presale-statement">
             <span class="presale-eyebrow">
               <span class="accent-mark" data-accent="1" aria-hidden="true"></span>
-              About the Presale
+              <span>{{ shop.presaleEyebrow }}</span>
             </span>
             <p class="presale-headline">
-              $5 from every presale purchase goes to
+              <span>{{ shop.presaleHeadLead }}</span>
               <a
                 href="https://emergentcampus.org/"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="presale-link"
-              >Emergent&nbsp;Campus</a>.
+              >{{ shop.presaleHeadLink }}</a>.
             </p>
           </div>
 
           <div class="presale-details">
-            <p class="text-secondary">
-              Your purchase supports rural programs and community-led revitalization
-              work — funding the ongoing development of rural community tools,
-              workshops, internships, and resources.
-            </p>
-            <p class="text-secondary">
-              A special thank you to
-              <a
-                :href="storeFallbackUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="presale-link"
-              >Arna&nbsp;Miller</a>
-              for the design of the book and facilitation deck, and for helping
-              with fulfillment and management of the presale.
-            </p>
+            <p class="text-secondary">{{ shop.presaleBody }}</p>
+            <p class="text-secondary">{{ shop.presaleThanks }}</p>
             <dl class="presale-facts">
               <div class="fact-row">
-                <dt>Ships</dt>
-                <dd>End of August</dd>
+                <dt>{{ shop.presaleShipsLabel }}</dt>
+                <dd>{{ shop.presaleShipsValue }}</dd>
               </div>
               <div class="fact-row">
-                <dt>Gives Back</dt>
-                <dd>$5 per order to Emergent Campus</dd>
+                <dt>{{ shop.presaleGivesLabel }}</dt>
+                <dd>{{ shop.presaleGivesValue }}</dd>
               </div>
             </dl>
           </div>
@@ -213,6 +199,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { Footer, PageHero, SlideInModal, ModalBackButton } from '@/components'
+import { content } from '@/data/site'
+
+const shop = content.shop
 
 const SHOPIFY_DOMAIN = import.meta.env.VITE_SHOPIFY_DOMAIN as string | undefined
 const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN as string | undefined

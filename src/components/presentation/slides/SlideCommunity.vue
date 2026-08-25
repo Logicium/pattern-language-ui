@@ -54,6 +54,15 @@ const sponsors = c.sponsors
 .lede,
 .wall {
   position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* The authored line breaks only hold if the type fits the left column. At the
+   shared --lg size this headline re-wrapped to seven lines and pushed the lede
+   off the bottom of the slide, so it gets its own smaller scale. */
+.lede .htf-display {
+  font-size: clamp(1.25rem, 2.5vw, 2.75rem);
 }
 
 .lede {

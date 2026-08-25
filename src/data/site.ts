@@ -55,6 +55,24 @@ export const content = reactive({
   },
 
   /**
+   * The shop's presale band. Split into single-run strings — the paragraph
+   * that used to wrap an inline <a> could not be bound by the editor kit,
+   * which matches whole elements.
+   */
+  shop: {
+    presaleEyebrow: 'About the Presale',
+    presaleHeadLead: '$5 from every presale purchase goes to',
+    presaleHeadLink: 'Emergent Campus',
+    presaleBody:
+      'Your purchase supports rural programs and community-led revitalization work — funding the ongoing development of rural community tools, workshops, internships, and resources.',
+    presaleThanks: 'Thank you for your support.',
+    presaleShipsLabel: 'Ships',
+    presaleShipsValue: 'End of August',
+    presaleGivesLabel: 'Gives Back',
+    presaleGivesValue: '$5 per order to Emergent Campus',
+  },
+
+  /**
    * The SoCo Startup Week deck. Every slide's copy, one key per slide, kept
    * in its own module because it is longer than the rest of this file put
    * together — see data/presentation.ts for how the shapes are chosen.

@@ -434,11 +434,11 @@ export const presentation = {
     steps: [
       {
         title: 'Open the town',
-        desc: 'ruralpatternlanguage.com → Cities → Cottonwood Springs.',
+        desc: 'Scan the code, or type the address below.',
       },
       {
         title: 'Become a citizen',
-        desc: 'Tap "Try it as a citizen" — no account, you\'ll get a citizen name like Willow Finch.',
+        desc: "You're in instantly — no account, no password. You arrive as someone like Willow Finch.",
       },
       {
         title: 'Choose your patterns',
@@ -450,7 +450,7 @@ export const presentation = {
       },
     ],
     web: 'ruralpatternlanguage.com',
-    webPath: '/cities',
+    webPath: '/demo',
     kicker: 'Would you solve it the same way they did?',
   },
 

@@ -1,21 +1,92 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@unhead/vue'
-import { acts, contingency, notesMeta } from '@/data/speakerNotes'
+import { allNotes, contingency, notesMeta, speakerNames } from '@/data/speakerNotes'
 
 /**
- * Stage notes, read from a phone in a dim room (or printed). Deliberately
- * dark and single-theme — glare is the enemy at a podium — and outside the
- * site's light chrome, so it opens straight into the notes.
+ * Stage notes, advanced one card at a time alongside the deck — read from a
+ * phone in a dim room, or printed (print shows every card at once).
+ * Deliberately dark and single-theme: glare is the enemy at a podium.
  */
 useHead({ title: 'Speaker Notes' })
 
-const FONT_ID = 'pres-space-grotesk'
+const route = useRoute()
+const router = useRouter()
+
+const total = allNotes.length
+
+function clampIndex(value: number) {
+  return Math.min(total - 1, Math.max(0, value))
+}
+
+const initial = Number.parseInt(String(route.query.n ?? '1'), 10)
+const index = ref(clampIndex(Number.isNaN(initial) ? 0 : initial - 1))
+const note = computed(() => allNotes[index.value]!)
+
+function go(target: number) {
+  const next = clampIndex(target)
+  if (next === index.value) return
+  index.value = next
+  router.replace({ query: { ...route.query, n: String(next + 1) } })
+}
+
+const nextNote = () => go(index.value + 1)
+const prevNote = () => go(index.value - 1)
 
 /** `[beat]` stage directions get their own quiet treatment. */
 function formatLine(line: string) {
   return line.replace(/\[([^\]]+)\]/g, '<span class="pause">[$1]</span>')
 }
+
+const cueGlyph = { advance: '→', hand: '✳', hold: '⏸' } as const
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.metaKey || e.ctrlKey || e.altKey) return
+  switch (e.key) {
+    case 'ArrowRight':
+    case 'ArrowDown':
+    case 'PageDown':
+    case ' ':
+      e.preventDefault()
+      nextNote()
+      break
+    case 'ArrowLeft':
+    case 'ArrowUp':
+    case 'PageUp':
+      e.preventDefault()
+      prevNote()
+      break
+    case 'Home':
+      e.preventDefault()
+      go(0)
+      break
+    case 'End':
+      e.preventDefault()
+      go(total - 1)
+      break
+  }
+}
+
+// Swipe, since this is mostly read from a phone.
+let touchStartX = 0
+let touchStartY = 0
+function onTouchStart(e: TouchEvent) {
+  touchStartX = e.changedTouches[0]?.clientX ?? 0
+  touchStartY = e.changedTouches[0]?.clientY ?? 0
+}
+function onTouchEnd(e: TouchEvent) {
+  const touch = e.changedTouches[0]
+  if (!touch) return
+  const dx = touch.clientX - touchStartX
+  const dy = touch.clientY - touchStartY
+  // Ignore vertical scrolling; only horizontal swipes navigate.
+  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return
+  if (dx < 0) nextNote()
+  else prevNote()
+}
+
+const FONT_ID = 'pres-space-grotesk'
 
 onMounted(() => {
   if (!document.getElementById(FONT_ID)) {
@@ -26,67 +97,86 @@ onMounted(() => {
       'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap'
     document.head.appendChild(link)
   }
+  window.addEventListener('keydown', onKeydown)
   document.body.classList.add('notes-body')
 })
 
 onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
   document.body.classList.remove('notes-body')
 })
 </script>
 
 <template>
-  <div class="notes">
-    <header class="top">
-      <p class="kicker">
-        {{ notesMeta.event }} &nbsp;·&nbsp; {{ notesMeta.date }}
-      </p>
-      <h1 class="title">Speaker Notes</h1>
-      <p class="meta">{{ notesMeta.presenters }}</p>
-
-      <div class="legend">
-        <span><b class="g">&rarr; Advance</b> when to click</span>
-        <span><b class="p">&#10035; Joze</b> hand-off</span>
-        <span><b>[beat]</b> breathe, two counts</span>
-      </div>
+  <div class="notes" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd">
+    <!-- One card at a time on screen; print renders them all (see @media print). -->
+    <header class="bar">
+      <span class="bar__act">{{ note.actLabel }} · {{ note.actTitle }}</span>
+      <span class="bar__meta">{{ notesMeta.date }}</span>
     </header>
 
-    <section v-for="act in acts" :key="act.id" class="act">
-      <div class="act__head">
-        <span class="act__label">{{ act.label }}</span>
-        <h2 class="act__title">{{ act.title }}</h2>
-        <p class="act__summary">{{ act.summary }}</p>
-      </div>
-
-      <article v-for="slide in act.slides" :key="slide.num" class="card">
+    <main class="stage">
+      <article :key="note.num" class="card">
         <div class="card__head">
           <a
             class="num"
-            :href="`/presentation?slide=${slide.num}`"
+            :href="`/presentation?slide=${note.num}`"
             target="_blank"
             rel="noopener"
-            :title="`Open slide ${slide.num}`"
-          >{{ String(slide.num).padStart(2, '0') }}</a>
-          <span class="slide-name">{{ slide.name }}</span>
-          <span class="timing">{{ slide.timing }}</span>
+            :title="`Open slide ${note.num}`"
+            >{{ String(note.num).padStart(2, '0') }}</a
+          >
+          <span class="name">{{ note.name }}</span>
+          <span class="chip" :class="`chip--${note.speaker}`">{{ speakerNames[note.speaker] }}</span>
+          <span class="timing">{{ note.timing }}</span>
         </div>
 
-        <p class="beat">{{ slide.beat }}</p>
+        <p class="beat">{{ note.beat }}</p>
 
         <!-- eslint-disable-next-line vue/no-v-html -- authored in src/data/speakerNotes.ts -->
-        <p v-for="(line, i) in slide.lines" :key="i" class="say" v-html="formatLine(line)" />
+        <p v-for="(line, i) in note.lines" :key="i" class="say" v-html="formatLine(line)" />
 
-        <div v-if="slide.cues.length" class="cue">
-          <span v-for="cue in slide.cues" :key="cue.text" :class="cue.kind">
-            {{ cue.kind === 'hand' ? '✳' : '→' }} {{ cue.text }}
+        <div v-if="note.cues.length" class="cues">
+          <span v-for="cue in note.cues" :key="cue.text" :class="cue.kind">
+            {{ cueGlyph[cue.kind] }} {{ cue.text }}
           </span>
         </div>
       </article>
-    </section>
+    </main>
 
     <footer class="foot">
-      <p>{{ contingency }}</p>
-      <router-link to="/presentation" class="foot__link">Open the deck</router-link>
+      <button class="nav" :disabled="index === 0" aria-label="Previous note" @click="prevNote">
+        ←
+      </button>
+      <div class="track">
+        <div class="track__fill" :style="{ width: `${((index + 1) / total) * 100}%` }" />
+      </div>
+      <span class="count">{{ index + 1 }} / {{ total }}</span>
+      <button
+        class="nav"
+        :disabled="index === total - 1"
+        aria-label="Next note"
+        @click="nextNote"
+      >
+        →
+      </button>
     </footer>
+
+    <!-- Print-only: the full run, plus the contingency plan. -->
+    <div class="print-all">
+      <h1>{{ notesMeta.event }} — Speaker Notes</h1>
+      <p>{{ notesMeta.presenters }} · {{ notesMeta.date }} · {{ notesMeta.runtime }}</p>
+      <article v-for="n in allNotes" :key="`p-${n.num}`" class="print-card">
+        <h2>{{ String(n.num).padStart(2, '0') }} · {{ n.name }} — {{ speakerNames[n.speaker] }} ({{ n.timing }})</h2>
+        <p class="beat">{{ n.beat }}</p>
+        <!-- eslint-disable-next-line vue/no-v-html -- authored in src/data/speakerNotes.ts -->
+        <p v-for="(line, i) in n.lines" :key="i" v-html="formatLine(line)" />
+        <p v-for="cue in n.cues" :key="cue.text" class="print-cue">
+          {{ cueGlyph[cue.kind] }} {{ cue.text }}
+        </p>
+      </article>
+      <p class="print-cue">{{ contingency }}</p>
+    </div>
   </div>
 </template>
 
@@ -102,129 +192,80 @@ body.notes-body {
   --bg: #0e0f0e;
   --card: #161816;
   --ink: #f2f1ed;
-  --ink-soft: #c4c6c2;
+  --ink-soft: #c8cac4;
   --muted: #83877f;
   --green: #00ff88;
   --pink: #f7b8d8;
+  --amber: #f2e860;
   --hairline: rgba(242, 241, 237, 0.14);
   --display: 'Space Grotesk', var(--font-family);
 
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   background: var(--bg);
   color: var(--ink);
-  padding: 2.5rem 1.15rem 4rem;
-  max-width: 46rem;
-  margin: 0 auto;
   font-weight: 300;
   line-height: 1.6;
+  overflow: hidden;
 }
 
-.top {
+.bar {
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  margin-bottom: 2.5rem;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.15rem 0.5rem;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-.kicker {
-  margin: 0;
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+.bar__act {
   color: var(--green);
 }
 
-.title {
-  margin: 0;
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: clamp(1.9rem, 8vw, 2.6rem);
-  line-height: 1.05;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-}
-
-.meta {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem 1.3rem;
-  font-size: 0.78rem;
-  color: var(--muted);
-  border-top: 1px solid var(--hairline);
-  padding-top: 0.9rem;
-  margin-top: 0.4rem;
-}
-
-.legend b {
-  font-family: var(--display);
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-size: 0.68rem;
-  margin-right: 0.35rem;
-}
-
-.legend .g { color: var(--green); }
-.legend .p { color: var(--pink); }
-
-.act__head {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-bottom: 1.25rem;
-}
-
-.act__label {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.act__title {
-  margin: 0;
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-
-.act__summary {
-  margin: 0;
-  font-size: 0.88rem;
-  color: var(--muted);
+.stage {
+  overflow-y: auto;
+  padding: 0.5rem 1.15rem 1rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .card {
+  max-width: 46rem;
+  margin: 0 auto;
   background: var(--card);
   border: 1px solid var(--hairline);
-  padding: 1.35rem 1.25rem 1.2rem;
-  margin-bottom: 1rem;
+  padding: 1.4rem 1.3rem 1.25rem;
+  animation: cardIn 0.28s ease-out;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card__head {
   display: flex;
   align-items: baseline;
-  gap: 0.85rem;
-  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.8rem;
+  margin-bottom: 1rem;
 }
 
 .num {
   font-family: var(--display);
   font-weight: 700;
-  font-size: 1.75rem;
+  font-size: 1.9rem;
   line-height: 1;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
@@ -236,14 +277,36 @@ body.notes-body {
   color: var(--green);
 }
 
-.slide-name {
+.name {
   font-family: var(--display);
   font-weight: 700;
-  font-size: 0.88rem;
-  letter-spacing: 0.16em;
+  font-size: 0.9rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   background: rgba(0, 255, 136, 0.14);
-  padding: 0.12em 0.4em;
+  padding: 0.14em 0.42em;
+}
+
+.chip {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.24em 0.5em;
+  border: 1px solid currentColor;
+}
+
+.chip--kisora {
+  color: var(--green);
+}
+
+.chip--joze {
+  color: var(--pink);
+}
+
+.chip--both {
+  color: var(--amber);
 }
 
 .timing {
@@ -255,15 +318,17 @@ body.notes-body {
 }
 
 .beat {
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.85rem;
   font-weight: 400;
-  font-size: 1rem;
+  font-size: 0.98rem;
   color: var(--ink);
+  border-left: 2px solid var(--green);
+  padding-left: 0.7rem;
 }
 
 .say {
-  margin: 0 0 0.55rem;
-  font-size: 1.05rem;
+  margin: 0 0 0.7rem;
+  font-size: 1.12rem;
   color: var(--ink-soft);
 }
 
@@ -277,88 +342,150 @@ body.notes-body {
   font-family: var(--display);
   font-weight: 500;
   font-size: 0.72rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
   padding: 0 0.25em;
 }
 
-.cue {
+.cues {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 1rem;
-  margin-top: 0.9rem;
-  padding-top: 0.75rem;
+  gap: 0.4rem 1rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
   border-top: 1px dashed var(--hairline);
-}
-
-.cue span {
   font-family: var(--display);
   font-weight: 500;
   font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
+}
+
+.cues .advance {
   color: var(--green);
 }
 
-.cue span.hand {
+.cues .hand {
   color: var(--pink);
 }
 
-.foot {
-  margin-top: 2rem;
-  border-top: 1px solid var(--hairline);
-  padding-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  font-size: 0.82rem;
-  color: var(--muted);
+.cues .hold {
+  color: var(--amber);
 }
 
-.foot p { margin: 0; }
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem 1.15rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--hairline);
+}
 
-.foot__link {
-  align-self: flex-start;
+.nav {
+  flex: none;
+  width: 3rem;
+  height: 2.6rem;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.nav:not(:disabled):hover,
+.nav:focus-visible {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.track {
+  flex: 1;
+  height: 2px;
+  background: var(--hairline);
+}
+
+.track__fill {
+  height: 100%;
+  background: var(--green);
+  transition: width 0.28s ease;
+}
+
+.count {
   font-family: var(--display);
   font-weight: 500;
   font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink);
-  text-decoration: none;
-  border-bottom: 1px solid var(--hairline);
-  padding-bottom: 2px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.foot__link:hover,
-.foot__link:focus-visible {
-  border-bottom-color: var(--green);
+/* Phones: trim a little so the longer cards land without scrolling. */
+@media (max-width: 480px) {
+  .say {
+    font-size: 1.02rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .beat {
+    font-size: 0.92rem;
+  }
+
+  .card {
+    padding: 1.15rem 1.05rem 1rem;
+  }
+}
+
+.print-all {
+  display: none;
 }
 
 @media print {
   .notes {
-    --bg: #ffffff;
-    --card: #ffffff;
-    --ink: #000000;
-    --ink-soft: #1c1c1c;
-    --muted: #555555;
-    --green: #007a46;
-    --pink: #a03a72;
-    --hairline: rgba(0, 0, 0, 0.28);
-    max-width: none;
-    padding: 0;
+    position: static;
+    display: block;
+    overflow: visible;
+    background: #fff;
+    color: #000;
   }
 
-  .card {
+  .bar,
+  .stage,
+  .foot {
+    display: none;
+  }
+
+  .print-all {
+    display: block;
+    font-size: 10.5pt;
+  }
+
+  .print-card {
     break-inside: avoid;
     page-break-inside: avoid;
+    border-bottom: 1px solid #bbb;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.7rem;
   }
 
-  .slide-name {
-    background: rgba(0, 122, 70, 0.14);
+  .print-card h2 {
+    font-size: 11pt;
+    margin: 0 0 0.25rem;
   }
 
-  .foot__link { display: none; }
+  .print-card p {
+    margin: 0 0 0.3rem;
+  }
+
+  .print-cue {
+    font-size: 9pt;
+    color: #444;
+  }
 }
 </style>
