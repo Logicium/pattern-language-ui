@@ -1,6 +1,6 @@
 <template>
   <Transition name="beta-banner">
-    <div v-if="visible" class="beta-banner" role="status">
+    <div v-if="visible && onPublicPage" class="beta-banner" role="status">
       <div class="beta-banner-inner">
         <span class="beta-dot" aria-hidden="true"></span>
         <span class="beta-text text-xs">
@@ -20,10 +20,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 
 const STORAGE_KEY = 'pl_beta_banner_dismissed_v1'
 const visible = ref(false)
+
+// The pill floats bottom-center — on dashboard pages that is exactly where
+// the chat input lives, and it intercepts taps. Members already see beta
+// context in the app; keep the floating pill to the public site.
+const route = useRoute()
+const onPublicPage = computed(() => !route.meta.requiresAuth)
 
 onMounted(() => {
   try {

@@ -176,7 +176,14 @@ async function submit() {
   .demo-banner {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    /* Every rem here is a rem stolen from the chat on a phone. */
+    padding: 0.55rem 1rem;
+  }
+
+  .demo-banner__text {
+    font-size: 0.75rem;
+    line-height: 1.45;
   }
 }
 </style>

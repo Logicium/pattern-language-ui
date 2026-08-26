@@ -103,7 +103,16 @@ const { collapsed: sidebarCollapsed } = useSidebarCollapsed()
 
 .dashboard-main {
   grid-column: 2;
-  min-height: 100vh;
+  /* The main column owns the viewport: pages that manage their own height
+     (chat) flex into the remainder under the demo banner, and taller pages
+     scroll here instead of on the body. Without this, anything stacked above
+     a 100vh page pushed its bottom (the chat input) off-screen. */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .mobile-menu-overlay { display: none; }
@@ -116,6 +125,12 @@ const { collapsed: sidebarCollapsed } = useSidebarCollapsed()
 @media (max-width: 768px) {
   .dashboard-layout,
   .dashboard-layout.sidebar-collapsed { grid-template-columns: 1fr; }
+
+  .dashboard-main {
+    grid-column: 1;
+    /* Clear the fixed mobile header. */
+    padding-top: 4.5rem;
+  }
 
   .mobile-header {
     display: flex;

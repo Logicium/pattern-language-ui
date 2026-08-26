@@ -93,7 +93,11 @@ function openFullPlaybook(playbook: Playbook) {
 
 <style scoped>
 .chat-page {
-  height: 100vh;
+  /* Fill whatever the dashboard main column has left (it owns the viewport
+     height) — a hard 100vh here pushed the input off-screen whenever the
+     demo banner or the mobile header sat above the page. */
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--color-bg-primary);

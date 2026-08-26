@@ -118,6 +118,7 @@ const closeMobileMenu = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
 }
@@ -128,10 +129,16 @@ const closeMobileMenu = () => {
   gap: 0.6rem;
   z-index: 1001;
   position: relative;
+  /* Let the brand give way on narrow screens instead of shoving the
+     hamburger and beta chip past the right edge (min-width:auto would
+     otherwise make it unshrinkable). */
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 /* Always-visible beta marker; the dismissible BetaBanner handles the details */
 .beta-chip {
+  flex: none;
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -200,6 +207,7 @@ const closeMobileMenu = () => {
 /* Hamburger Menu */
 .hamburger {
   display: none;
+  flex: none;
   flex-direction: column;
   justify-content: center;
   align-items: flex-end;
@@ -313,6 +321,12 @@ const closeMobileMenu = () => {
 
 @media (max-width: 768px) {
   .nav-links {
+    display: none;
+  }
+
+  /* The full wordmark + chip + hamburger can't share 390px. The mark and
+     chip carry the identity; the word returns at tablet width. */
+  .logo :deep(.brand-word) {
     display: none;
   }
   
