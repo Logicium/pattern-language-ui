@@ -97,4 +97,14 @@ if (!props.isModal) {
     gap: 3rem;
   }
 }
+
+/* Grid items default to min-width:auto — one long reference URL was forcing
+   the whole column wider than a phone and clipping the story text. */
+.content-grid > * {
+  min-width: 0;
+}
+
+.content-grid :deep(a) {
+  overflow-wrap: anywhere;
+}
 </style>

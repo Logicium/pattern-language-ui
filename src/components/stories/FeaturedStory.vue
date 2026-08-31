@@ -305,6 +305,28 @@ onBeforeUnmount(() => {
   background: var(--color-bg-primary);
 }
 
+/* Phones: the five selectors become a swipeable strip — full labels, no
+   crushing, momentum scroll, scrollbar hidden (progress dashes carry state). */
+@media (max-width: 768px) {
+  .featured-bar {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .featured-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .featured-bar .bar-item {
+    flex: 0 0 auto;
+    min-width: 11rem;
+    scroll-snap-align: start;
+  }
+}
+
 .bar-item {
   position: relative;
   display: grid;

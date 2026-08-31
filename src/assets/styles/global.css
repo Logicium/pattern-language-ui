@@ -362,6 +362,24 @@ h1, h2, h3, h4, h5, h6 {
   /*animation: gradientFlow 12s linear infinite;*/
 }
 
+/* Phone rhythm: tighter gutters so content breathes at 390px, and section
+   padding scaled to the viewport rather than inherited from the desktop. */
+@media (max-width: 640px) {
+  :root {
+    --container-padding: 1.25rem;
+  }
+
+  .section {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+
+  .section-compact {
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+  }
+}
+
 /* Chrome-free routes (the deck, the stage notes) hide the Apotome editor bar.
    The bar mounts its own app into <body>, so the router toggles this class
    rather than unmounting it — leaving the editor session intact for the
@@ -447,4 +465,81 @@ body.no-editor .apotome-editor-host {
   .panel-blur-leave-active { transition: opacity 160ms ease; }
   .panel-blur-enter-from,
   .panel-blur-leave-to { filter: none; transform: none; }
+}
+
+/* ============================================================
+   Mobile layer collapse (<=640px)
+
+   On phones, nested panels compound their padding: .section eats the
+   container gutter, a boxed panel inside eats ~3rem more, and an inner
+   card eats again — measured down to 149px of text on a 390px screen.
+
+   The bespoke mobile treatment: ONE page gutter (--container-padding),
+   owned by the innermost text layer. Wrappers that duplicate the gutter
+   around an inner .container drop their inline padding; boxed panels go
+   full-bleed (negative inline margins cancel the parent gutter, their own
+   inline padding becomes the page gutter, side borders drop). Tinted
+   panels read as edge-to-edge bands; every line of text shares a single
+   left edge.
+
+   !important is deliberate and contained to this block: these classes
+   live in scoped SFC styles whose attribute selectors always beat a
+   global class rule.
+   ============================================================ */
+@media (max-width: 640px) {
+  :root {
+    --container-padding: 1.25rem;
+  }
+
+  /* Wrappers that pad inline AND contain a .container that pads again. */
+  .page-hero,
+  .pattern-hero,
+  .story-hero,
+  .shop-body {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Boxed panels inside padded containers: full-bleed flat sections. */
+  .content-block,
+  .settings-section,
+  .sidebar-block,
+  .invite-editorial,
+  .featured,
+  .resource-card,
+  .story-info,
+  .account-info,
+  .example-card,
+  .resource-link,
+  .problem-item,
+  .reference-link,
+  .narrative-toggle {
+    margin-left: calc(-1 * var(--container-padding)) !important;
+    margin-right: calc(-1 * var(--container-padding)) !important;
+    padding-left: var(--container-padding) !important;
+    padding-right: var(--container-padding) !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  /* The settings accent stripe survives the collapse — it sits on the
+     screen edge, which reads as intentional. */
+  .settings-section {
+    border-left: 3px solid transparent !important;
+  }
+
+  /* Third-layer trims: keep these inside the flow, just lighter. */
+  .checkbox-list {
+    padding-left: 0.5rem !important;
+  }
+
+  .card-body {
+    padding-left: var(--container-padding) !important;
+    padding-right: var(--container-padding) !important;
+  }
+}
+
+/* Raw URLs (story references) must never dictate a column's width. */
+.reference-link {
+  overflow-wrap: anywhere;
 }

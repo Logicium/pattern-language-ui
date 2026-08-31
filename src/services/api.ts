@@ -506,6 +506,13 @@ export const citiesApi = {
   create: (data: { name: string; state?: string; country?: string }) =>
     authFetch('/cities', { method: 'POST', body: JSON.stringify(data) }),
   generateInfo: (id: number) => authFetch(`/cities/${id}/generate`, { method: 'POST' }),
+  /** Dev-only endpoint — the backend 403s it in production. */
+  regenerateReadiness: (id: number) =>
+    authFetch(`/cities/${id}/regenerate-readiness`, { method: 'POST' }) as Promise<{
+      previousScore: number | null
+      newScore: number
+      breakdown: Record<string, unknown>
+    }>,
 }
 
 // Config API — runtime-fetched values that should not be embedded in the build.

@@ -32,22 +32,35 @@
     </div>
   </nav>
 
-  <!-- Mobile Menu Drawer -->
+  <!-- Mobile Menu: full-screen editorial index -->
   <div class="mobile-menu" :class="{ 'is-open': isMobileMenuOpen }">
-    <div class="mobile-menu-links">
-      <router-link to="/about" @click="closeMobileMenu">About</router-link>
-      <router-link to="/patterns" @click="closeMobileMenu">Patterns</router-link>
-      <router-link to="/stories" @click="closeMobileMenu">Stories</router-link>
-      <router-link to="/cities" @click="closeMobileMenu">Cities</router-link>
-      <router-link to="/shop" @click="closeMobileMenu">Shop</router-link>
+    <nav class="menu-index" aria-label="Site">
       <router-link
-        v-if="!isAuthenticated"
-        to="/demo"
-        class="btn btn-try"
+        v-for="(item, i) in menuItems"
+        :key="item.to"
+        :to="item.to"
+        class="menu-row"
+        :style="{ '--i': i }"
         @click="closeMobileMenu"
-      >Try PAL</router-link>
-      <router-link v-if="isAuthenticated" to="/dashboard" class="btn" @click="closeMobileMenu">Dashboard</router-link>
-      <router-link v-else to="/signup" class="btn" @click="closeMobileMenu">Start</router-link>
+      >
+        <span class="menu-row__num">{{ String(i + 1).padStart(2, '0') }}</span>
+        <span class="menu-row__label">{{ item.label }}</span>
+        <span class="menu-row__arrow chevron" aria-hidden="true" />
+      </router-link>
+    </nav>
+
+    <div class="menu-actions" :style="{ '--i': menuItems.length }">
+      <template v-if="!isAuthenticated">
+        <router-link to="/demo" class="btn btn-try menu-btn" @click="closeMobileMenu">Try PAL</router-link>
+        <router-link to="/signup" class="btn menu-btn" @click="closeMobileMenu">Start</router-link>
+        <router-link to="/login" class="menu-login" @click="closeMobileMenu">Log in</router-link>
+      </template>
+      <router-link v-else to="/dashboard" class="btn menu-btn" @click="closeMobileMenu">Dashboard</router-link>
+    </div>
+
+    <div class="menu-foot" :style="{ '--i': menuItems.length + 1 }">
+      <span class="menu-foot__word">Rural Pattern Language</span>
+      <a href="mailto:hello@ruralpatternlanguage.com" class="menu-foot__link">hello@ruralpatternlanguage.com</a>
     </div>
   </div>
 
@@ -85,6 +98,15 @@ onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
 })
 
+const menuItems = [
+  { to: '/about', label: 'About' },
+  { to: '/patterns', label: 'Patterns' },
+  { to: '/stories', label: 'Stories' },
+  { to: '/cities', label: 'Cities' },
+  { to: '/events', label: 'Events' },
+  { to: '/shop', label: 'Shop' },
+]
+
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
   document.body.style.overflow = isMobileMenuOpen.value ? 'hidden' : ''
@@ -103,7 +125,7 @@ const closeMobileMenu = () => {
   width: 100%;
   background: transparent;
   backdrop-filter: none;
-  z-index: 1000;
+  z-index: 1110;
   border-bottom: 1px solid transparent;
   transition: background 0.4s ease, backdrop-filter 0.4s ease, border-bottom-color 0.4s ease;
 }
@@ -200,10 +222,6 @@ const closeMobileMenu = () => {
   color: var(--color-text-primary);
 }
 
-.mobile-menu-links .btn-try {
-  display: inline-block;
-}
-
 /* Hamburger Menu */
 .hamburger {
   display: none;
@@ -250,55 +268,165 @@ const closeMobileMenu = () => {
 }
 
 /* Mobile Menu - Drop down from top */
+/* ---- Mobile menu: full-screen editorial index -------------------------
+   A takeover in the site's paper, not a dropdown. Numbered rows in display
+   type with hairline separators, a tri-accent CTA block, and a small
+   colophon — the deck's language, folded into the phone. */
 .mobile-menu {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
   background: var(--color-bg-primary);
-  transform: translateY(-100%);
-  transition: transform var(--transition-base);
-  z-index: 999;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  padding: 6rem var(--container-padding) calc(1.1rem + env(safe-area-inset-bottom, 0px));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+  /* Above the floating beta pill (1100); the navbar rides higher still so the
+     brand and the close button stay visible over the takeover. */
+  z-index: 1105;
+  overflow-y: auto;
 }
 
 .mobile-menu.is-open {
-  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.35s ease;
 }
 
-.mobile-menu-links {
+.menu-index {
   display: flex;
   flex-direction: column;
-  padding: 5.5rem 2rem 2rem;
-  gap: 2rem;
 }
 
-.mobile-menu-links a {
-  color: var(--color-text-secondary);
+.menu-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1.1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--hairline);
   text-decoration: none;
-  font-size: 1.125rem;
-  letter-spacing: 0.02em;
-  transition: color var(--transition-base);
-  font-weight: var(--font-weight-light);
-}
-
-.mobile-menu-links a:hover,
-.mobile-menu-links a.router-link-active {
   color: var(--color-text-primary);
 }
 
-.mobile-menu-links a.btn {
+.menu-row:first-child {
+  border-top: 1px solid var(--hairline-strong);
+}
+
+.menu-row__num {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--transition-fast);
+}
+
+.menu-row__label {
+  font-size: 1.9rem;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.menu-row__arrow {
+  margin-left: auto;
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transform: translateX(-0.4rem);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.menu-row.router-link-active .menu-row__num {
+  color: var(--color-accent-warm);
+}
+
+.menu-row.router-link-active .menu-row__arrow,
+.menu-row:active .menu-row__arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.menu-actions {
+  margin-top: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.menu-btn {
+  flex: none;
+  padding: 0.6rem 1.5rem;
   text-decoration: none;
-  display: inline-block;
-  width: fit-content;
-  margin-top: 1rem;
 }
 
-.mobile-menu-links a.btn:hover {
-  color: var(--color-bg-primary);
+.menu-login {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-secondary);
+  text-decoration: none;
 }
 
-/* Mobile Menu Overlay */
+.menu-foot {
+  margin-top: auto;
+  padding-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.menu-foot__word {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-text-tertiary);
+}
+
+.menu-foot__link {
+  font-size: 0.85rem;
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+/* Staggered entrance: rows drift up out of a blur, one after another. */
+.menu-row,
+.menu-actions,
+.menu-foot {
+  opacity: 0;
+}
+
+.mobile-menu.is-open .menu-row,
+.mobile-menu.is-open .menu-actions,
+.mobile-menu.is-open .menu-foot {
+  animation: menuRise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation-delay: calc(0.06s + var(--i, 0) * 0.055s);
+}
+
+@keyframes menuRise {
+  from {
+    opacity: 0;
+    transform: translateY(0.9rem);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu,
+  .mobile-menu.is-open .menu-row,
+  .mobile-menu.is-open .menu-actions,
+  .mobile-menu.is-open .menu-foot {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+    animation-delay: 0s;
+  }
+}
+
 .mobile-menu-overlay {
   position: fixed;
   top: 0;

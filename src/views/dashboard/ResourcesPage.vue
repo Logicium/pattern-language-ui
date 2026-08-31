@@ -239,4 +239,25 @@ function openResource(resource: any, type: ResourceTab) {
   .search-input { width: 100%; }
   .tabs { gap: 1.5rem; }
 }
+
+/* Phones: tabs become one swipeable row — no wrapping, no crushed labels;
+   the active underline carries state, the scrollbar stays hidden. */
+@media (max-width: 640px) {
+  .tabs {
+    gap: 1.75rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    white-space: nowrap;
+    padding: 0 var(--container-padding);
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+  }
+}
 </style>

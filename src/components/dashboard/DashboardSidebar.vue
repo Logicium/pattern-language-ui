@@ -6,15 +6,17 @@
 
     <nav class="sidebar-nav">
       <router-link
-        v-for="item in navItems"
+        v-for="(item, i) in navItems"
         :key="item.to"
         :to="item.to"
         class="nav-item"
+        :style="{ '--i': i }"
         :exact-active-class="item.exact ? 'active' : undefined"
         :active-class="item.exact ? undefined : 'active'"
         :title="collapsed ? item.label : undefined"
         @click="$emit('navigate')"
       >
+        <span class="nav-index" aria-hidden="true">{{ String(i + 1).padStart(2, '0') }}</span>
         <component :is="item.icon" :size="18" class="nav-icon" />
         <span class="nav-label">{{ item.label }}</span>
         <span
@@ -24,11 +26,15 @@
         >
           <template v-if="!collapsed">{{ item.badgeCount }}</template>
         </span>
+        <span class="nav-chevron chevron" aria-hidden="true" />
       </router-link>
     </nav>
 
     <div class="sidebar-footer">
-      <div class="user-name">{{ userName }}</div>
+      <div class="user-ident">
+        <span class="user-ident__label">Signed in as</span>
+        <div class="user-name">{{ userName }}</div>
+      </div>
       <div class="footer-actions">
         <button
           type="button"
@@ -197,7 +203,17 @@ const navItems = computed(() => [
 
 .nav-icon {
   flex-shrink: 0;
-  stroke-width: 1.5;
+  stroke-width: 1.25;
+}
+
+/* Editorial index number + chevron exist for the phone takeover only. */
+.nav-index,
+.nav-chevron {
+  display: none;
+}
+
+.user-ident__label {
+  display: none;
 }
 
 .nav-label {
@@ -322,29 +338,192 @@ const navItems = computed(() => [
 @media (max-width: 768px) {
   .sidebar-header { display: none; }
 
+  /* ---- Phone: the drawer becomes the same full-screen editorial takeover
+     as the public site's menu — numbered index rows in display type,
+     hairline separators, staggered rise-out-of-blur, identity colophon. ---- */
   .dashboard-sidebar {
-    width: 280px;
-    background: var(--color-bg-secondary);
-    transform: translateX(-100%);
-    transition: transform var(--transition-base);
+    inset: 0;
+    width: 100%;
+    background: var(--color-bg-primary);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-right: none;
+    /* A quiet lateral entrance — kin to the public menu, not a clone of it. */
+    transform: translateX(-2.5rem);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 0.35s ease,
+      visibility 0s linear 0.4s;
     z-index: 999;
-    padding-top: 73px;
+    padding: 6rem var(--container-padding) calc(1.1rem + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
   }
 
-  .dashboard-sidebar.is-open { transform: translateX(0); }
-  .dashboard-sidebar.is-collapsed { width: 280px; }
+  .dashboard-sidebar.is-open {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    transition:
+      transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 0.35s ease;
+  }
+
+  /* Desktop collapse state is meaningless in the takeover. */
+  .dashboard-sidebar.is-collapsed { width: 100%; }
   .dashboard-sidebar.is-collapsed .nav-label,
   .dashboard-sidebar.is-collapsed .user-name { display: block; opacity: 1; max-width: none; max-height: none; }
-  .dashboard-sidebar.is-collapsed .nav-item { padding: 1rem var(--spacing-sm); }
-  .dashboard-sidebar.is-collapsed .sidebar-footer { padding: var(--spacing-sm); }
-  .dashboard-sidebar.is-collapsed .logout-label { opacity: 1; max-width: 80px; }
-
-  /* The collapse toggle is meaningless in the mobile drawer */
+  .dashboard-sidebar.is-collapsed .sidebar-footer { padding: 0; }
+  .dashboard-sidebar.is-collapsed .logout-label { opacity: 1; max-width: none; }
   .collapse-toggle { display: none; }
 
-  .nav-item { font-size: 1rem; padding: 1rem var(--spacing-sm); }
-  .nav-label { font-size: 1rem; }
-  .user-name { font-size: 0.875rem; }
+  .sidebar-nav {
+    padding: 0;
+    gap: 0;
+    flex: none;
+  }
+
+  .nav-item,
+  .dashboard-sidebar.is-collapsed .nav-item {
+    align-items: center;
+    gap: 1.1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--hairline);
+    color: var(--color-text-primary);
+    overflow: visible;
+  }
+
+  .nav-item:first-child {
+    border-top: 1px solid var(--hairline-strong);
+  }
+
+  .nav-item.active::before { display: none; }
+
+  .nav-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--color-text-tertiary);
+    transition: color var(--transition-fast);
+  }
+
+  .nav-item.active .nav-icon {
+    color: var(--color-text-primary);
+  }
+
+  .nav-index {
+    display: inline;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: var(--color-text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nav-item.active .nav-index {
+    color: var(--color-accent-warm);
+  }
+
+  .nav-label,
+  .dashboard-sidebar.is-collapsed .nav-label {
+    font-size: 1.9rem;
+    font-weight: var(--font-weight-light);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    flex: none;
+    max-width: none;
+  }
+
+  .nav-badge {
+    align-self: center;
+    margin-left: 0.25rem;
+  }
+
+  .nav-chevron {
+    display: inline-block;
+    margin-left: auto;
+    color: var(--color-text-tertiary);
+    opacity: 0;
+    transform: translateX(-0.4rem);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .nav-item.active .nav-chevron,
+  .nav-item:active .nav-chevron {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Identity colophon + logout anchor the bottom, like the site menu's foot. */
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 2.5rem 0 0;
+    border-top: none;
+  }
+
+  .user-ident {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .user-ident__label {
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-text-tertiary);
+  }
+
+  .user-name {
+    font-size: 1.05rem;
+    font-weight: var(--font-weight-normal);
+    margin-bottom: 0;
+  }
+
+  .logout-btn {
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  /* Staggered entrance, matching the public menu's choreography. */
+  .nav-item,
+  .sidebar-footer {
+    opacity: 0;
+  }
+
+  .dashboard-sidebar.is-open .nav-item,
+  .dashboard-sidebar.is-open .sidebar-footer {
+    animation: dashMenuSlide 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    animation-delay: calc(0.08s + var(--i, 6) * 0.05s);
+  }
+
+  @keyframes dashMenuSlide {
+    from {
+      opacity: 0;
+      transform: translateX(-1.4rem);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+      filter: blur(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dashboard-sidebar,
+    .dashboard-sidebar.is-open .nav-item,
+    .dashboard-sidebar.is-open .sidebar-footer {
+      transition-duration: 0.01ms;
+      animation-duration: 0.01ms;
+      animation-delay: 0s;
+    }
+  }
 }
 
 @media (max-width: 1024px) and (min-width: 769px) {

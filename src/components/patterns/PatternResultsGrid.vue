@@ -156,6 +156,9 @@ const constellationFor = (id: number) => constellations.value[id] ?? EMPTY_CONST
 
 .pattern-card {
   position: relative;
+  /* The constellation SVG paints to the card's edges; without this its
+     lines bleed past the border and register as horizontal overflow. */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--color-bg-primary);

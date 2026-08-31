@@ -202,4 +202,25 @@ const tabs = computed(() => [
   .tabs { gap: 1.5rem; }
   .playbooks-grid { grid-template-columns: 1fr; }
 }
+
+/* Phones: tabs become one swipeable row — no wrapping, no crushed labels;
+   the active underline carries state, the scrollbar stays hidden. */
+@media (max-width: 640px) {
+  .tabs {
+    gap: 1.75rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    white-space: nowrap;
+    padding: 0 var(--container-padding);
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+  }
+}
 </style>

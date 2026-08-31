@@ -265,6 +265,18 @@ const router = createRouter({
         }
       ]
     },
+    // Dev workbench routes: the spread is statically false in production
+    // builds, so the route AND its chunk are dropped entirely by the bundler.
+    ...(import.meta.env.DEV
+      ? [
+          {
+            path: '/dev/readiness',
+            name: 'dev-readiness',
+            component: () => import('@/views/DevReadinessPage.vue'),
+            meta: { seoTitle: 'Dev — Readiness', noindex: true }
+          }
+        ]
+      : []),
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
