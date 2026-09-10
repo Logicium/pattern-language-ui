@@ -11,8 +11,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
+
+// Shared reference counter and original body overflow style storage.
+// Using globalThis ensures tracking is robust across different module evaluations
+// and environments (including development hot module reloading).
+const getActiveModalsCount = (): number => {
+  if (typeof globalThis === 'undefined') return 0
+  return (globalThis as any).__activeSlideInModalsCount || 0
+}
+
+const setActiveModalsCount = (val: number) => {
+  if (typeof globalThis !== 'undefined') {
+    (globalThis as any).__activeSlideInModalsCount = val
+  }
+}
+
+const getOriginalOverflow = (): string => {
+  if (typeof globalThis === 'undefined') return ''
+  return (globalThis as any).__slideInModalOriginalOverflow || ''
+}
+
+const setOriginalOverflow = (val: string) => {
+  if (typeof globalThis !== 'undefined') {
+    (globalThis as any).__slideInModalOriginalOverflow = val
+  }
+}
+
+function lockScroll() {
+  if (typeof document === 'undefined') return
+  const count = getActiveModalsCount()
+  if (count === 0) {
+    setOriginalOverflow(document.body.style.overflow)
+    document.body.style.overflow = 'hidden'
+  }
+  setActiveModalsCount(count + 1)
+}
+
+function unlockScroll() {
+  if (typeof document === 'undefined') return
+  const count = getActiveModalsCount()
+  if (count > 0) {
+    const newCount = count - 1
+    setActiveModalsCount(newCount)
+    if (newCount === 0) {
+      document.body.style.overflow = getOriginalOverflow()
+    }
+  }
+}
 
 interface Props {
   modelValue: boolean
@@ -28,6 +75,23 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(props.modelValue)
+
+// Track if this specific component instance has successfully acquired a scroll lock.
+let isLockedByThisInstance = false
+
+const acquireLock = () => {
+  if (!isLockedByThisInstance) {
+    isLockedByThisInstance = true
+    lockScroll()
+  }
+}
+
+const releaseLock = () => {
+  if (isLockedByThisInstance) {
+    isLockedByThisInstance = false
+    unlockScroll()
+  }
+}
 
 // When the caller doesn't pin a sidebar width, track the dashboard sidebar's
 // collapsed state so the modal slides over the current main-content area.
@@ -45,10 +109,20 @@ watch(isOpen, (newVal) => {
   emit('update:modelValue', newVal)
   // Prevent body scroll when modal is open
   if (newVal) {
-    document.body.style.overflow = 'hidden'
+    acquireLock()
   } else {
-    document.body.style.overflow = ''
+    releaseLock()
   }
+})
+
+onMounted(() => {
+  if (isOpen.value) {
+    acquireLock()
+  }
+})
+
+onBeforeUnmount(() => {
+  releaseLock()
 })
 
 const close = () => {
