@@ -19,6 +19,13 @@ export const hackathon = {
   timeLabel: '9:00 AM – 5:00 PM MT',
   venue: 'Old Post Office Event Center',
   address: '505 Macon Ave, Cañon City, CO 81212',
+  /** The host, credited with its own wordmark (from emergentcampus.org). */
+  host: {
+    name: 'Emergent Campus',
+    url: 'https://emergentcampus.org/',
+    logo: '/brand/emergent-campus-green.png',
+    logoOnDark: '/brand/emergent-campus-white.png'
+  },
   location: 'Old Post Office Event Center · 505 Macon Ave, Cañon City, CO 81212',
   /** How the day is held: in the room, on paper first. */
   format: 'In person. Limited seats available, register now.',

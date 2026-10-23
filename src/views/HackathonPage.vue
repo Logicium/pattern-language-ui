@@ -428,6 +428,14 @@ onBeforeUnmount(() => {
                 <div><dt>Where</dt><dd>{{ hackathon.location }}</dd></div>
                 <div><dt>When</dt><dd>{{ hackathon.timeLabel }}</dd></div>
                 <div><dt>Format</dt><dd>{{ hackathon.format }}</dd></div>
+                <div class="meta__host">
+                  <dt>Hosted by</dt>
+                  <dd>
+                    <a class="host" :href="hackathon.host.url" target="_blank" rel="noopener noreferrer" :aria-label="hackathon.host.name">
+                      <img class="host__logo" :src="hackathon.host.logo" :alt="hackathon.host.name" width="1300" height="358" />
+                    </a>
+                  </dd>
+                </div>
               </dl>
             </div>
           </div>
@@ -558,6 +566,13 @@ onBeforeUnmount(() => {
             <div class="two__label">
               <p class="eyebrow fade" style="--i: 0"><span class="n">06</span><span class="sep">/</span>Register</p>
               <h2 class="display display--sm"><span class="mask" style="--i: 1"><span>Save me</span></span><span class="mask" style="--i: 2"><span>a seat.</span></span></h2>
+              <p class="note note--meta fade" style="--i: 3">
+                {{ hackathon.dayLabel }}, {{ hackathon.dateLabel }}<br />{{ hackathon.timeLabel }}<br />{{ hackathon.location }}
+              </p>
+              <a class="host host--dark fade" style="--i: 3" :href="hackathon.host.url" target="_blank" rel="noopener noreferrer">
+                <span class="host__by">Hosted by</span>
+                <img class="host__logo" :src="hackathon.host.logoOnDark" :alt="hackathon.host.name" width="1301" height="357" />
+              </a>
               <p v-if="pitchName && !done" class="note fade" style="--i: 3">We'll attach your pitch, <em>{{ pitchName }}</em>, to your registration.</p>
             </div>
             <div class="fade" style="--i: 3">
@@ -607,7 +622,13 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <footer class="foot" v-reveal>
-          <p class="foot__tag fade" style="--i: 0">{{ hackathon.tagline }}</p>
+          <div class="foot__lead fade" style="--i: 0">
+            <p class="foot__tag">{{ hackathon.tagline }}</p>
+            <a class="host host--foot" :href="hackathon.host.url" target="_blank" rel="noopener noreferrer">
+              <span class="host__by">Hosted by</span>
+              <img class="host__logo" :src="hackathon.host.logo" :alt="hackathon.host.name" width="1300" height="358" />
+            </a>
+          </div>
           <nav class="foot__links fade" style="--i: 1">
             <router-link to="/">ruralpatternlanguage.com</router-link>
             <router-link to="/patterns">The 45 patterns</router-link>
@@ -627,6 +648,10 @@ onBeforeUnmount(() => {
             <p class="note note--meta fade" style="--i: 3">
               {{ hackathon.dayLabel }}, {{ hackathon.dateLabel }}<br />{{ hackathon.timeLabel }}<br />{{ hackathon.location }}
             </p>
+            <a class="host host--dark fade" style="--i: 3" :href="hackathon.host.url" target="_blank" rel="noopener noreferrer">
+              <span class="host__by">Hosted by</span>
+              <img class="host__logo" :src="hackathon.host.logoOnDark" :alt="hackathon.host.name" width="1301" height="357" />
+            </a>
             <p v-if="pitchName && !done" class="note fade" style="--i: 3">We'll attach your pitch, <em>{{ pitchName }}</em>, to your registration.</p>
           </div>
           <div class="fade" style="--i: 3">
@@ -1068,6 +1093,43 @@ onBeforeUnmount(() => {
 .meta dd {
   margin: 0;
   font-size: 0.98rem;
+}
+.meta__host {
+  align-items: center !important;
+  margin-top: 0.4rem;
+}
+/* the host's wordmark: small, quiet, its own colour */
+.host {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.92;
+  transition: opacity 0.4s ease;
+}
+.host:hover {
+  opacity: 1;
+}
+.host__logo {
+  display: block;
+  width: auto;
+  height: 2.1rem;
+}
+.host__by {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.host--dark {
+  margin-top: 0.5rem;
+}
+.foot__lead {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 /* ----------------------------------------------------------- panels */

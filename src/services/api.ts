@@ -570,3 +570,64 @@ export const configApi = {
   getMapsKey: (): Promise<{ key: string }> => authFetch('/config/maps-key'),
 }
 
+
+// Admin — organizers only (the backend checks ORGANIZER_USER_IDS).
+export interface AdminEvent {
+  slug: string
+  name: string
+  dateLabel: string | null
+  startUtc: string | null
+  hasEmail: boolean
+  signups: number
+  confirmed: number
+  reminded: number
+  latest: string | null
+}
+export interface AdminOverview {
+  users: { real: number; demo: number; real7d: number; real30d: number; demo7d: number }
+  playbooks: number
+  chats: number
+  ideas: number
+  events: AdminEvent[]
+}
+export interface AdminUser {
+  id: number
+  name: string
+  email: string
+  location: string
+  isDemo: boolean
+  createdAt: string | null
+  playbooks: number
+  chats: number
+}
+export interface AdminSignup {
+  id: number
+  eventSlug: string
+  name: string
+  email: string
+  organization?: string | null
+  note?: string | null
+  createdAt: string
+  confirmationSentAt?: string | null
+  reminderSentAt?: string | null
+}
+export type EventEmailKind = 'confirmation' | 'reminder'
+
+export const adminApi = {
+  me: (): Promise<{ id: number; name: string; email: string }> => authFetch('/admin/me'),
+  overview: (): Promise<AdminOverview> => authFetch('/admin/overview'),
+  users: (params: { q?: string; kind?: 'real' | 'demo' | 'all'; limit?: number; offset?: number }): Promise<{ total: number; users: AdminUser[] }> => {
+    const q = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => v !== undefined && v !== '' && q.set(k, String(v)))
+    return authFetch(`/admin/users?${q.toString()}`)
+  },
+  signups: (slug: string): Promise<AdminSignup[]> => authFetch(`/admin/events/${encodeURIComponent(slug)}/signups`),
+  preview: (slug: string, kind: EventEmailKind, note?: string): Promise<{ subject: string; html: string; recipients: number }> =>
+    authFetch(`/admin/events/${encodeURIComponent(slug)}/preview`, { method: 'POST', body: JSON.stringify({ kind, note }) }),
+  sendTest: (slug: string, kind: EventEmailKind, note?: string): Promise<{ ok: boolean; error?: string; to: string }> =>
+    authFetch(`/admin/events/${encodeURIComponent(slug)}/test`, { method: 'POST', body: JSON.stringify({ kind, note }) }),
+  sendReminders: (slug: string, note: string | undefined, onlyUnreminded: boolean): Promise<{ sent: number; skipped: number; failed: Array<{ email: string; error: string }> }> =>
+    authFetch(`/admin/events/${encodeURIComponent(slug)}/reminders`, { method: 'POST', body: JSON.stringify({ note, onlyUnreminded }) }),
+  resendConfirmation: (signupId: number): Promise<{ ok: boolean; error?: string }> =>
+    authFetch(`/admin/signups/${signupId}/confirmation`, { method: 'POST' }),
+}

@@ -221,6 +221,12 @@ const router = createRouter({
       meta: { seoTitle: 'Speaker Notes', noindex: true, noNavbar: true, noEditor: true }
     },
     {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('@/views/AdminPage.vue'),
+      meta: { requiresAuth: true, noindex: true, seoTitle: 'Admin' }
+    },
+    {
       path: '/dashboard',
       component: DashboardLayout,
       meta: { requiresAuth: true, noindex: true },
