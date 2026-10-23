@@ -635,7 +635,7 @@ onBeforeUnmount(() => {
                   <input v-model="form.email" type="email" name="email" autocomplete="email" required maxlength="200" />
                 </label>
                 <label class="fld">
-                  <span>Town, team or organisation <em>optional</em></span>
+                  <span>Town, team or organization <em>optional</em></span>
                   <input v-model="form.organization" type="text" name="organization" autocomplete="organization" maxlength="200" />
                 </label>
                 <label class="fld fld--wide">
@@ -719,7 +719,7 @@ onBeforeUnmount(() => {
                 <input v-model="form.email" type="email" name="email" autocomplete="email" required maxlength="200" />
               </label>
               <label class="fld">
-                <span>Town, team or organisation <em>optional</em></span>
+                <span>Town, team or organization <em>optional</em></span>
                 <input v-model="form.organization" type="text" name="organization" autocomplete="organization" maxlength="200" />
               </label>
               <label class="fld fld--wide">
