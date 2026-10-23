@@ -139,16 +139,54 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
+  /*
+   * Phones: the hero flows from the top instead of centring in a fixed
+   * 100vh box. Centred, a hero taller than the visible area spilled upward
+   * under the logo; flowing, it can only grow downward.
+   */
+  .hero {
+    max-height: none;
+    min-height: 100svh;
+    justify-content: flex-start;
+    padding-top: 7.5rem;
+    padding-bottom: 6.5rem; /* clears the beta notice */
   }
-  
+
+  .hero-container {
+    padding-bottom: 0;
+  }
+
+  .hero-content {
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2.1rem, 1.2rem + 4.2vw, 2.5rem);
+    margin-bottom: 1.5rem;
+  }
+
   .typing-container {
     font-size: 1rem;
   }
-  
+
+  /* hand-set line breaks orphan single words at phone widths */
+  .hero-description br {
+    display: none;
+  }
+
+  .hero-description p {
+    line-height: 1.65;
+  }
+
   .hero-interactive {
     height: 100%;
+  }
+
+  .floating-cta {
+    position: static;
+    align-self: flex-start;
+    display: inline-block;
   }
 }
 </style>

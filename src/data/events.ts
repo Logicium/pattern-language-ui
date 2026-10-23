@@ -65,7 +65,7 @@ export const events: CommunityEvent[] = [
     location: 'Old Post Office Event Center · 505 Macon Ave, Cañon City, CO 81212',
     description:
       'One day, one town, forty-five patterns. Name what must stay true, stack the patterns that protect it, ' +
-      'and leave at five with a 90-day playbook. Real seed money for the strongest plan. Hosted by Emergent Campus. Free. Play the game first at /hackathon.',
+      'and leave at five with a 90-day playbook. The winning project receives up to $250 to continue. Hosted by Emergent Campus. Free. Play the game first at /hackathon.',
     url: '/hackathon',
     featured: true,
   },

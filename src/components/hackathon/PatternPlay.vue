@@ -75,9 +75,19 @@ const brief = ref<Brief | null>(null)
 const armed = ref<number | null>(null)
 // the story card under the pointer, so its side never flips while it grows
 const cardHover = ref<number | null>(null)
+// touch: the card opened by a first tap; a second tap follows its link
+const cardOpen = ref<number | null>(null)
+/** The card being read, whichever way it was opened. */
+const readKey = computed(() => cardOpen.value ?? cardHover.value)
 // the openings: what a wicked problem is (once a session), then, after a
 // problem is chosen, what that choice says and what a pattern is
 const intro = ref<null | 'wicked' | 'pattern'>(null)
+// phones: how far the pitch has been scrolled, so the constellation can recede
+const briefScroll = ref(0)
+function onBriefScroll(e: Event) {
+  const top = (e.target as HTMLElement).scrollTop
+  briefScroll.value = Math.min(1, top / Math.max(1, metrics.h * 0.3))
+}
 const introStep = ref(0)
 const combineLine = ref('')
 const ideasOpen = ref(false)
@@ -206,7 +216,7 @@ const washStyle = computed(() => {
     if (h !== null && isProblemKey(h)) id = h - PROBLEM_BASE
   } else if (challenge.value) id = challenge.value.id
   const w = id !== null ? WASHES[(id - 1 + WASHES.length) % WASHES.length]! : WASH_DEFAULT
-  return { '--w1': w[0], '--w2': w[1], '--w3': w[2] }
+  return { '--w1': w[0], '--w2': w[1], '--w3': w[2], '--bs': String(Math.round(briefScroll.value * 100) / 100) }
 })
 
 /** What choosing each wicked problem says about the person who chose it. */
@@ -537,7 +547,7 @@ function resize() {
 /* ------------------------------------------------------------ layout */
 
 function candidateCount() {
-  return metrics.portrait || metrics.w < 760 ? 6 : 8
+  return metrics.portrait || metrics.w < 760 || metrics.h < 520 ? 6 : 8
 }
 
 /** Where every node wants to be, and how it looks, given the phase. */
@@ -573,8 +583,9 @@ function layoutTargets() {
     fieldShift.ty = landscape ? -metrics.halfH * 0.04 : -metrics.halfH * 0.06
     fieldScale.t = landscape ? 1 : 0.9
   } else if (reviewing || focusing) {
-    fieldShift.tx = landscape ? -metrics.halfW * 0.3 : 0
-    fieldShift.ty = landscape ? 0 : metrics.halfH * 0.3
+    const short = landscape && metrics.h < 520
+    fieldShift.tx = landscape && !short ? -metrics.halfW * 0.3 : 0
+    fieldShift.ty = landscape && !short ? 0 : portraitColumn().ty
     fieldScale.t = 1
   } else if (distilled) {
     fieldShift.tx = landscape ? -metrics.halfW * 0.5 : 0
@@ -592,6 +603,10 @@ function layoutTargets() {
   cam.tz = siteMode ? CAM_Z * 1.6 : CAM_Z
   fade.t = siteMode ? 0.5 : p === 'combine' ? 0.9 : 1
 
+  // Phones (and short landscape screens) stack the patterns as a list of
+  // nodes with their names beside them, instead of a ring they cannot fit.
+  const stacked = !landscape || metrics.h < 520
+  const twoCol = stacked && landscape
   const ringRx = free.valid ? free.rx : Math.min(metrics.halfW * 0.62, 5.2)
   const ringRy = free.valid ? free.ry : Math.min(metrics.halfH * (metrics.portrait ? 0.36 : 0.6), 3.6)
   const smallR = Math.min(landscape ? metrics.halfH * 0.22 : metrics.halfH * 0.13, 2.4)
@@ -606,8 +621,10 @@ function layoutTargets() {
   // Portrait: where the focused node and its column of stories sit.
   const pFocusX = metrics.halfW * 0.62
   const pColX = -metrics.halfW * 0.9
-  const pRows = [0.24, 0, -0.24].map((f) => f * metrics.halfH)
-  const focusPos = (out: THREE.Vector3) => (landscape ? out.set(0, 0, 1.2) : out.set(pFocusX, 0, 1.2))
+  const pRows = portraitColumn().rows
+  const shortLand = landscape && metrics.h < 520
+  const focusPos = (out: THREE.Vector3) =>
+    shortLand ? out.set(-metrics.halfW * 0.2, 0, 1.2) : landscape ? out.set(0, 0, 1.2) : out.set(pFocusX, 0, 1.2)
   const focusColor = focusing && focusKey !== null && selected.value.includes(focusKey)
     ? ACCENTS[selected.value.indexOf(focusKey)]!
     : INK
@@ -616,7 +633,9 @@ function layoutTargets() {
     if (n.kind === 'evidence') {
       const i = n.key - EVIDENCE_BASE
       if ((reviewing || focusing) && i < evidenceCount) {
-        if (landscape) {
+        if (shortLand) {
+          n.target.set(-metrics.halfW * 0.88, pRows[i]!, 1.0)
+        } else if (landscape) {
           const a = (evAngles[i]! * Math.PI) / 180
           n.target.set(Math.cos(a) * evRadius, Math.sin(a) * evRadius, 1.0)
         } else {
@@ -659,7 +678,8 @@ function layoutTargets() {
         n.tSize = 4
         n.tColor.copy(WARM)
       } else if ((gathered || distilled) && isActive) {
-        n.target.set(0, 0, 0.2)
+        if (gathered && stacked) n.target.set(metrics.halfW * (twoCol ? 0.8 : 0.84), 0, 0.2)
+        else n.target.set(0, 0, 0.2)
         n.tAlpha = 1
         n.tSize = p === 'combine' ? 11 : distilled ? 11 : 9.5
         n.tColor.copy(WARM_DEEP)
@@ -707,6 +727,19 @@ function layoutTargets() {
         n.tSize = 3
         n.tColor.copy(INK)
       }
+    } else if (gathered && ci >= 0 && stacked) {
+      // a column (two on short landscape screens), names to the right
+      const perCol = twoCol ? Math.ceil(cands.length / 2) : cands.length
+      const col = twoCol ? Math.floor(ci / perCol) : 0
+      const row = ci - col * perCol
+      const span = free.valid ? free.ry : metrics.halfH * 0.5
+      const y = span * (1 - (2 * (row + 0.5)) / perCol) * 0.94
+      const x0 = twoCol ? (col === 0 ? -metrics.halfW * 0.86 : metrics.halfW * 0.04) : -metrics.halfW * 0.8
+      const x = x0 + (row % 2 ? 0.14 : 0) + (si >= 0 ? 0.2 : 0)
+      n.target.set(x, y, 0.6 + (row % 2 ? 0.12 : -0.12))
+      n.tAlpha = 1
+      n.tSize = si >= 0 ? 10 : hovered.value === n.key ? 8.5 : 7
+      n.tColor.copy(si >= 0 ? ACCENTS[si]! : INK)
     } else if (gathered && ci >= 0) {
       const a = -Math.PI / 2 + (ci / cands.length) * Math.PI * 2
       const k = si >= 0 ? 0.78 : 1
@@ -733,6 +766,30 @@ watch([phase, candidateIds, selected, hovered, patternFocus, () => props.mode], 
   layoutTargets()
 })
 
+/**
+ * Upright phones: the three stories stand in a column under the HUD, spaced
+ * by their measured height, so the column ends above the panel whatever the
+ * screen. Returns the field's vertical shift and the three row offsets.
+ */
+function portraitColumn(): { ty: number; rows: number[] } {
+  const shortLand = !metrics.portrait && metrics.h < 520
+  const zCard = 1.0
+  const pxPerUnit = (metrics.h / (2 * metrics.halfH)) * (CAM_Z / (CAM_Z - zCard))
+  // the tallest card sets the rhythm (book examples run a line longer)
+  const heights = [0, 1, 2].map((i) => parseFloat(labelEls.get(EVIDENCE_BASE + i)?.style.getPropertyValue('--h0') ?? '') || 0)
+  const cardPx = Math.max(...heights) || 76
+  const gapPx = 12
+  const columnPx = 3 * cardPx + 2 * gapPx
+  const headBottom = Math.max(48, headEl.value?.getBoundingClientRect().bottom ?? 56)
+  // upright: between the HUD and the panel, which can rise to half the
+  // screen; short landscape: the whole height beside the panel
+  const top = headBottom + (shortLand ? 10 : 14)
+  const room = (shortLand ? metrics.h - 12 : metrics.h * 0.5 - 12) - top
+  const centerPx = top + (columnPx <= room ? room / 2 : columnPx / 2)
+  const step = (cardPx + gapPx) / pxPerUnit
+  return { ty: (metrics.h / 2 - centerPx) / pxPerUnit, rows: [step, 0, -step] }
+}
+
 function measureFree() {
   const head = headEl.value?.getBoundingClientRect()
   const foot = footEl.value?.getBoundingClientRect()
@@ -749,8 +806,10 @@ function measureFree() {
   const cy = -((top + bottom) / 2 - h / 2) * wpp
   let rx = ((right - left) / 2) * wpp
   let ry = ((bottom - top) / 2) * wpp
-  rx = Math.min(rx, ry * 1.7)
-  ry = Math.min(ry, rx * 1.4)
+  if (!(metrics.portrait || metrics.h < 520)) {
+    rx = Math.min(rx, ry * 1.7)
+    ry = Math.min(ry, rx * 1.4)
+  }
   const changed =
     !free.valid ||
     Math.abs(cx - free.cx) > 0.05 ||
@@ -972,7 +1031,12 @@ function setLabelEl(key: number, el: unknown) {
   if (el instanceof HTMLElement) {
     const fresh = labelEls.get(key) !== el
     labelEls.set(key, el)
-    if (fresh && el.classList.contains('ecard--story')) requestAnimationFrame(() => measureCard(el))
+    if (fresh && el.classList.contains('ecard--story')) {
+      requestAnimationFrame(() => {
+        measureCard(el)
+        if (metrics.portrait) layoutTargets()
+      })
+    }
   } else labelEls.delete(key)
 }
 
@@ -991,9 +1055,35 @@ function measureCard(el: HTMLElement) {
 function measureCards() {
   for (const el of labelEls.values()) if (el.classList.contains('ecard--story')) measureCard(el)
 }
-function onCardEnter(i: number, e: MouseEvent) {
-  cardHover.value = EVIDENCE_BASE + i
+/** Mouse: a card opens while the pointer rests on it. Touch never hovers. */
+function onCardEnter(key: number, e: PointerEvent) {
+  if (e.pointerType !== 'mouse') return
+  cardHover.value = key
   measureCard(e.currentTarget as HTMLElement)
+}
+function onCardLeave(e: PointerEvent) {
+  if (e.pointerType !== 'mouse') return
+  cardHover.value = null
+}
+/**
+ * Touch: the first tap opens a card where it stands (the others step back),
+ * the second follows its link. A card with no link closes on a second tap.
+ * Mouse clicks follow the link straight away, as before.
+ */
+let cardPointer = 'mouse'
+function onCardClick(key: number, e: MouseEvent, hasUrl: boolean) {
+  if (cardPointer === 'mouse') return
+  if (cardOpen.value !== key) {
+    e.preventDefault()
+    cardOpen.value = key
+    const el = e.currentTarget as HTMLElement
+    if (el.classList.contains('ecard--story')) measureCard(el)
+    return
+  }
+  if (!hasUrl) {
+    e.preventDefault()
+    cardOpen.value = null
+  }
 }
 
 // slot: -4 a wicked problem to pick, -1 a candidate, 0–2 a chosen pattern.
@@ -1008,14 +1098,25 @@ const labelItems = computed<LabelItem[]>(() => {
 
 type Side = 'right' | 'left' | 'below'
 const sides = new Map<number, Side>()
-interface Placed { l: number; r: number; t: number; b: number; rank: number; el: HTMLElement }
+interface Placed { l: number; r: number; t: number; b: number; rank: number; el: HTMLElement; key: number }
+/** Names shown last frame keep their place, so the web does not flicker as it turns. */
+let shownLast = new Set<number>()
 const placed: Placed[] = []
 /** Where each interactive name sits on screen, for picking by pointer. */
 const labelRects = new Map<number, { l: number; r: number; t: number; b: number }>()
 
+/**
+ * Opacity is settled for every name first and written once at the end. A
+ * provisional write followed by a later "hide" in the same frame looks
+ * harmless, but the layout reads in between commit the first value, so the
+ * fade restarts every frame and hidden names hover half-visible.
+ */
+const pendingOp = new Map<HTMLElement, number>()
+
 function placeLabels() {
   placed.length = 0
   labelRects.clear()
+  pendingOp.clear()
   const gameOn = props.mode === 'game'
   for (const [key, el] of labelEls) {
     const n = nodes[nodeIndex.get(key) ?? -1]
@@ -1038,8 +1139,10 @@ function placeLabels() {
     // pointer, so hovering can never make it jump.
     const prev = sides.get(key)
     let side: Side
+    const stackedNames = (phase.value === 'patterns' || phase.value === 'combine') && (metrics.portrait || metrics.h < 520) && el.classList.contains('is-cand')
     if (key === EVIDENCE_BASE + FUTURE_SLOT && phase.value === 'brief') side = 'below'
-    else if (prev && (hovered.value === key || armed.value === key || cardHover.value === key)) side = prev
+    else if (stackedNames) side = fitsRight ? 'right' : 'left'
+    else if (prev && (hovered.value === key || armed.value === key || readKey.value === key)) side = prev
     else {
       const wantRight = n.sx >= centreX + (prev === 'left' ? 40 : prev === 'right' ? -40 : 0)
       if (prev && ((prev === 'right' && fitsRight) || (prev === 'left' && fitsLeft)) && (prev === 'right') === wantRight) side = prev
@@ -1049,6 +1152,12 @@ function placeLabels() {
     sides.set(key, side)
     let x = n.sx
     if (side === 'below') x = Math.min(metrics.w - 8 - width / 2, Math.max(8 + width / 2, n.sx))
+    else if (!isCard) {
+      // a name never runs off the screen: it slides in, away from its dot
+      const left = side === 'left' ? x - 16 - width : x + 16
+      if (left < 6) x += 6 - left
+      else if (left + width > metrics.w - 6) x -= left + width - (metrics.w - 6)
+    }
     el.classList.toggle('is-left', side === 'left')
     el.classList.toggle('is-below', side === 'below')
     // A card grows when read; keep all of it on screen.
@@ -1063,8 +1172,13 @@ function placeLabels() {
       const h = hovered.value ?? armed.value
       opacity = h === key ? 1 : h !== null ? Math.min(0.9, n.alpha) : 0.55 + 0.45 * n.depth
     }
+    // while one pattern is open, the others step back
+    if (el.classList.contains('is-cand')) {
+      const h = hovered.value ?? armed.value
+      if (h !== null && h !== key) opacity *= 0.35
+    }
     if (isCard) el.style.setProperty('--op', String(opacity))
-    else el.style.opacity = String(opacity)
+    else pendingOp.set(el, opacity)
 
     const l = side === 'left' ? x - 16 - width : side === 'right' ? x + 16 : x - width / 2
     const t = side === 'below' ? y + 8 : y - height / 2
@@ -1079,10 +1193,10 @@ function placeLabels() {
     }
 
     if (pickable) {
-      const rect: Placed = { l, r: l + width, t: y - 14, b: y + 14, rank: n.depth + (open ? 10 : 0), el }
+      const rect: Placed = { l, r: l + width, t: y - height / 2, b: y + height / 2, rank: n.depth + (open ? 10 : 0) + (shownLast.has(key) ? 0.35 : 0), el, key }
       if (side === 'below') {
         rect.t = y + 8
-        rect.b = y + 36
+        rect.b = y + 8 + height
       }
       if (hasOpts) {
         rect.l = Math.min(rect.l, opts!.left)
@@ -1090,7 +1204,7 @@ function placeLabels() {
         rect.b = Math.max(rect.b, opts!.bottom + 4)
       }
       if (keepOut.valid && rect.l < keepOut.r && rect.r > keepOut.l && rect.t < keepOut.b && rect.b > keepOut.t) {
-        el.style.opacity = '0'
+        pendingOp.set(el, 0)
         labelRects.delete(key)
         continue
       }
@@ -1099,10 +1213,24 @@ function placeLabels() {
   }
   placed.sort((a, b) => b.rank - a.rank)
   const kept: Placed[] = []
+  const shown = new Set<number>()
   for (const rect of placed) {
     const hit = kept.some((k) => rect.l < k.r + 10 && rect.r > k.l - 10 && rect.t < k.b && rect.b > k.t)
-    if (hit) rect.el.style.opacity = '0'
-    else kept.push(rect)
+    if (hit) {
+      // Out of the way, and out of reach: a hidden name must never take a tap.
+      pendingOp.set(rect.el, 0)
+      rect.el.classList.add('is-culled')
+      labelRects.delete(rect.key)
+    } else {
+      kept.push(rect)
+      rect.el.classList.remove('is-culled')
+      shown.add(rect.key)
+    }
+  }
+  shownLast = shown
+  for (const [el, op] of pendingOp) {
+    const value = String(Math.round(op * 1000) / 1000)
+    if (el.style.opacity !== value) el.style.opacity = value
   }
 }
 
@@ -1140,6 +1268,9 @@ function onPointerMove(e: PointerEvent) {
 }
 function onPointerDown(e: PointerEvent) {
   const target = e.target as Element | null
+  const card = target?.closest('.ecard')
+  if (card) cardPointer = e.pointerType
+  else if (cardOpen.value !== null) cardOpen.value = null
   if (target?.closest('.ui, .ecard, .nlabel__opts, .intro')) return
   pointer.x = e.clientX
   pointer.y = e.clientY
@@ -1264,6 +1395,8 @@ function selectWord(key: number) {
 watch(phase, () => {
   armed.value = null
   cardHover.value = null
+  cardOpen.value = null
+  briefScroll.value = 0
 })
 
 /* --------------------------------------------------------- the game */
@@ -1368,6 +1501,7 @@ function changeProblem() {
 
 function playAgain() {
   brief.value = null
+  briefScroll.value = 0
   changeProblem()
 }
 
@@ -1799,21 +1933,22 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- evidence: real stories around whatever is in focus -->
-    <div v-show="mode === 'game'" class="field__evidence">
+    <div v-show="mode === 'game'" class="field__evidence" :class="{ 'has-read': readKey !== null }">
       <component
         :is="e.url ? 'a' : 'div'"
         v-for="(e, i) in evidenceItems"
         :key="`${phase}-${challenge?.id}-${patternFocus}-${i}`"
         :ref="(el: unknown) => setLabelEl(EVIDENCE_BASE + i, el)"
         class="ecard ecard--story"
-        :class="{ 'ecard--pattern': phase === 'pattern', 'ecard--book': !e.url }"
+        :class="{ 'ecard--pattern': phase === 'pattern', 'ecard--book': !e.url, 'is-read': readKey === EVIDENCE_BASE + i }"
         :style="{ '--i': i }"
         :href="e.url || undefined"
         :target="e.url ? '_blank' : undefined"
         :rel="e.url ? 'noopener noreferrer' : undefined"
         :data-cursor="e.url ? 'Read' : undefined"
-        @mouseenter="onCardEnter(i, $event)"
-        @mouseleave="cardHover = null"
+        @pointerenter="onCardEnter(EVIDENCE_BASE + i, $event)"
+        @pointerleave="onCardLeave"
+        @click="onCardClick(EVIDENCE_BASE + i, $event, !!e.url)"
       >
         <span class="ecard__in">
           <!-- at rest -->
@@ -1848,6 +1983,10 @@ onBeforeUnmount(() => {
         :key="`front-${currentIdeaId}`"
         :ref="(el) => setLabelEl(EVIDENCE_BASE + FUTURE_SLOT, el)"
         class="ecard fcard"
+        :class="{ 'is-read': readKey === EVIDENCE_BASE + FUTURE_SLOT }"
+        @pointerenter="onCardEnter(EVIDENCE_BASE + FUTURE_SLOT, $event)"
+        @pointerleave="onCardLeave"
+        @click="onCardClick(EVIDENCE_BASE + FUTURE_SLOT, $event, false)"
       >
         <span class="ecard__in fcard__in">
           <span class="fcard__mast"><span>Cañon City</span><span class="ecard__dot" /><span>A year on</span><span class="ecard__dot" /><span>Front page</span></span>
@@ -1995,7 +2134,7 @@ onBeforeUnmount(() => {
           </section>
 
           <!-- the pitch, beside the distilled constellation -->
-          <section v-else-if="phase === 'brief' && brief" key="brief" class="act act--brief">
+          <section v-else-if="phase === 'brief' && brief" key="brief" class="act act--brief" @scroll.passive="onBriefScroll">
             <div ref="sheetEl" class="sheet">
               <p class="eyebrow">Your pitch<template v-if="brief.source === 'local'"><span class="eyebrow__sep">/</span>drafted from the library</template></p>
               <h2 class="display">{{ brief.name }}</h2>
@@ -2331,6 +2470,11 @@ onBeforeUnmount(() => {
 .is-dragging .nlabel {
   pointer-events: none;
 }
+/* a name hidden to make room: gone quickly, and never under a finger */
+.nlabel.is-culled {
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
 
 /* ----------------------------------------------------------- evidence */
 .field__evidence {
@@ -2361,14 +2505,14 @@ onBeforeUnmount(() => {
   translate: -50% 14px;
 }
 /* a card being read rises above the HUD panel */
-.field__evidence:has(.ecard:hover) {
+.field__evidence.has-read {
   z-index: 4;
 }
 /* the others step back down the z axis, smaller and out of focus */
-.field__evidence:has(.ecard:hover) .ecard:not(:hover) {
+.field__evidence.has-read .ecard:not(.is-read) {
   opacity: calc(var(--op) * 0.5);
 }
-.field__evidence:has(.ecard:hover) .ecard:not(:hover) .ecard__in {
+.field__evidence.has-read .ecard:not(.is-read) .ecard__in {
   transform: perspective(1000px) translateZ(-220px) scale(0.94);
   filter: blur(5px);
 }
@@ -2393,12 +2537,12 @@ onBeforeUnmount(() => {
   transform-origin: right center;
   animation-name: ecardInLeft;
 }
-.ecard:hover .ecard__in {
+.ecard.is-read .ecard__in {
   border-color: var(--warm);
   background: rgba(247, 242, 233, 0.94);
   box-shadow: 0 40px 80px -50px rgba(27, 27, 27, 0.55);
 }
-.ecard--pattern:hover .ecard__in {
+.ecard--pattern.is-read .ecard__in {
   border-color: var(--ink);
 }
 @keyframes ecardIn {
@@ -2422,7 +2566,7 @@ onBeforeUnmount(() => {
   width: var(--w0);
   transition: opacity 1.6s var(--ease-calm), width var(--t) var(--ease-calm);
 }
-.ecard--story:hover {
+.ecard--story.is-read {
   width: var(--w1);
   z-index: 2;
 }
@@ -2438,7 +2582,7 @@ onBeforeUnmount(() => {
     background-color 1.4s ease,
     box-shadow var(--t) var(--ease-calm);
 }
-.ecard--story:hover .ecard__in {
+.ecard--story.is-read .ecard__in {
   height: var(--h1, auto);
 }
 .ecard__face {
@@ -2465,11 +2609,11 @@ onBeforeUnmount(() => {
   opacity: 0;
   transition: opacity 0.7s var(--ease-calm);
 }
-.ecard--story:hover .ecard__face--s {
+.ecard--story.is-read .ecard__face--s {
   opacity: 0;
   transition: opacity 0.6s var(--ease-calm);
 }
-.ecard--story:hover .ecard__face--l {
+.ecard--story.is-read .ecard__face--l {
   opacity: 1;
   transition: opacity 1.4s var(--ease-calm) 0.3s;
 }
@@ -2635,7 +2779,7 @@ onBeforeUnmount(() => {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.fcard:hover .fcard__lede {
+.fcard.is-read .fcard__lede {
   -webkit-line-clamp: 12;
 }
 
@@ -2888,6 +3032,9 @@ onBeforeUnmount(() => {
   gap: 1rem;
   overflow-y: auto;
   scrollbar-width: none;
+  padding-bottom: 1.1rem;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.1rem), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.1rem), transparent);
 }
 .panel__body::-webkit-scrollbar {
   display: none;
@@ -3219,8 +3366,8 @@ onBeforeUnmount(() => {
   .panel {
     width: 100%;
     transform-origin: center bottom;
-    max-height: 48vh;
-    max-height: 48svh;
+    max-height: 50vh;
+    max-height: 50svh;
   }
   .panel--ideas {
     overflow-y: auto;
@@ -3244,6 +3391,15 @@ onBeforeUnmount(() => {
   }
   .ecard__face--s .ecard__body {
     gap: 0.2rem;
+  }
+  .ecard__face--s .ecard__meta {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ecard__face--s .ecard__meta .ecard__dot {
+    margin: 0 0.3rem;
   }
   .ecard__face--l {
     grid-template-columns: 7.5rem 1fr;
@@ -3278,6 +3434,118 @@ onBeforeUnmount(() => {
     width: 100%;
     margin: 44vh 0 1rem;
   }
+  /* as the pitch scrolls up, the constellation recedes and the text fades
+     out before it reaches the HUD */
+  .is-brief .field__labels,
+  .is-brief .field__canvas {
+    opacity: calc(1 - var(--bs, 0));
+    transition: none;
+  }
+  .act--brief {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 6.4rem, #000 8.6rem);
+    mask-image: linear-gradient(to bottom, transparent 0, transparent 6.4rem, #000 8.6rem);
+  }
+}
+/* short screens: the openings read from the top and scroll, never clip */
+@media (max-height: 560px) {
+  .intro {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding-top: 3.75rem;
+    padding-bottom: 2.5rem;
+  }
+  .intro__in {
+    gap: 1rem;
+  }
+  .intro__head {
+    font-size: clamp(1.9rem, 1rem + 5vh, 2.7rem);
+  }
+  .intro__line {
+    font-size: 0.98rem;
+    max-width: 52ch;
+  }
+  .intro__line--you {
+    font-size: 1.15rem;
+  }
+  .intro__rule {
+    display: none;
+  }
+}
+/* phones held sideways: everything at once, nothing on top of anything */
+@media (min-aspect-ratio: 1/1) and (max-height: 520px) {
+  .act {
+    padding-top: 3.6rem;
+    padding-bottom: 0.75rem;
+  }
+  .act--review {
+    justify-content: flex-start;
+  }
+  .panel {
+    width: min(100%, 23rem);
+    max-height: calc(100vh - 4.4rem);
+    max-height: calc(100svh - 4.4rem);
+    padding: 1.1rem 1.2rem 1rem;
+    gap: 0.6rem;
+  }
+  .panel__body {
+    gap: 0.6rem;
+  }
+  .panel__title {
+    font-size: 1.55rem;
+  }
+  .panel__desc {
+    font-size: 0.9rem;
+  }
+  .panel__shape div {
+    grid-template-columns: 5.5rem 1fr;
+  }
+  .ecard--story {
+    --w0: 15rem;
+    --w1: min(26rem, 52vw);
+  }
+  .ecard__face--s {
+    grid-template-columns: 4.25rem 1fr;
+    gap: 0.55rem;
+    padding: 0.45rem;
+  }
+  .ecard__face--s .ecard__title {
+    font-size: 0.76rem;
+    -webkit-line-clamp: 2;
+  }
+  .ecard__face--s .ecard__meta {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.55rem;
+  }
+  .ecard__face--l {
+    grid-template-columns: 7rem 1fr;
+    gap: 0.9rem;
+    padding: 0.75rem;
+  }
+  .ecard__face--l .ecard__img {
+    aspect-ratio: 3 / 4;
+  }
+  .ecard__face--l .ecard__title {
+    font-size: 1rem;
+    -webkit-line-clamp: 4;
+  }
+  .ecard__face--l .ecard__sum {
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+  .nlabel {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+  }
+  .nlabel.is-pick {
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+  }
+  .act__foot {
+    gap: 0.5rem 1.5rem;
+  }
 }
 @media (max-width: 760px) {
   .hud {
@@ -3298,11 +3566,20 @@ onBeforeUnmount(() => {
   .sheet__build li {
     grid-template-columns: 5rem 1fr;
   }
+  /* phones: tighter names, so the longest fits the narrowest screen */
   .nlabel {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
   }
   .nlabel.is-pick {
-    font-size: 0.8rem;
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+  }
+  .nlabel.is-pick .nlabel__btn {
+    padding: 0.55rem 0.45rem;
+  }
+  .panel__title {
+    font-size: clamp(1.6rem, 1.1rem + 2.4vw, 2.1rem);
   }
   .panel {
     padding: 1.25rem;
@@ -3390,6 +3667,7 @@ onBeforeUnmount(() => {
 }
 .intro__skip {
   position: absolute;
+  z-index: 2; /* above the opening's lines, which carry their own layers */
   top: calc(var(--hk-chrome, 64px) / 2);
   right: var(--hk-pad, 2.5rem);
   translate: 0 -50%;

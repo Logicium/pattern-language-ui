@@ -69,7 +69,12 @@ const tiles = computed(() => {
     { label: 'Playbooks', value: o.playbooks, note: 'by members' },
     { label: 'PAL conversations', value: o.chats, note: 'by members' },
     { label: 'Ideas on the board', value: o.ideas, note: 'from the sprint game' },
-    ...(sprint ? [{ label: 'Sprint registrations', value: sprint.signups, note: sprint.dateLabel ?? '' }] : [])
+    ...(sprint
+      ? [
+          { label: 'Sprint registrations', value: sprint.signups, note: `${sprint.approved} approved · ${sprint.declined} declined` },
+          { label: 'Awaiting review', value: sprint.pending, note: sprint.dateLabel ?? '' }
+        ]
+      : [])
   ]
 })
 
@@ -79,14 +84,24 @@ const selectedSlug = ref<string | null>(null)
 const selectedEvent = computed<AdminEvent | null>(() => overview.value?.events.find((e) => e.slug === selectedSlug.value) ?? null)
 const signups = ref<AdminSignup[]>([])
 const signupsLoading = ref(false)
-const resending = ref<number | null>(null)
+const busyRow = ref<number | null>(null)
 const rowNote = ref<Record<number, string>>({})
+type Show = 'pending' | 'approved' | 'declined' | 'all'
+const show = ref<Show>('pending')
+const counts = computed(() => ({
+  pending: signups.value.filter((s) => s.status === 'pending').length,
+  approved: signups.value.filter((s) => s.status === 'approved').length,
+  declined: signups.value.filter((s) => s.status === 'declined').length,
+  all: signups.value.length
+}))
+const shown = computed(() => (show.value === 'all' ? signups.value : signups.value.filter((s) => s.status === show.value)))
 
 async function loadSignups() {
   if (!selectedSlug.value) return
   signupsLoading.value = true
   try {
     signups.value = await adminApi.signups(selectedSlug.value)
+    if (show.value === 'pending' && !counts.value.pending) show.value = 'all'
   } finally {
     signupsLoading.value = false
   }
@@ -95,19 +110,21 @@ watch([selectedSlug, tab], ([slug, t]) => {
   if (slug && t === 'events') void loadSignups()
 })
 
-async function resend(s: AdminSignup) {
-  resending.value = s.id
+/** Approve (sends the invite), decline, reopen, or re-send, then refresh. */
+async function review(sg: AdminSignup, action: 'approve' | 'decline' | 'reopen' | 'resend') {
+  busyRow.value = sg.id
+  delete rowNote.value[sg.id]
   try {
-    const r = await adminApi.resendConfirmation(s.id)
-    rowNote.value[s.id] = r.ok ? 'Sent' : r.error ?? 'Failed'
-    if (r.ok) {
-      await loadSignups()
-      await loadOverview()
-    }
+    const r = await adminApi[action](sg.id)
+    if (!r.ok) rowNote.value[sg.id] = r.error ?? 'Failed'
+    else if (action === 'approve') rowNote.value[sg.id] = 'Approved; invite sent'
+    else if (action === 'resend') rowNote.value[sg.id] = 'Sent again'
+    await loadSignups()
+    await loadOverview()
   } catch (e) {
-    rowNote.value[s.id] = e instanceof Error ? e.message : 'Failed'
+    rowNote.value[sg.id] = e instanceof Error ? e.message : 'Failed'
   } finally {
-    resending.value = null
+    busyRow.value = null
   }
 }
 
@@ -116,8 +133,8 @@ function exportCsv() {
   if (!ev) return
   const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
   const rows = [
-    ['Name', 'Email', 'Organization', 'Note', 'Registered', 'Confirmation sent', 'Reminder sent'],
-    ...signups.value.map((s) => [s.name, s.email, s.organization, s.note, s.createdAt, s.confirmationSentAt, s.reminderSentAt])
+    ['Name', 'Email', 'Organization', 'Why interested', 'Registered', 'Status', 'Reviewed', 'Invite sent', 'Reminder sent'],
+    ...signups.value.map((s) => [s.name, s.email, s.organization, s.note, s.createdAt, s.status, s.reviewedAt, s.inviteSentAt, s.reminderSentAt])
   ]
   const blob = new Blob([rows.map((r) => r.map(cell).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' })
   const a = document.createElement('a')
@@ -139,9 +156,11 @@ const sending = ref(false)
 const confirmSend = ref(false)
 const emailMsg = ref('')
 
-const recipientCount = computed(() =>
-  onlyUnreminded.value ? signups.value.filter((s) => !s.reminderSentAt).length : signups.value.length
-)
+// reminders go to approved people only
+const recipientCount = computed(() => {
+  const approved = signups.value.filter((s) => s.status === 'approved')
+  return onlyUnreminded.value ? approved.filter((s) => !s.reminderSentAt).length : approved.length
+})
 
 /** Images in the email point at the live site; show this build's copies in the preview. */
 const previewDoc = computed(() =>
@@ -292,14 +311,15 @@ watch(tab, (t) => {
           <h2 class="h2">Events</h2>
           <table class="grid">
             <thead>
-              <tr><th>Event</th><th>Date</th><th class="num">Registered</th><th class="num">Confirmed</th><th class="num">Reminded</th><th /></tr>
+              <tr><th>Event</th><th>Date</th><th class="num">Registered</th><th class="num">To review</th><th class="num">Approved</th><th class="num">Reminded</th><th /></tr>
             </thead>
             <tbody>
               <tr v-for="e in overview?.events ?? []" :key="e.slug">
                 <td class="strong">{{ e.name }}</td>
                 <td class="muted">{{ e.dateLabel ?? '—' }}</td>
                 <td class="num">{{ e.signups }}</td>
-                <td class="num">{{ e.hasEmail ? e.confirmed : '—' }}</td>
+                <td class="num">{{ e.pending }}</td>
+                <td class="num">{{ e.approved }}</td>
                 <td class="num">{{ e.hasEmail ? e.reminded : '—' }}</td>
                 <td class="act"><button class="btn-text" type="button" @click="selectedSlug = e.slug; tab = 'events'">Open</button></td>
               </tr>
@@ -326,51 +346,75 @@ watch(tab, (t) => {
           <template v-if="selectedEvent">
             <div class="bar">
               <h2 class="h2">Registrations <span class="muted">{{ signups.length }}</span></h2>
-              <button class="btn-secondary btn-sm" type="button" :disabled="!signups.length" @click="exportCsv">Export CSV</button>
+              <div class="bar__right">
+                <div class="seg" role="tablist">
+                  <button
+                    v-for="k in (['pending', 'approved', 'declined', 'all'] as const)"
+                    :key="k"
+                    class="seg__b"
+                    :class="{ 'is-on': show === k }"
+                    type="button"
+                    @click="show = k"
+                  >
+                    {{ k === 'pending' ? 'To review' : k === 'approved' ? 'Approved' : k === 'declined' ? 'Declined' : 'All' }}
+                    <span class="seg__n">{{ counts[k] }}</span>
+                  </button>
+                </div>
+                <button class="btn-secondary btn-sm" type="button" :disabled="!signups.length" @click="exportCsv">Export CSV</button>
+              </div>
             </div>
-            <p v-if="signupsLoading" class="muted">Loading…</p>
+            <p v-if="signupsLoading && !signups.length" class="muted">Loading…</p>
             <p v-else-if="!signups.length" class="empty">No one has registered yet.</p>
-            <div v-else class="scroll">
-              <table class="grid">
-                <thead>
-                  <tr>
-                    <th>Name</th><th>Email</th><th>Organization</th><th>Note</th><th>Registered</th>
-                    <th v-if="selectedEvent.hasEmail">Confirmation</th><th v-if="selectedEvent.hasEmail">Reminder</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="s in signups" :key="s.id">
-                    <td class="strong">{{ s.name }}</td>
-                    <td><a class="mail" :href="`mailto:${s.email}`">{{ s.email }}</a></td>
-                    <td class="muted">{{ s.organization || '—' }}</td>
-                    <td class="muted note-cell" :title="s.note ?? ''">{{ s.note || '—' }}</td>
-                    <td class="muted nowrap">{{ fmtDate(s.createdAt) }}</td>
-                    <td v-if="selectedEvent.hasEmail" class="nowrap">
-                      <span v-if="s.confirmationSentAt" class="ok">Sent {{ fmtStamp(s.confirmationSentAt) }}</span>
-                      <span v-else class="warn">Not sent</span>
-                      <button class="btn-text btn-inline" type="button" :disabled="resending === s.id" @click="resend(s)">
-                        {{ resending === s.id ? 'Sending…' : s.confirmationSentAt ? 'Resend' : 'Send' }}
+            <p v-else-if="!shown.length" class="empty">Nothing here.</p>
+            <ol v-else class="queue">
+              <li v-for="sg in shown" :key="sg.id" class="req" :class="`req--${sg.status}`">
+                <div class="req__who">
+                  <span class="req__name">{{ sg.name }}</span>
+                  <a class="mail" :href="`mailto:${sg.email}`">{{ sg.email }}</a>
+                  <span v-if="sg.organization" class="muted small">{{ sg.organization }}</span>
+                  <span class="muted small">Registered {{ fmtStamp(sg.createdAt) }}</span>
+                </div>
+                <p class="req__why">
+                  <span class="req__label">Why they’re interested</span>
+                  {{ sg.note || '—' }}
+                </p>
+                <div class="req__state">
+                  <span class="status" :class="`status--${sg.status}`">{{ sg.status === 'pending' ? 'To review' : sg.status === 'approved' ? 'Approved' : 'Declined' }}</span>
+                  <template v-if="selectedEvent.hasEmail">
+                    <span v-if="sg.status === 'approved'" class="muted small">{{ sg.inviteSentAt ? `Invite sent ${fmtStamp(sg.inviteSentAt)}` : 'Invite not sent' }}</span>
+                    <span v-else-if="sg.status === 'pending'" class="muted small">{{ sg.receivedSentAt ? 'Got the “received” email' : 'No email yet' }}</span>
+                    <span v-if="sg.reminderSentAt" class="muted small">Reminded {{ fmtStamp(sg.reminderSentAt) }}</span>
+                  </template>
+                  <div class="req__actions">
+                    <template v-if="sg.status === 'pending'">
+                      <button class="btn btn-sm" type="button" :disabled="busyRow === sg.id" @click="review(sg, 'approve')">
+                        {{ busyRow === sg.id ? 'Sending…' : selectedEvent.hasEmail ? 'Approve and invite' : 'Approve' }}
                       </button>
-                      <span v-if="rowNote[s.id]" class="muted small">{{ rowNote[s.id] }}</span>
-                    </td>
-                    <td v-if="selectedEvent.hasEmail" class="nowrap">
-                      <span v-if="s.reminderSentAt" class="ok">Sent {{ fmtStamp(s.reminderSentAt) }}</span>
-                      <span v-else class="muted">—</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                      <button class="btn-text" type="button" :disabled="busyRow === sg.id" @click="review(sg, 'decline')">Decline</button>
+                    </template>
+                    <template v-else-if="sg.status === 'approved'">
+                      <button v-if="selectedEvent.hasEmail" class="btn-text" type="button" :disabled="busyRow === sg.id" @click="review(sg, 'resend')">
+                        {{ busyRow === sg.id ? 'Sending…' : 'Resend invite' }}
+                      </button>
+                      <button class="btn-text" type="button" :disabled="busyRow === sg.id" @click="review(sg, 'reopen')">Undo</button>
+                    </template>
+                    <button v-else class="btn-text" type="button" :disabled="busyRow === sg.id" @click="review(sg, 'reopen')">Reopen</button>
+                  </div>
+                  <span v-if="rowNote[sg.id]" class="small req__note">{{ rowNote[sg.id] }}</span>
+                </div>
+              </li>
+            </ol>
 
             <!-- email -->
             <div v-if="selectedEvent.hasEmail" class="email">
               <div class="email__controls">
                 <h2 class="h2">Email</h2>
                 <p class="muted small">
-                  Everyone who registers gets the confirmation automatically. Send the reminder yourself, a few days before.
+                  Everyone who registers gets the “received” note automatically. Approving someone sends their invite. Send the reminder yourself, a few days before; it goes to approved people only.
                 </p>
                 <div class="seg" role="tablist">
-                  <button class="seg__b" :class="{ 'is-on': emailKind === 'confirmation' }" type="button" @click="emailKind = 'confirmation'">Confirmation</button>
+                  <button class="seg__b" :class="{ 'is-on': emailKind === 'received' }" type="button" @click="emailKind = 'received'">Received</button>
+                  <button class="seg__b" :class="{ 'is-on': emailKind === 'invite' }" type="button" @click="emailKind = 'invite'">Invite</button>
                   <button class="seg__b" :class="{ 'is-on': emailKind === 'reminder' }" type="button" @click="emailKind = 'reminder'">Reminder</button>
                 </div>
 
@@ -678,6 +722,107 @@ watch(tab, (t) => {
 }
 .search {
   max-width: 320px;
+}
+
+/* the review queue */
+.bar__right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.seg__b {
+  white-space: nowrap;
+}
+.bar__right .seg {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.seg__n {
+  margin-left: 0.35rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+.queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--hairline-strong);
+}
+.req {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr) minmax(13rem, 1fr);
+  gap: 1rem 2rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.req__who {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.req__name {
+  font-weight: var(--font-weight-medium);
+}
+.req__why {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+  white-space: pre-line;
+}
+.req__label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-text-tertiary);
+}
+.req__state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+.req__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.35rem;
+}
+.req__note {
+  color: var(--color-accent-warm);
+}
+.req--declined .req__who,
+.req--declined .req__why {
+  opacity: 0.55;
+}
+.status {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid currentColor;
+}
+.status--pending {
+  color: var(--color-accent-warm);
+}
+.status--approved {
+  color: var(--color-text-primary);
+}
+.status--declined {
+  color: var(--color-text-tertiary);
+}
+@media (max-width: 900px) {
+  .req {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
 }
 
 /* event picker */

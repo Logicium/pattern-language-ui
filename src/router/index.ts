@@ -167,7 +167,7 @@ const router = createRouter({
         noNavbar: true,
         seoTitle: 'Community Solution Sprint — November 7, 2026',
         seoDescription:
-          'The Community Solution Sprint: one day, one town, forty-five patterns. Values, then patterns, then a 90-day playbook, with real seed money for the strongest plan. Saturday, November 7, 2026, 9 AM to 5 PM, Old Post Office Event Center, Cañon City, Colorado.'
+          'The Community Solution Sprint: one day, one town, forty-five patterns. Values, then patterns, then a 90-day playbook; the winning project receives up to $250 to continue. Saturday, November 7, 2026, 9 AM to 5 PM, Old Post Office Event Center, Cañon City, Colorado.'
       }
     },
     {

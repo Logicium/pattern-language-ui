@@ -34,6 +34,8 @@ const scrolled = ref(false)
 const section = ref(0)
 const progress = ref(0)
 const chromeOn = ref('var(--ink)')
+/** The colour of the panel under the chrome, for the band it lays down once the page scrolls. */
+const chromeBg = ref('transparent')
 
 // Numbered as the panels are: the opening is 00, then 01 Why … 07 Questions.
 const SECTIONS = ['Open', 'Why', 'Details', 'How it works', 'The day', 'Judging', 'Register', 'Questions']
@@ -139,6 +141,7 @@ let toneTimer = 0
 function sampleTone() {
   if (mode.value === 'game') {
     chromeOn.value = 'var(--ink)'
+    chromeBg.value = 'transparent'
     return
   }
   const els = document.elementsFromPoint(window.innerWidth * 0.5, 30)
@@ -146,7 +149,11 @@ function sampleTone() {
     if (el.closest('.chrome, .hud-index, .cursor')) continue
     const fieldEl = el.closest<HTMLElement>('[class*="field-"]')
     if (!fieldEl) continue
-    chromeOn.value = getComputedStyle(fieldEl).getPropertyValue('--on') || 'var(--ink)'
+    const style = getComputedStyle(fieldEl)
+    chromeOn.value = style.getPropertyValue('--on') || 'var(--ink)'
+    const bg = style.getPropertyValue('--bg').trim()
+    // Clear sections sit over the web; give them warm paper, mostly opaque.
+    chromeBg.value = !bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)' ? 'rgba(247, 242, 233, 0.9)' : bg
     return
   }
   chromeOn.value = 'var(--ink)'
@@ -171,7 +178,7 @@ function observeSections() {
 function closeGame(target?: 'about' | 'register', payload?: { name: string; pitch: string }) {
   if (payload) {
     pitchName.value = payload.name
-    form.note = `Pattern Play pitch, ${payload.name}: ${payload.pitch}`
+    form.note = `I want to bring the pitch I made in the game, ${payload.name}: ${payload.pitch}`
   }
   view.value = target === 'register' ? 'register' : 'full'
   mode.value = 'site'
@@ -322,24 +329,66 @@ const done = ref(false)
 const error = ref('')
 const pitchName = ref('')
 
+/**
+ * Registrations are reviewed: sending one is a request, and the invite
+ * follows by email. This browser remembers it, so a returning visitor sees
+ * that they are already registered instead of an empty form; the backend
+ * also refuses a second registration for the same email.
+ */
+const REG_KEY = 'plh.registration'
+interface Registered { slug: string; name: string; email: string; at: string; repeat?: boolean }
+const registered = ref<Registered | null>(null)
+try {
+  const saved = JSON.parse(localStorage.getItem(REG_KEY) ?? 'null') as Registered | null
+  if (saved?.slug === hackathon.slug) {
+    registered.value = { ...saved, repeat: true }
+    done.value = true
+  }
+} catch {
+  /* storage blocked: the form simply shows */
+}
+
 async function submit() {
   if (sending.value) return
+  if (!form.note.trim()) {
+    error.value = 'Tell us why you’re interested.'
+    return
+  }
   sending.value = true
   error.value = ''
   try {
-    await eventsApi.signup({
+    const result = await eventsApi.signup({
       eventSlug: hackathon.slug,
       name: form.name,
       email: form.email,
       organization: form.organization || undefined,
-      note: form.note || undefined
+      note: form.note.trim()
     })
+    registered.value = { slug: hackathon.slug, name: form.name.trim(), email: form.email.trim().toLowerCase(), at: new Date().toISOString(), repeat: !!result.already }
+    try {
+      localStorage.setItem(REG_KEY, JSON.stringify(registered.value))
+    } catch {
+      /* fine */
+    }
     done.value = true
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Something went wrong. Please try again.'
   } finally {
     sending.value = false
   }
+}
+
+/** Someone else on this device wants to register. */
+function registerAnother() {
+  try {
+    localStorage.removeItem(REG_KEY)
+  } catch {
+    /* fine */
+  }
+  registered.value = null
+  Object.assign(form, { name: '', email: '', organization: '', note: '' })
+  done.value = false
+  nextTick(() => nameInput.value?.focus({ preventScroll: true }))
 }
 
 /* ---- lifecycle ---- */
@@ -370,7 +419,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="hk" :class="[`mode-${mode}`, `view-${view}`, { 'is-scrolled': scrolled }]" :style="{ '--chrome-on': chromeOn }">
+  <div class="hk" :class="[`mode-${mode}`, `view-${view}`, { 'is-scrolled': scrolled }]" :style="{ '--chrome-on': chromeOn, '--chrome-bg': chromeBg }">
     <PremiumCursor :active="mode === 'game'" />
     <PatternPlay :mode="mode" @close="closeGame" @handoff="handoffIdea" />
     <Transition name="veil">
@@ -507,7 +556,7 @@ onBeforeUnmount(() => {
             <div class="two__label">
               <p class="eyebrow fade" style="--i: 0"><span class="n">04</span><span class="sep">/</span>The day</p>
               <h2 class="h2"><span class="mask" style="--i: 1"><span>Coffee at nine.</span></span><span class="mask" style="--i: 2"><span>Plans by five.</span></span></h2>
-              <p class="note fade" style="--i: 3">{{ hackathon.timeLabel }}. The seed money is real, and it is announced at nine, not at the end.</p>
+              <p class="note fade" style="--i: 3">{{ hackathon.timeLabel }}. The winning project receives up to $250 to keep going, and we say so at nine, not at the end.</p>
             </div>
             <div class="day">
               <div>
@@ -565,7 +614,7 @@ onBeforeUnmount(() => {
           <div class="panel__in two" v-reveal>
             <div class="two__label">
               <p class="eyebrow fade" style="--i: 0"><span class="n">06</span><span class="sep">/</span>Register</p>
-              <h2 class="display display--sm"><span class="mask" style="--i: 1"><span>Save me</span></span><span class="mask" style="--i: 2"><span>a seat.</span></span></h2>
+              <h2 class="display display--sm"><span class="mask" style="--i: 1"><span>Request</span></span><span class="mask" style="--i: 2"><span>a seat.</span></span></h2>
               <p class="note note--meta fade" style="--i: 3">
                 {{ hackathon.dayLabel }}, {{ hackathon.dateLabel }}<br />{{ hackathon.timeLabel }}<br />{{ hackathon.location }}
               </p>
@@ -590,18 +639,23 @@ onBeforeUnmount(() => {
                   <input v-model="form.organization" type="text" name="organization" autocomplete="organization" maxlength="200" />
                 </label>
                 <label class="fld fld--wide">
-                  <span>Anything else <em>optional</em></span>
-                  <textarea v-model="form.note" name="note" rows="2" maxlength="1000" />
+                  <span>Why are you interested?</span>
+                  <textarea v-model="form.note" name="note" rows="3" maxlength="1000" required placeholder="The problem you care about, or what you hope to build" />
                 </label>
                 <p v-if="error" class="form__error" role="alert">{{ error }}</p>
                 <div class="form__actions">
                   <button class="btn-line" type="submit" :disabled="sending" data-cursor="Send">{{ sending ? 'Sending…' : 'Register' }}</button>
-                  <p class="fine">Free. One email with logistics, one the week of.</p>
+                  <p class="fine">Free. Seats are limited: we read every registration and send invites by email.</p>
                 </div>
               </form>
               <div v-else class="done">
-                <p class="display display--sm">You're in.</p>
-                <p class="note">See you on {{ hackathon.dateLabel }}. Bring a problem you can't stop thinking about.</p>
+                <p class="display display--sm">{{ registered?.repeat ? 'Already registered.' : 'Request received.' }}</p>
+                <p class="note">
+                  <template v-if="registered?.repeat">We already have a registration for {{ registered.email }}. We'll be in touch there.</template>
+                  <template v-else>Thank you{{ registered?.name ? `, ${registered.name.split(' ')[0]}` : '' }}. We read every registration; if there's a seat for you, your official invite will follow by email{{ registered?.email ? ` to ${registered.email}` : '' }}.</template>
+                  Bring a community problem you can't stop thinking about.
+                </p>
+                <button class="link done__again" type="button" @click="registerAnother">Register someone else</button>
               </div>
             </div>
           </div>
@@ -644,7 +698,7 @@ onBeforeUnmount(() => {
         <div class="panel__in two" v-reveal>
           <div class="two__label">
             <p class="eyebrow fade" style="--i: 0">Register</p>
-            <h2 class="display display--sm"><span class="mask" style="--i: 1"><span>Save me</span></span><span class="mask" style="--i: 2"><span>a seat.</span></span></h2>
+            <h2 class="display display--sm"><span class="mask" style="--i: 1"><span>Request</span></span><span class="mask" style="--i: 2"><span>a seat.</span></span></h2>
             <p class="note note--meta fade" style="--i: 3">
               {{ hackathon.dayLabel }}, {{ hackathon.dateLabel }}<br />{{ hackathon.timeLabel }}<br />{{ hackathon.location }}
             </p>
@@ -669,18 +723,23 @@ onBeforeUnmount(() => {
                 <input v-model="form.organization" type="text" name="organization" autocomplete="organization" maxlength="200" />
               </label>
               <label class="fld fld--wide">
-                <span>Anything else <em>optional</em></span>
-                <textarea v-model="form.note" name="note" rows="2" maxlength="1000" />
+                <span>Why are you interested?</span>
+                <textarea v-model="form.note" name="note" rows="3" maxlength="1000" required placeholder="The problem you care about, or what you hope to build" />
               </label>
               <p v-if="error" class="form__error" role="alert">{{ error }}</p>
               <div class="form__actions">
                 <button class="btn-line" type="submit" :disabled="sending" data-cursor="Send">{{ sending ? 'Sending…' : 'Register' }}</button>
-                <p class="fine">Free. One email with logistics, one the week of.</p>
+                <p class="fine">Free. Seats are limited: we read every registration and send invites by email.</p>
               </div>
             </form>
             <div v-else class="done">
-              <p class="display display--sm">You're in.</p>
-              <p class="note">See you on {{ hackathon.dateLabel }}. Bring a problem you can't stop thinking about.</p>
+              <p class="display display--sm">{{ registered?.repeat ? 'Already registered.' : 'Request received.' }}</p>
+              <p class="note">
+                <template v-if="registered?.repeat">We already have a registration for {{ registered.email }}. We'll be in touch there.</template>
+                <template v-else>Thank you{{ registered?.name ? `, ${registered.name.split(' ')[0]}` : '' }}. We read every registration; if there's a seat for you, your official invite will follow by email{{ registered?.email ? ` to ${registered.email}` : '' }}.</template>
+                Bring a community problem you can't stop thinking about.
+              </p>
+              <button class="link done__again" type="button" @click="registerAnother">Register someone else</button>
             </div>
             <p class="solo__more">
               <button class="link" type="button" @click="showFull()">Read about the sprint</button>
@@ -765,6 +824,23 @@ onBeforeUnmount(() => {
   padding: 0 var(--hk-pad);
   color: var(--chrome-on, var(--ink));
   transition: color 0.5s linear;
+}
+/*
+ * Once the page scrolls, the chrome lays down a band in the colour of the
+ * panel beneath it, fading at its foot, so text never runs under the links.
+ */
+.chrome::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -1.25rem 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, var(--chrome-bg, transparent) calc(100% - 1.25rem), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.is-scrolled.mode-site .chrome::before {
+  opacity: 1;
 }
 .chrome__brand {
   display: inline-flex;
@@ -1408,6 +1484,9 @@ onBeforeUnmount(() => {
   font-size: 0.85rem;
   opacity: 0.6;
 }
+.done__again {
+  margin-top: 1.25rem;
+}
 .form__error {
   grid-column: 1 / -1;
   color: var(--peach);
@@ -1508,6 +1587,12 @@ onBeforeUnmount(() => {
 }
 
 /* ----------------------------------------------------------- the index */
+/* phones and short screens: the index has nowhere to sit that is not over the content */
+@media (max-width: 760px), (max-height: 560px) {
+  .hud-index {
+    display: none !important;
+  }
+}
 .hud-index {
   position: fixed;
   left: var(--hk-pad);

@@ -184,7 +184,7 @@ export const eventsApi = {
     email: string
     organization?: string
     note?: string
-  }): Promise<{ ok: true }> => {
+  }): Promise<{ ok: true; already?: boolean }> => {
     const response = await fetch(`${API_URL}/events/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -579,7 +579,10 @@ export interface AdminEvent {
   startUtc: string | null
   hasEmail: boolean
   signups: number
-  confirmed: number
+  pending: number
+  approved: number
+  declined: number
+  invited: number
   reminded: number
   latest: string | null
 }
@@ -608,10 +611,14 @@ export interface AdminSignup {
   organization?: string | null
   note?: string | null
   createdAt: string
-  confirmationSentAt?: string | null
+  status: 'pending' | 'approved' | 'declined'
+  reviewedAt?: string | null
+  receivedSentAt?: string | null
+  inviteSentAt?: string | null
   reminderSentAt?: string | null
 }
-export type EventEmailKind = 'confirmation' | 'reminder'
+export type EventEmailKind = 'received' | 'invite' | 'reminder'
+type ReviewResult = { ok: boolean; error?: string; status?: AdminSignup['status'] }
 
 export const adminApi = {
   me: (): Promise<{ id: number; name: string; email: string }> => authFetch('/admin/me'),
@@ -628,6 +635,8 @@ export const adminApi = {
     authFetch(`/admin/events/${encodeURIComponent(slug)}/test`, { method: 'POST', body: JSON.stringify({ kind, note }) }),
   sendReminders: (slug: string, note: string | undefined, onlyUnreminded: boolean): Promise<{ sent: number; skipped: number; failed: Array<{ email: string; error: string }> }> =>
     authFetch(`/admin/events/${encodeURIComponent(slug)}/reminders`, { method: 'POST', body: JSON.stringify({ note, onlyUnreminded }) }),
-  resendConfirmation: (signupId: number): Promise<{ ok: boolean; error?: string }> =>
-    authFetch(`/admin/signups/${signupId}/confirmation`, { method: 'POST' }),
+  approve: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/approve`, { method: 'POST' }),
+  decline: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/decline`, { method: 'POST' }),
+  reopen: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/reopen`, { method: 'POST' }),
+  resend: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/resend`, { method: 'POST' }),
 }

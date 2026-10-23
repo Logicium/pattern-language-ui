@@ -47,7 +47,7 @@ export const hackathon = {
     { label: 'Cost', value: 'Free. Coffee, snacks and lunch.' },
     { label: 'Teams', value: 'Come solo. Teams of five or six form around ideas by lunch.' },
     { label: 'Tools', value: 'Pattern cards, sticky notes, whiteboards. One laptop per team, for PAL and the deck.' },
-    { label: 'Award', value: 'Real seed money, grant-funded, for the strongest plan.' }
+    { label: 'Award', value: 'The winning project will receive financial support up to $250 to continue their project.' }
   ],
   /** The path every team walks: values, patterns, a 90-day playbook. */
   method: [
@@ -79,7 +79,7 @@ export const hackathon = {
     { time: '3:15', what: 'Build the six-slide deck' },
     { time: '4:15', what: 'Final presentations, five minutes each' },
     { time: '4:45', what: 'Monday Morning round · judges deliberate' },
-    { time: '4:55', what: 'Seed award and next steps' }
+    { time: '4:55', what: 'The award and next steps' }
   ],
   /** The judge scorecard: five criteria, 20% each, scored 1 to 5. */
   judging: [
@@ -92,7 +92,7 @@ export const hackathon = {
   judgingNote:
     'Each criterion is 20%. Monday Morning is a hard requirement: a team that cannot name one person and one action before next Friday is not eligible for the award.',
   prizes: [
-    { place: 'Seed award', what: 'Real, grant-funded seed money for the strongest plan, announced before five.' },
+    { place: 'Up to $250', what: 'The winning project will receive financial support up to $250 to continue their project. Announced before five.' },
     { place: 'Every team', what: 'A follow-up convening and a 30-day check-in, win or not.' }
   ],
   faq: [
@@ -114,7 +114,11 @@ export const hackathon = {
     },
     {
       q: 'What do we leave with?',
-      a: 'A 90-day playbook with a name on every line, a six-slide deck, and one Monday Morning commitment. Five plans leave the room; one leaves funded.'
+      a: 'A 90-day playbook with a name on every line, a six-slide deck, and one Monday Morning commitment. Five plans leave the room; the winning one leaves with up to $250 to keep going.'
+    },
+    {
+      q: 'How do I get a seat?',
+      a: 'Register on this page and tell us why you are interested. Seats are limited, so we read every registration; if there is a seat for you, your official invite arrives by email.'
     },
     {
       q: 'Can we start early?',
