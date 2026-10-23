@@ -58,6 +58,18 @@ export const events: CommunityEvent[] = [
       'Springs, generate a merged playbook with PAL, and see how teams work one together.',
   },
   {
+    slug: 'pattern-language-hackathon-2026',
+    title: 'Community Solution Sprint',
+    date: '2026-11-07',
+    timeLabel: '9 AM – 5 PM MT',
+    location: 'Old Post Office Event Center · 505 Macon Ave, Cañon City, CO 81212',
+    description:
+      'One day, one town, forty-five patterns. Name what must stay true, stack the patterns that protect it, ' +
+      'and leave at five with a 90-day playbook. Real seed money for the strongest plan. Free. Play the game first at /hackathon.',
+    url: '/hackathon',
+    featured: true,
+  },
+  {
     slug: 'hack-trinidad-forward-2026',
     title: 'Hack Trinidad Forward 2026 — save the date',
     date: '2026-11-13',

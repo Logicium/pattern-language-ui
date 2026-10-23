@@ -36,6 +36,7 @@ const PresentationPage = () => import('@/views/PresentationPage.vue')
 const SpeakerNotesPage = () => import('@/views/SpeakerNotesPage.vue')
 const DemoEntryPage = () => import('@/views/DemoEntryPage.vue')
 const AvatarLabPage = () => import('@/views/AvatarLabPage.vue')
+const HackathonPage = () => import('@/views/HackathonPage.vue')
 const NotFoundPage = () => import('@/views/NotFoundPage.vue')
 
 const router = createRouter({
@@ -157,6 +158,17 @@ const router = createRouter({
       name: 'privacy',
       component: PrivacyPage,
       meta: { seoTitle: 'Privacy Policy' }
+    },
+    {
+      path: '/hackathon',
+      name: 'hackathon',
+      component: HackathonPage,
+      meta: {
+        noNavbar: true,
+        seoTitle: 'Community Solution Sprint — November 7, 2026',
+        seoDescription:
+          'The Community Solution Sprint: one day, one town, forty-five patterns. Values, then patterns, then a 90-day playbook, with real seed money for the strongest plan. Saturday, November 7, 2026, 9 AM to 5 PM, Old Post Office Event Center, Cañon City, Colorado.'
+      }
     },
     {
       path: '/avatar',

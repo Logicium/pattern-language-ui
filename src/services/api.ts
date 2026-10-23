@@ -79,7 +79,7 @@ export const patternsApi = {
 export const storiesApi = {
   getAll: () => authFetch('/stories'),
   getById: (id: number) => authFetch(`/stories/${id}`),
-  search: (query: string) => authFetch(`/stories/search?q=${encodeURIComponent(query)}`),
+  search: (query: string) => authFetch(`/stories?search=${encodeURIComponent(query)}`),
   create: (data: any) => authFetch('/stories', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => authFetch(`/stories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => authFetch(`/stories/${id}`, { method: 'DELETE' }),
@@ -155,8 +155,9 @@ export const demoApi = {
    * { access_token, user } pair — the demo profile is a real (flagged)
    * account scoped to the fictional city.
    */
-  createCitizen: async (): Promise<{ access_token: string; user: any }> => {
-    const response = await fetch(`${API_URL}/demo/citizen`, { method: 'POST' })
+  createCitizen: async (kind: 'cottonwood' | 'hackathon' = 'cottonwood'): Promise<{ access_token: string; user: any }> => {
+    const url = kind === 'hackathon' ? `${API_URL}/demo/citizen?for=hackathon` : `${API_URL}/demo/citizen`
+    const response = await fetch(url, { method: 'POST' })
 
     if (response.status === 429) {
       throw new Error('Lots of new citizens right now — give it a minute and try again.')
@@ -513,6 +514,55 @@ export const citiesApi = {
       newScore: number
       breakdown: Record<string, unknown>
     }>,
+}
+
+// Hackathon ideas board — anonymous by design. The browser posts the idea it
+// just made with a random per-browser token and reads the board back with the
+// same token so its own entries come back flagged `mine`.
+export interface HackathonIdeaInput {
+  eventSlug: string
+  anonId: string
+  problem: string
+  patterns: string[]
+  name: string
+  pitch: string
+  build?: string[]
+  ask?: string
+  headline?: string
+  lede?: string
+}
+
+export interface HackathonIdea {
+  id: number
+  problem: string
+  patterns: string[]
+  name: string
+  pitch: string
+  build?: string[]
+  ask?: string
+  headline?: string
+  lede?: string
+  createdAt: string
+  mine: boolean
+}
+
+export const hackathonApi = {
+  postIdea: async (data: HackathonIdeaInput): Promise<{ id: number }> => {
+    const response = await fetch(`${API_URL}/hackathon/ideas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) throw new Error(`Could not save the idea (${response.status})`)
+    return response.json()
+  },
+  listIdeas: async (eventSlug: string, anonId?: string, limit = 60): Promise<{ ideas: HackathonIdea[]; total: number }> => {
+    const params = new URLSearchParams({ event: eventSlug, limit: String(limit) })
+    if (anonId) params.set('anon', anonId)
+    const response = await fetch(`${API_URL}/hackathon/ideas?${params.toString()}`)
+    if (!response.ok) throw new Error(`Could not load the board (${response.status})`)
+    return response.json()
+  },
 }
 
 // Config API — runtime-fetched values that should not be embedded in the build.

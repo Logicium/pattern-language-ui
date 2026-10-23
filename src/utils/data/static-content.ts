@@ -16,6 +16,7 @@ export interface TeamMember {
   name: string
   role: string
   bio: string
+  link?: { label: string; url: string }
 }
 
 export const teamMembers: TeamMember[] = [
@@ -23,7 +24,8 @@ export const teamMembers: TeamMember[] = [
     id: 1,
     name: 'Jože Petrich',
     role: 'Founder & Pattern Architect',
-    bio: 'Built Emergent Campus in Trinidad, CO. Inspired by Christopher Alexander\'s work and a decade of community development.'
+    bio: 'Built Emergent Campus in Trinidad, CO. Inspired by Christopher Alexander\'s work and a decade of community development.',
+    link: { label: 'Speaking & booking via Open Futures', url: 'https://openfuturesagency.com' }
   },
   {
     id: 2,

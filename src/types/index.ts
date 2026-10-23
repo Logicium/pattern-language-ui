@@ -12,6 +12,40 @@ export interface Pattern {
   category?: string
 }
 
+export type StoryEvidenceStatus = 'verified' | 'partial' | 'thin' | 'not-located'
+
+export interface StoryFact {
+  id: string
+  claim: string
+  year?: string
+  type?: string
+  sources: string[]
+}
+
+export interface StorySource {
+  id: string
+  title: string
+  publisher?: string
+  url: string
+  publishedDate?: string
+  accessedDate?: string
+  type?: string
+  independence?: string
+  note?: string
+}
+
+/** Research evidence attached to a story: status, sourced facts, sources, guardrails. */
+export interface StoryEvidence {
+  status: StoryEvidenceStatus
+  researchedAt: string
+  summary?: string
+  facts: StoryFact[]
+  sources: StorySource[]
+  openQuestions?: string[]
+  doNotInfer?: string[]
+  claimsNotConfirmed?: string[]
+}
+
 export interface CaseStudy {
   id: number
   location: string
@@ -26,6 +60,7 @@ export interface CaseStudy {
   story?: string
   publishedDate?: string
   references?: string[] // Array of URLs
+  evidence?: StoryEvidence
 }
 
 export interface UserStory {

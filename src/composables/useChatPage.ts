@@ -1,5 +1,5 @@
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { usePlaybooksStore } from '@/stores/playbooks'
 import { useChatScroll } from '@/composables/useChatScroll'
@@ -9,6 +9,7 @@ import type { Playbook } from '@/stores/playbooks'
 
 export function useChatPage() {
   const router = useRouter()
+  const route = useRoute()
   const chatStore = useChatStore()
   const playbooksStore = usePlaybooksStore()
 
@@ -23,6 +24,16 @@ export function useChatPage() {
 
   onMounted(async () => {
     await chatStore.fetchSessions()
+    // A hand-off from elsewhere (the sprint's game brings its pitch here):
+    // open a fresh conversation and send the prompt as the first message.
+    const handoff = typeof route.query.prompt === 'string' ? route.query.prompt.trim() : ''
+    if (handoff) {
+      const title = typeof route.query.title === 'string' && route.query.title.trim() ? route.query.title.trim() : 'Sprint idea'
+      await chatStore.createSession(title.slice(0, 80))
+      router.replace({ query: {} })
+      void sendMessage(handoff)
+      return
+    }
     if (chatStore.sessions.length === 0) {
       await chatStore.createSession('New Chat')
     } else {

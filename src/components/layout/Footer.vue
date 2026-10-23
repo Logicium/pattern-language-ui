@@ -26,6 +26,7 @@
         <div class="footer-col">
           <span class="footer-title">Contact</span>
           <a href="mailto:hello@ruralpatternlanguage.com">hello@ruralpatternlanguage.com</a>
+          <a href="https://openfuturesagency.com" target="_blank" rel="noopener">Speaking: Open Futures</a>
         </div>
       </div>
       <div class="footer-bottom">

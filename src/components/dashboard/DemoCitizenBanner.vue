@@ -2,8 +2,14 @@
   <div v-if="isDemoUser" class="demo-banner">
     <p class="demo-banner__text">
       <span class="demo-banner__chip">Demo</span>
-      You're <strong>{{ currentUser?.name }}</strong>, a citizen of Cottonwood Springs —
-      a fictional sandbox town. Explore freely; nothing here is real except what you learn.
+      <template v-if="currentUser?.location === 'Cañon City'">
+        You're <strong>{{ currentUser?.name }}</strong>, on a temporary Community Solution Sprint profile.
+        Your ideas and playbooks are kept here until you claim it.
+      </template>
+      <template v-else>
+        You're <strong>{{ currentUser?.name }}</strong>, a citizen of Cottonwood Springs —
+        a fictional sandbox town. Explore freely; nothing here is real except what you learn.
+      </template>
     </p>
     <button class="btn-text demo-banner__cta" @click="showClaim = true">
       Keep this profile

@@ -256,6 +256,42 @@ ${linkList(cities.map((c) => ({ href: `/cities/${c.id}`, label: c.state ? `${c.n
       'Pattern Language is in beta. Learn what that means and how to share feedback that shapes the platform.'
   },
   {
+    path: '/hackathon',
+    title: 'Community Solution Sprint — November 7, 2026',
+    description:
+      'The Community Solution Sprint: one day, one town, forty-five patterns. Values, then patterns, then a 90-day playbook, with real seed money for the strongest plan. Saturday, November 7, 2026, 9 AM to 5 PM, Old Post Office Event Center, Cañon City, Colorado.',
+    body: `<main class="container"><h1>Community Solution Sprint</h1>
+<p>Saturday, November 7, 2026 · 9 AM to 5 PM MT · Old Post Office Event Center, 505 Macon Ave, Cañon City, CO 81212. Limited seats available, register now.</p>
+<p>Name what must stay true. Stack three to five patterns that protect it. Leave at five with a 90-day playbook, a six-slide deck and one Monday Morning commitment. Free, with coffee, snacks and lunch. Come solo: teams of five or six form around ideas by lunch. Real, grant-funded seed money for the strongest plan.</p>
+<p><a href="/patterns">Browse the 45 patterns</a> · <a href="/events">All events</a></p></main>`,
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Event',
+        name: 'Community Solution Sprint',
+        startDate: '2026-11-07T09:00:00-07:00',
+        endDate: '2026-11-07T17:00:00-07:00',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        eventStatus: 'https://schema.org/EventScheduled',
+        isAccessibleForFree: true,
+        location: {
+          '@type': 'Place',
+          name: 'Old Post Office Event Center',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: '505 Macon Ave',
+            addressLocality: 'Cañon City',
+            addressRegion: 'CO',
+            postalCode: '81212',
+            addressCountry: 'US'
+          }
+        },
+        organizer: ORGANIZATION,
+        url: `${SITE_URL}/hackathon`
+      }
+    ]
+  },
+  {
     path: '/demo',
     title: 'Try PAL',
     description:

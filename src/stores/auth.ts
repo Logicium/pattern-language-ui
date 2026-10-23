@@ -6,6 +6,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 // Survives logout on purpose — see enterDemoSession().
 const DEMO_SESSION_KEY = 'pl_demo_citizen'
+// Hackathon participants' temporary profiles live under their own key so the
+// Cottonwood sandbox never resumes one (and vice versa).
+export const HACKATHON_SESSION_KEY = 'pl_hackathon_citizen'
 
 export interface User {
   id: string
@@ -211,7 +214,7 @@ export const useAuthStore = defineStore('auth', () => {
    * the city should land in the citizen they already built playbooks as, not
    * a brand-new stranger.
    */
-  function enterDemoSession(data: { access_token: string; user: User }) {
+  function enterDemoSession(data: { access_token: string; user: User }, storeKey = DEMO_SESSION_KEY) {
     // A previous session's cached data must not bleed into this citizen.
     localStorage.removeItem('chatSessions')
     localStorage.removeItem('playbooks')
@@ -221,7 +224,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('auth_token', data.access_token)
     localStorage.setItem('user', JSON.stringify(data.user))
     try {
-      localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(data))
+      localStorage.setItem(storeKey, JSON.stringify(data))
     } catch {
       /* private mode: the citizen simply won't survive a sign-out */
     }
@@ -231,13 +234,13 @@ export const useAuthStore = defineStore('auth', () => {
    * A previously issued demo citizen, if one is still usable. Expired tokens
    * are dropped so the caller falls back to minting a fresh citizen.
    */
-  function storedDemoSession(): { access_token: string; user: User } | null {
+  function storedDemoSession(storeKey = DEMO_SESSION_KEY): { access_token: string; user: User } | null {
     try {
-      const raw = localStorage.getItem(DEMO_SESSION_KEY)
+      const raw = localStorage.getItem(storeKey)
       if (!raw) return null
       const parsed = JSON.parse(raw) as { access_token?: string; user?: User }
       if (!parsed?.access_token || !parsed.user || isTokenExpired(parsed.access_token)) {
-        localStorage.removeItem(DEMO_SESSION_KEY)
+        localStorage.removeItem(storeKey)
         return null
       }
       return { access_token: parsed.access_token, user: parsed.user }

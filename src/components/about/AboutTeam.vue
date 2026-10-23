@@ -11,6 +11,7 @@
           <h3>{{ member.name }}</h3>
           <span class="team-role text-xs text-tertiary">{{ member.role }}</span>
           <p class="text-sm text-secondary">{{ member.bio }}</p>
+          <a v-if="member.link" :href="member.link.url" class="team-link text-xs" target="_blank" rel="noopener">{{ member.link.label }} &nearr;</a>
         </div>
       </div>
     </div>
@@ -58,6 +59,18 @@ const team = teamMembers
 }
 
 .team-card p { line-height: 1.7; }
+
+.team-link {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  letter-spacing: 0.04em;
+  transition: color var(--transition-base);
+}
+
+.team-link:hover { color: var(--color-text-primary); }
 
 @media (max-width: 1024px) {
   .team-grid {

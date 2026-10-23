@@ -14,7 +14,65 @@
       <p class="text-secondary">{{ story.solution }}</p>
     </div>
 
-    <div v-if="story.references && story.references.length > 0" class="content-block references-block">
+    <div v-if="evidence" class="content-block evidence-block">
+      <div class="evidence-head">
+        <h2 class="section-subtitle">What the evidence shows</h2>
+        <span class="evidence-status text-xs" :class="`evidence-status--${evidence.status}`">
+          {{ statusLabel(evidence.status) }}
+        </span>
+      </div>
+      <p v-if="evidence.researchedAt" class="evidence-meta text-xs text-tertiary">
+        {{ evidence.facts.length }} sourced facts from {{ evidence.sources.length }} sources, checked {{ formatDate(evidence.researchedAt) }}
+      </p>
+
+      <ol v-if="evidence.facts.length" class="fact-list">
+        <li v-for="fact in evidence.facts" :key="fact.id" class="fact">
+          <span class="fact-claim text-secondary">{{ fact.claim }}</span>
+          <span class="fact-refs text-xs text-tertiary">
+            <span v-if="fact.year" class="fact-year">{{ fact.year }}</span>
+            <a
+              v-for="sid in fact.sources"
+              :key="sid"
+              :href="sourceUrl(sid)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="fact-source"
+            >{{ sid }}</a>
+          </span>
+        </li>
+      </ol>
+
+      <div v-if="evidence.doNotInfer && evidence.doNotInfer.length" class="evidence-section">
+        <h3 class="evidence-subtitle">What this story does not show</h3>
+        <ul class="evidence-list evidence-list--caution">
+          <li v-for="(item, i) in evidence.doNotInfer" :key="i" class="text-secondary">{{ item }}</li>
+        </ul>
+      </div>
+
+      <div v-if="evidence.openQuestions && evidence.openQuestions.length" class="evidence-section">
+        <h3 class="evidence-subtitle">Still unconfirmed</h3>
+        <ul class="evidence-list">
+          <li v-for="(item, i) in evidence.openQuestions" :key="i" class="text-secondary">{{ item }}</li>
+        </ul>
+      </div>
+
+      <div v-if="evidence.sources.length" class="evidence-section">
+        <h3 class="evidence-subtitle">Sources</h3>
+        <ul class="source-list">
+          <li v-for="src in evidence.sources" :key="src.id" class="source">
+            <span class="source-id text-xs text-tertiary">{{ src.id }}</span>
+            <span class="source-body">
+              <a :href="src.url" target="_blank" rel="noopener noreferrer" class="source-title">{{ src.title }}</a>
+              <span class="source-meta text-xs text-tertiary">
+                {{ [src.publisher, src.publishedDate, src.independence].filter(Boolean).join(' · ') }}
+              </span>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div v-if="!evidence && story.references && story.references.length > 0" class="content-block references-block">
       <h2 class="section-subtitle">References & Resources</h2>
       <div class="references-list">
         <a
@@ -37,13 +95,36 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import VueMarkdownRender from 'vue-markdown-render'
+import type { StoryEvidence, StoryEvidenceStatus } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   story: any
   extractDomain: (url: string) => string
   formatDate: (dateString: string) => string
 }>()
+
+// Evidence is optional on the API response; older stories and staged deploys have none.
+const evidence = computed<StoryEvidence | null>(() => {
+  const ev = props.story?.evidence
+  return ev && Array.isArray(ev.facts) && Array.isArray(ev.sources) ? ev : null
+})
+
+const statusLabels: Record<StoryEvidenceStatus, string> = {
+  verified: 'Verified',
+  partial: 'Partly verified',
+  thin: 'Thin evidence',
+  'not-located': 'Could not be located',
+}
+
+function statusLabel(status: StoryEvidenceStatus): string {
+  return statusLabels[status] ?? status
+}
+
+function sourceUrl(sourceId: string): string {
+  return evidence.value?.sources.find(s => s.id === sourceId)?.url ?? '#'
+}
 </script>
 
 <style scoped>
@@ -131,6 +212,126 @@ defineProps<{
   margin-top: 4rem;
   border-top: 2px solid var(--color-border);
   padding-top: 3rem;
+}
+
+/* Evidence block */
+.evidence-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.evidence-head .section-subtitle { margin-bottom: 0.5rem; }
+
+.evidence-status {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.02em;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.evidence-status--verified { border-color: var(--color-accent-1); color: var(--color-accent-1); }
+.evidence-status--partial { color: var(--color-text-primary); }
+.evidence-status--thin,
+.evidence-status--not-located { color: var(--color-text-tertiary); }
+
+.evidence-meta { margin: 0 0 2rem; }
+
+.fact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: fact;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border);
+  counter-increment: fact;
+}
+
+.fact::before {
+  content: counter(fact);
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  padding-top: 0.2rem;
+}
+
+.fact-claim { grid-column: 2; line-height: 1.7; }
+
+.fact-refs {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.fact-year { color: var(--color-text-secondary); }
+
+.fact-source {
+  color: var(--color-text-tertiary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fact-source:hover { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); }
+
+.evidence-section { margin-top: 3rem; }
+
+.evidence-subtitle {
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+  margin: 0 0 1rem;
+}
+
+.evidence-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  line-height: 1.7;
+}
+
+.evidence-list--caution li::marker { color: var(--color-text-tertiary); }
+
+.source-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.source {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.source-id { padding-top: 0.2rem; font-family: var(--font-mono, ui-monospace, monospace); }
+
+.source-body { display: flex; flex-direction: column; gap: 0.25rem; }
+
+.source-title {
+  color: var(--color-text-primary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
+  width: fit-content;
+}
+
+.source-title:hover { border-bottom-color: var(--color-text-primary); }
+
+@media (max-width: 640px) {
+  .content-block { padding: 2rem 1.25rem; }
 }
 
 .references-list {
