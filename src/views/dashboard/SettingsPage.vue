@@ -15,7 +15,10 @@
           <p class="text-sm text-secondary" style="margin-bottom: 1.5rem;">
             Manage your public profile, bio, and community information
           </p>
-          <button class="btn" @click="showProfileEdit = true">Edit Profile</button>
+          <div style="display: flex; gap: 1rem;">
+            <button class="btn" @click="showProfileEdit = true">Edit Profile</button>
+            <router-link v-if="currentUser?.id" :to="`/dashboard/profile/${currentUser.id}`" class="btn">View Profile</router-link>
+          </div>
         </div>
 
         <SettingsAISection @saved="showSuccessToast" />
