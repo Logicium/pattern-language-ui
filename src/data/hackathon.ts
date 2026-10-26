@@ -26,6 +26,16 @@ export const hackathon = {
     logo: '/brand/emergent-campus-green.png',
     logoOnDark: '/brand/emergent-campus-white.png'
   },
+  /**
+   * The sponsor. Set in type until we have their logo files: drop them in
+   * public/brand/ and fill `logo` (for light grounds) and `logoOnDark`.
+   */
+  sponsor: {
+    name: 'Boettcher Foundation',
+    url: 'https://boettcherfoundation.org/',
+    logo: '' as string,
+    logoOnDark: '' as string
+  },
   location: 'Old Post Office Event Center · 505 Macon Ave, Cañon City, CO 81212',
   /** How the day is held: in the room, on paper first. */
   format: 'In person. Limited seats available, register now.',
@@ -58,6 +68,13 @@ export const hackathon = {
     { name: 'Monday Morning', blurb: 'One person, one action, before next Friday. Required to win.' }
   ],
   /** On the table on the day, and here to read beforehand. */
+  /**
+   * The documents are being redesigned in the brand. Until they are ready
+   * the page lists them as coming soon, with no download links, and the
+   * emails leave them out. Set to true (here and `resourcesReady` in the
+   * service's event-catalog.ts) once the new files are in public/hackathon/.
+   */
+  resourcesReady: false,
   resources: [
     { name: 'Presentation template', what: 'Six slides, six questions · PowerPoint', href: '/hackathon/presentation-template.pptx' },
     { name: 'Playbook worksheet', what: 'The first 90 days, a name on every line · Word', href: '/hackathon/playbook-worksheet.docx' },
@@ -122,7 +139,7 @@ export const hackathon = {
     },
     {
       q: 'Can we start early?',
-      a: 'Play the game, and read the template and worksheet. That is the only head start.'
+      a: 'Play the game. The presentation template and playbook worksheet arrive before the day; that is the only other head start.'
     }
   ],
   contact: 'hello@ruralpatternlanguage.com'

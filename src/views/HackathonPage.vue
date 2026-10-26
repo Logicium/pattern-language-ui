@@ -485,6 +485,15 @@ onBeforeUnmount(() => {
                     </a>
                   </dd>
                 </div>
+                <div class="meta__host">
+                  <dt>Sponsored by</dt>
+                  <dd>
+                    <a class="host sponsor" :href="hackathon.sponsor.url" target="_blank" rel="noopener noreferrer" :aria-label="hackathon.sponsor.name">
+                      <img v-if="hackathon.sponsor.logo" class="host__logo" :src="hackathon.sponsor.logo" :alt="hackathon.sponsor.name" />
+                      <span v-else class="sponsor__word">Boettcher<br />Foundation</span>
+                    </a>
+                  </dd>
+                </div>
               </dl>
             </div>
           </div>
@@ -528,13 +537,20 @@ onBeforeUnmount(() => {
               <p class="eyebrow fade" style="--i: 0"><span class="n">03</span><span class="sep">/</span>How it works</p>
               <p class="note fade" style="--i: 1">Values, then patterns, then a 90-day playbook. The same path for every team, so the plans can be judged side by side.</p>
               <div class="res fade" style="--i: 2">
-                <p class="eyebrow eyebrow--dim">On the table, and here to read first</p>
-                <ul class="res__list">
+                <p class="eyebrow eyebrow--dim">
+                  {{ hackathon.resourcesReady ? 'On the table, and here to read first' : 'On the table on the day' }}
+                  <span v-if="!hackathon.resourcesReady" class="soon">Coming soon</span>
+                </p>
+                <ul class="res__list" :class="{ 'is-soon': !hackathon.resourcesReady }">
                   <li v-for="r in hackathon.resources" :key="r.href">
-                    <a :href="r.href" download data-cursor="Save">
+                    <a v-if="hackathon.resourcesReady" :href="r.href" download data-cursor="Save">
                       <span class="res__name">{{ r.name }}</span>
                       <span class="res__what">{{ r.what }}</span>
                     </a>
+                    <span v-else class="res__item">
+                      <span class="res__name">{{ r.name }}</span>
+                      <span class="res__what">{{ r.what.split(' · ')[0] }}</span>
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -622,6 +638,11 @@ onBeforeUnmount(() => {
                 <span class="host__by">Hosted by</span>
                 <img class="host__logo" :src="hackathon.host.logoOnDark" :alt="hackathon.host.name" width="1301" height="357" />
               </a>
+              <a class="host host--dark sponsor fade" style="--i: 3" :href="hackathon.sponsor.url" target="_blank" rel="noopener noreferrer">
+                <span class="host__by">Sponsored by</span>
+                <img v-if="hackathon.sponsor.logoOnDark" class="host__logo" :src="hackathon.sponsor.logoOnDark" :alt="hackathon.sponsor.name" />
+                <span v-else class="sponsor__word">Boettcher<br />Foundation</span>
+              </a>
               <p v-if="pitchName && !done" class="note fade" style="--i: 3">We'll attach your pitch, <em>{{ pitchName }}</em>, to your registration.</p>
             </div>
             <div class="fade" style="--i: 3">
@@ -678,10 +699,17 @@ onBeforeUnmount(() => {
         <footer class="foot" v-reveal>
           <div class="foot__lead fade" style="--i: 0">
             <p class="foot__tag">{{ hackathon.tagline }}</p>
-            <a class="host host--foot" :href="hackathon.host.url" target="_blank" rel="noopener noreferrer">
-              <span class="host__by">Hosted by</span>
-              <img class="host__logo" :src="hackathon.host.logo" :alt="hackathon.host.name" width="1300" height="358" />
-            </a>
+            <div class="credits">
+              <a class="host host--foot" :href="hackathon.host.url" target="_blank" rel="noopener noreferrer">
+                <span class="host__by">Hosted by</span>
+                <img class="host__logo" :src="hackathon.host.logo" :alt="hackathon.host.name" width="1300" height="358" />
+              </a>
+              <a class="host sponsor" :href="hackathon.sponsor.url" target="_blank" rel="noopener noreferrer">
+                <span class="host__by">Sponsored by</span>
+                <img v-if="hackathon.sponsor.logo" class="host__logo" :src="hackathon.sponsor.logo" :alt="hackathon.sponsor.name" />
+                <span v-else class="sponsor__word">Boettcher<br />Foundation</span>
+              </a>
+            </div>
           </div>
           <nav class="foot__links fade" style="--i: 1">
             <router-link to="/">ruralpatternlanguage.com</router-link>
@@ -705,6 +733,11 @@ onBeforeUnmount(() => {
             <a class="host host--dark fade" style="--i: 3" :href="hackathon.host.url" target="_blank" rel="noopener noreferrer">
               <span class="host__by">Hosted by</span>
               <img class="host__logo" :src="hackathon.host.logoOnDark" :alt="hackathon.host.name" width="1301" height="357" />
+            </a>
+            <a class="host host--dark sponsor fade" style="--i: 3" :href="hackathon.sponsor.url" target="_blank" rel="noopener noreferrer">
+              <span class="host__by">Sponsored by</span>
+              <img v-if="hackathon.sponsor.logoOnDark" class="host__logo" :src="hackathon.sponsor.logoOnDark" :alt="hackathon.sponsor.name" />
+              <span v-else class="sponsor__word">Boettcher<br />Foundation</span>
             </a>
             <p v-if="pitchName && !done" class="note fade" style="--i: 3">We'll attach your pitch, <em>{{ pitchName }}</em>, to your registration.</p>
           </div>
@@ -1155,7 +1188,7 @@ onBeforeUnmount(() => {
 }
 .meta div {
   display: grid;
-  grid-template-columns: 5rem 1fr;
+  grid-template-columns: 6.6rem 1fr;
   gap: 1rem;
   align-items: baseline;
 }
@@ -1201,6 +1234,24 @@ onBeforeUnmount(() => {
 }
 .host--dark {
   margin-top: 0.5rem;
+}
+.host--dark + .host--dark {
+  margin-top: 0;
+}
+/* the sponsor's name, set as a stacked wordmark beside the host's */
+.sponsor__word {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.credits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 2.5rem;
 }
 .foot__lead {
   display: flex;
@@ -1377,6 +1428,30 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 0;
   border-top: 1px solid var(--hair-strong);
+}
+/* the documents, before they are ready: listed, not linked */
+.soon {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.18rem 0.5rem 0.14rem;
+  border: 1px solid currentColor;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: var(--warm);
+  vertical-align: middle;
+}
+.res__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--hair);
+}
+.res__list.is-soon .res__name::after {
+  content: none;
+}
+.res__list.is-soon .res__name {
+  opacity: 0.7;
 }
 .res__list a {
   display: flex;
@@ -1673,7 +1748,7 @@ onBeforeUnmount(() => {
     grid-template-columns: 5rem 1fr;
   }
   .meta div {
-    grid-template-columns: 4.5rem 1fr;
+    grid-template-columns: 6.1rem 1fr;
   }
   .hud-index__slot--lbl {
     display: none;
