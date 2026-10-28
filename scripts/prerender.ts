@@ -18,7 +18,7 @@ const SITE_URL = 'https://www.ruralpatternlanguage.com'
 const SITE_NAME = 'Pattern Language'
 const DEFAULT_TITLE = 'Pattern Language — Designing Thriving Rural Communities'
 const DEFAULT_DESCRIPTION =
-  'A collaborative tool empowering rural communities to design, plan, and implement innovative solutions to complex challenges. Explore 45+ proven patterns for community-led regeneration.'
+  'A collaborative tool empowering rural communities to design, plan, and implement innovative solutions to complex challenges. Explore 50 proven patterns for community-led regeneration.'
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
@@ -170,7 +170,7 @@ const pages: PageDef[] = [
 <p>A collaborative tool empowering rural communities to design, plan, and implement innovative solutions to complex challenges.</p>
 <h2>Explore</h2>
 ${linkList([
-  { href: '/patterns', label: 'Pattern Library', blurb: '45+ proven patterns for rural regeneration' },
+  { href: '/patterns', label: 'Pattern Library', blurb: '50 proven patterns for rural regeneration' },
   { href: '/stories', label: 'Success Stories', blurb: 'Communities putting patterns into practice' },
   { href: '/cities', label: 'Cities & Towns', blurb: 'Places using Pattern Language today' },
   { href: '/about', label: 'About the project' }
@@ -200,7 +200,7 @@ ${linkList([
     path: '/patterns',
     title: 'Pattern Library',
     description:
-      'Browse 45+ proven patterns for rural community regeneration — from community anchor points to youth return pathways — each with problem, solution, and implementation steps.',
+      'Browse 50 proven patterns for rural community regeneration — from community anchor points to youth return pathways — each with problem, solution, and implementation steps.',
     body: `<main class="container"><h1>Pattern Library</h1>
 <p>Proven patterns for rural community regeneration, each with the problem it solves, the solution, and concrete implementation steps.</p>
 ${linkList(allPatterns.map((p) => ({ href: `/patterns/${p.id}`, label: p.title, blurb: p.description })))}
@@ -259,11 +259,11 @@ ${linkList(cities.map((c) => ({ href: `/cities/${c.id}`, label: c.state ? `${c.n
     path: '/hackathon',
     title: 'Community Solution Sprint — November 7, 2026',
     description:
-      'The Community Solution Sprint: one day, one town, forty-five patterns. Values, then patterns, then a 90-day playbook; the winning project receives up to $250 to continue. Saturday, November 7, 2026, 9 AM to 5 PM, Old Post Office Event Center, Cañon City, Colorado.',
+      'The Community Solution Sprint: one day, one town, fifty patterns. Values, then patterns, then a 90-day playbook; the winning project receives up to $250 to continue. Saturday, November 7, 2026, 9 AM to 5 PM, Old Post Office Event Center, Cañon City, Colorado.',
     body: `<main class="container"><h1>Community Solution Sprint</h1>
 <p>Saturday, November 7, 2026 · 9 AM to 5 PM MT · Old Post Office Event Center, 505 Macon Ave, Cañon City, CO 81212. Hosted by Emergent Campus and sponsored by the Boettcher Foundation. Limited seats available, register now.</p>
 <p>Name what must stay true. Stack three to five patterns that protect it. Leave at five with a 90-day playbook, a six-slide deck and one Monday Morning commitment. Free, with coffee, snacks and lunch. Come solo: teams of five or six form around ideas by lunch. Seats are limited and every registration is reviewed. The winning project will receive financial support up to $250 to continue their project.</p>
-<p><a href="/patterns">Browse the 45 patterns</a> · <a href="/events">All events</a></p></main>`,
+<p><a href="/patterns">Browse the 50 patterns</a> · <a href="/events">All events</a></p></main>`,
     jsonLd: [
       {
         '@context': 'https://schema.org',

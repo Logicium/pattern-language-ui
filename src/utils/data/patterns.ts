@@ -1002,6 +1002,123 @@ export const allPatterns: Pattern[] = [
     ],
     relatedPatterns: ['Trust Infrastructure', 'Village Broadcast Loop', 'Community-Based Research']
   },
+
+  // New Patterns (5 additions)
+  {
+    id: 46,
+    title: 'Local Champions and Founders',
+    description: 'Identifying and supporting the people who show up consistently, hold the thread, and make the work real.',
+    addresses: ['Civic Apathy', 'Aging Population', 'Institutional Breakdown'],
+    category: 'Foundations',
+    problem: 'Every community has people who hold things together—organizers, founders, quiet leaders—but they\'re often unsupported, unrecognized, and burning out. When they leave or exhaust themselves, momentum collapses.',
+    context: 'Rural revival depends on key individuals who show up week after week, carry institutional memory, and pull others in. Without recognition and structural support, these champions exhaust themselves and quit—taking irreplaceable knowledge and relationships with them.',
+    solution: 'Identify, celebrate, and structurally support local champions and founders—the people who consistently show up and make the work real. Distribute their load, formalize their roles, and build succession so the work survives any single person.',
+    implementation: [
+      'Map your community\'s informal champions—who runs things, who people call first, who holds the thread across efforts',
+      'Create recognition rituals: public thank-yous, storytelling nights, local media features',
+      'Pair champions with co-leads to distribute knowledge and prevent burnout',
+      'Offer micro-stipends, childcare, or other tangible support so champions can keep showing up',
+      'Document what champions know—processes, relationships, institutional history—so it\'s not trapped in one person'
+    ],
+    examples: [
+      'Trinidad, CO: Emergent Campus identifying and supporting local founders as anchors for regional development',
+      'Appalachia: Community leadership institutes pairing experienced organizers with emerging leaders',
+      'Rural Oregon: Volunteer recognition programs that publicly celebrate consistent contributors'
+    ],
+    relatedPatterns: ['Community Anchor Point', 'Trust Infrastructure', 'Local Capacity Backbone']
+  },
+  {
+    id: 47,
+    title: 'Youth Stay Pathways',
+    description: 'Clear, visible routes for young people to build lives worth staying for.',
+    addresses: ['Youth Flight', 'Economic Stagnation', 'Isolation'],
+    category: 'People & Learning',
+    problem: 'Young people leave because they can\'t see a future worth staying for—no career pathways, no peer community, no affordable housing, no sense that their ambitions can be fulfilled locally.',
+    context: 'Youth retention requires more than jobs. It requires visible, connected pathways that make staying a real and attractive choice—combining livelihood, housing, social connection, and civic belonging into something that competes with the pull of cities.',
+    solution: 'Create clear youth stay pathways that connect education, employment, housing, social life, and civic participation into a coherent offer. Make staying feel like a choice, not a compromise.',
+    implementation: [
+      'Map what young people actually need to stay: survey recent graduates and young adults about barriers and desires',
+      'Partner with local employers to create career ladders, not just entry-level jobs',
+      'Develop affordable housing options specifically for young adults and young families',
+      'Create peer social spaces and programming so young people don\'t feel isolated',
+      'Connect youth to civic leadership roles early—give them real decision-making power, not just advisory seats'
+    ],
+    examples: [
+      'Rural Nebraska: Youth engagement programs combining internships, housing assistance, and civic mentorship',
+      'Colorado mountain towns: Workforce housing programs paired with career pathway partnerships',
+      'Vermont: Stay-to-Stay programs connecting young people to mentors, housing, and community integration'
+    ],
+    relatedPatterns: ['Youth Return Pathway', 'Work-and-Learn Tracks', 'Creative Apprenticeships']
+  },
+  {
+    id: 48,
+    title: 'Digital Access Bridge',
+    description: 'Closing the connectivity gap so no one is left offline.',
+    addresses: ['Isolation', 'Economic Stagnation', 'Institutional Breakdown'],
+    category: 'Places & Infrastructure',
+    problem: 'Lack of reliable internet, devices, or digital skills cuts people off from work, education, health care, and civic life. In a world where services have moved online, being without access is a fundamental barrier to participation.',
+    context: 'Rural communities disproportionately bear the digital divide. Students do homework in parking lots. Farmers can\'t access precision agriculture tools. Small businesses can\'t compete in digital markets. Elders can\'t connect with family or access telehealth. As more services move online by default, those without access fall further behind every year.',
+    solution: 'Build a digital access bridge—subsidized connectivity, public access points, device lending programs, and digital navigation support to ensure every resident can participate in modern life regardless of income or location.',
+    implementation: [
+      'Assess the real gaps: map who has broadband, devices, and skills—and who doesn\'t',
+      'Establish public Wi-Fi hotspots at community anchor points, libraries, and gathering places',
+      'Launch a device lending or low-cost refurbished device program',
+      'Train digital navigators—trusted community members who help residents get online and stay connected',
+      'Advocate for municipal broadband or cooperative ISP models to close last-mile gaps'
+    ],
+    examples: [
+      'Rural libraries serving as primary broadband access points with extended hours and lending hotspots',
+      'Tribal nations building community-owned broadband networks on reservation lands',
+      'Appalachian communities partnering with cooperatives to deploy fiber to underserved areas'
+    ],
+    relatedPatterns: ['Digital Root System', 'Digital Literacy for All', 'Village Broadcast Loop']
+  },
+  {
+    id: 49,
+    title: 'Community Health Access Hub',
+    description: 'Ensuring every resident can access health care without leaving the region.',
+    addresses: ['Isolation', 'Aging Population', 'Institutional Breakdown'],
+    category: 'Economy & Work',
+    problem: 'Rural clinic closures leave residents driving hours for routine care. Health outcomes decline as preventive care disappears, chronic conditions go unmanaged, and the most vulnerable—elders, children, low-income families—suffer most.',
+    context: 'Rural health infrastructure has eroded as hospitals consolidate, providers leave for urban areas, and reimbursement rates make rural practice unsustainable. Telehealth helps but can\'t replace hands-on care. Communities need creative, hybrid models that combine in-person and virtual services.',
+    solution: 'Create community health access hubs that combine telehealth stations, visiting provider schedules, community health workers, preventive wellness programming, and mental health support under one accessible, trusted roof.',
+    implementation: [
+      'Partner with regional health systems to establish rotating provider clinics in community spaces',
+      'Install telehealth stations at anchor points with trained staff to assist residents',
+      'Recruit and train community health workers from the local population',
+      'Integrate mental health, dental, and wellness programming alongside primary care',
+      'Establish transportation support or mobile health units for the most isolated residents'
+    ],
+    examples: [
+      'New Mexico: Community health centers serving as anchors for rural wellness and preventive care',
+      'Alaska: Village health aide programs training local residents to deliver frontline health services',
+      'Rural Appalachia: Mobile health clinics reaching communities without fixed facilities'
+    ],
+    relatedPatterns: ['Community Anchor Point', 'Multipurpose Mobility Hubs', 'Regional Mutual Aid Protocols']
+  },
+  {
+    id: 50,
+    title: 'Climate Resilience Micro-Projects',
+    description: 'Small, visible projects that build local resilience against climate disruption.',
+    addresses: ['Environmental Degradation', 'Institutional Breakdown', 'Food Insecurity'],
+    category: 'Governance & Capacity',
+    problem: 'Climate impacts hit rural communities hard—floods, droughts, wildfires, extreme heat—but large-scale mitigation planning feels distant, expensive, and overwhelming. Meanwhile, the damage accumulates.',
+    context: 'Rural places often bear the environmental costs of industries that extract value and leave damage behind. Large-scale climate adaptation is slow and requires institutional capacity many small towns don\'t have. Communities need quick, tangible projects that build resilience now while longer-term strategies develop.',
+    solution: 'Launch small, locally led climate resilience micro-projects—community gardens, fire-adapted landscaping, rainwater capture systems, cooling centers, flood mitigation berms—that deliver visible results, build collective confidence, and lay groundwork for larger efforts.',
+    implementation: [
+      'Assess your community\'s top climate vulnerabilities: what hits hardest and most often?',
+      'Start with one visible micro-project that addresses the most urgent risk—community cooling center, firebreak, rain garden',
+      'Recruit volunteers and connect to existing environmental or agricultural groups',
+      'Document and share results to build support for the next project',
+      'Connect micro-projects to regional resilience planning and funding streams'
+    ],
+    examples: [
+      'Rural Colorado: Community-led wildfire mitigation projects combining defensible space and neighbor coordination',
+      'Louisiana bayou communities: Small-scale flood resilience projects using natural infrastructure',
+      'Great Plains towns: Community rain gardens and water capture systems addressing drought resilience'
+    ],
+    relatedPatterns: ['Circular Water Systems', 'Resilient Energy Microgrids', 'Eco-Adaptive Building Codes']
+  },
 ]
 
 // Featured patterns for homepage (first 6)

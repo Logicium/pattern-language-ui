@@ -18,7 +18,7 @@ import type { Challenge, Pattern } from '@/types'
  *  –  review    only that problem, in focus, with three real stories of it
  *               from rural America as nodes around it; a HUD panel shows its
  *               shape; confirm.
- *  02 patterns  the problem at centre, the forty-five patterns fade in on
+ *  02 patterns  the problem at centre, the fifty patterns fade in on
  *               their own hairlines, the ones that answer it on a ring; touch
  *               one to open it.
  *  –  pattern   that pattern in focus with real examples of it in use; add it

@@ -11,6 +11,7 @@
  */
 import type { EvidenceItem } from './wicked-evidence'
 import { bookExamples } from './pattern-book-examples'
+import { allPatterns } from '@/utils/data/patterns'
 
 export const patternExamples: Record<number, EvidenceItem[]> = {
   1: [
@@ -1058,7 +1059,9 @@ export const patternExamples: Record<number, EvidenceItem[]> = {
 
 /**
  * Up to three examples for a pattern: press stories with photographs first,
- * then the book's own named examples as text cards (no url, no image).
+ * then the book's own named examples as text cards (no url, no image), then
+ * the examples written into the pattern itself (patterns added after the
+ * book, 46 to 50, have only those).
  */
 export const examplesFor = (patternId: number): EvidenceItem[] => {
   const press = patternExamples[patternId] ?? []
@@ -1071,5 +1074,12 @@ export const examplesFor = (patternId: number): EvidenceItem[] => {
     place: b.place,
     summary: b.summary
   }))
-  return [...press, ...book].slice(0, 3)
+  const own: EvidenceItem[] = (allPatterns.find((p) => p.id === patternId)?.examples ?? []).map((line) => {
+    const text = line.replace(/\s*—\s*/g, ', ').trim()
+    const colon = text.indexOf(':')
+    const place = colon > 0 && colon < 48 ? text.slice(0, colon).trim() : ''
+    const rest = place ? text.slice(colon + 1).trim() : text
+    return { title: rest, outlet: 'From the library', date: '', url: '', image: '', place, summary: rest }
+  })
+  return [...press, ...book, ...own].slice(0, 3)
 }

@@ -39,7 +39,7 @@ export const hackathon = {
   location: 'Old Post Office Event Center · 505 Macon Ave, Cañon City, CO 81212',
   /** How the day is held: in the room, on paper first. */
   format: 'In person. Limited seats available, register now.',
-  tagline: 'One day. One town. Forty-five patterns.',
+  tagline: 'One day. One town. Fifty patterns.',
   lede:
     'Name what must stay true. Stack the patterns that protect it. Leave at five with a 90-day plan that has your name on a line.',
   /** The landing's one-line tease of the game. */
@@ -123,7 +123,7 @@ export const hackathon = {
     },
     {
       q: 'What is a pattern?',
-      a: 'A repeatable move that solves a recurring problem in a particular context. Not a template. The library has 45, free at ruralpatternlanguage.com/patterns, and teams stack three to five.'
+      a: 'A repeatable move that solves a recurring problem in a particular context. Not a template. The library has 50, free at ruralpatternlanguage.com/patterns, and teams stack three to five.'
     },
     {
       q: 'What is PAL?',

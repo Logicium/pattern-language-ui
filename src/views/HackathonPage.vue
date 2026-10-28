@@ -713,7 +713,7 @@ onBeforeUnmount(() => {
           </div>
           <nav class="foot__links fade" style="--i: 1">
             <router-link to="/">ruralpatternlanguage.com</router-link>
-            <router-link to="/patterns">The 45 patterns</router-link>
+            <router-link to="/patterns">The 50 patterns</router-link>
             <router-link to="/demo">Try PAL</router-link>
             <a :href="`mailto:${hackathon.contact}`">{{ hackathon.contact }}</a>
             <button class="foot__play" type="button" @click="openGame">Play again</button>
