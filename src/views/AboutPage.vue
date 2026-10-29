@@ -1,7 +1,7 @@
 <template>
   <div class="about-page">
     
-    <section class="about-hero gradient-bg">
+    <section ref="hero" class="about-hero gradient-bg">
       <RibbonCanvas />
       <div class="container">
         <h1 class="hero-title">Building Tools for<br>Rural Regeneration</h1>
@@ -74,15 +74,21 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { Footer, CTASection, RibbonCanvas } from '@/components'
 import AboutPrinciples from '@/components/about/AboutPrinciples.vue'
 import AboutTeam from '@/components/about/AboutTeam.vue'
+import { usePinnedHero } from '@/composables/usePinnedHero'
+
+const hero = ref<HTMLElement | null>(null)
+usePinnedHero(hero)
 </script>
 
 <style scoped>
 .about-page { min-height: 100vh; }
 
 .about-hero {
+  min-height: var(--hero-min);
   padding: 12rem var(--container-padding) 8rem;
   text-align: center;
   position: relative;

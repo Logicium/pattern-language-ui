@@ -1,7 +1,7 @@
 <template>
   <div class="signup-page">
     
-    <section class="signup-hero gradient-bg">
+    <section ref="hero" class="signup-hero gradient-bg">
       <RibbonCanvas />
       <div class="container">
         <h1 class="hero-title">Create Your Profile</h1>
@@ -68,11 +68,18 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { Footer, ErrorModal, RibbonCanvas } from '@/components'
 import SignupStepAccount from '@/components/signup/SignupStepAccount.vue'
 import SignupStepCommunity from '@/components/signup/SignupStepCommunity.vue'
 import SignupSidebar from '@/components/signup/SignupSidebar.vue'
 import { useSignupForm } from '@/composables/useSignupForm'
+import { usePinnedHero } from '@/composables/usePinnedHero'
+
+// the hero holds while the form slides over it
+const hero = ref<HTMLElement | null>(null)
+usePinnedHero(hero)
+
 
 const {
   currentStep, isSubmitting, showErrorModal, errorTitle, errorMessage,
@@ -85,6 +92,7 @@ const {
 .signup-page { min-height: 100vh; }
 
 .signup-hero {
+  min-height: var(--hero-min);
   padding: 12rem var(--container-padding) 6rem;
   text-align: center;
   position: relative;

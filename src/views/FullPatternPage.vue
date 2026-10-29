@@ -2,16 +2,15 @@
   <div class="pattern-page">
 
     <div v-if="pattern">
-      <section class="pattern-hero gradient-bg">
+      <section ref="hero" class="pattern-hero gradient-bg">
         <HeroBackdrop variant="lattice" />
-        <ModalBackButton
-          v-if="!isModal"
-          overlay
-          class="hero-back"
-          label="All Patterns"
-          @back="$router.push('/patterns')"
-        />
         <div class="container">
+          <ModalBackButton
+            v-if="!isModal"
+            class="hero-back"
+            label="All Patterns"
+            @back="$router.push('/patterns')"
+          />
           <div class="hero-meta">
             <span class="pattern-number text-xs text-tertiary">Pattern {{ String(pattern.id).padStart(2, '0') }}</span>
             <span class="pattern-category text-xs text-tertiary">{{ pattern.category }}</span>
@@ -85,8 +84,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Footer, HeroBackdrop, ModalBackButton } from '@/components'
+import { usePinnedHero } from '@/composables/usePinnedHero'
 import FullPatternContent from '@/components/full-pattern/FullPatternContent.vue'
 import FullPatternSidebar from '@/components/full-pattern/FullPatternSidebar.vue'
 import PatternLocationMap from '@/components/full-pattern/PatternLocationMap.vue'
@@ -105,6 +105,10 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { pattern, relatedStories, getPatternRoute, getChallengeRoute } = useFullPattern(props.patternData)
+
+// The hero holds while the page slides over it; not in the modal, which scrolls on its own.
+const hero = ref<HTMLElement | null>(null)
+usePinnedHero(hero, () => !props.isModal)
 const { patterns: allPatterns } = usePatterns()
 const { stories: allStories } = useStories()
 
@@ -150,15 +154,15 @@ const mapStories = computed(() => {
 .pattern-page { min-height: 100vh; }
 
 .pattern-hero {
+  min-height: var(--hero-min);
   padding: 12rem var(--container-padding) 6rem;
   position: relative;
   overflow: hidden;
 }
 
-/* Below the fixed navbar, above the lattice backdrop */
+/* In the copy block, so it lifts and fades with the rest and shares its left edge */
 .pattern-hero .hero-back {
-  top: 7rem;
-  z-index: 2;
+  margin-bottom: 3rem;
 }
 
 .pattern-hero .container { position: relative; z-index: 1; }

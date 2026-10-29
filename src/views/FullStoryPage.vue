@@ -2,14 +2,16 @@
   <div class="story-page">
 
     <div v-if="story" class="story-body">
-      <ModalBackButton
-        v-if="!isModal"
-        overlay
-        class="hero-back"
-        label="All Stories"
-        @back="$router.push('/stories')"
-      />
-      <FullStoryHero :story="story" :get-pattern-route="getPatternRoute" />
+      <FullStoryHero :story="story" :get-pattern-route="getPatternRoute" :pin="!isModal">
+        <template #back>
+          <ModalBackButton
+            v-if="!isModal"
+            class="hero-back"
+            label="All Stories"
+            @back="$router.push('/stories')"
+          />
+        </template>
+      </FullStoryHero>
 
       <section class="section story-content">
         <div class="container">
@@ -71,14 +73,13 @@ if (!props.isModal) {
   min-height: 100vh;
 }
 
-/* Anchor for the hero back button; sits below the fixed navbar */
 .story-body {
   position: relative;
 }
 
-.story-body .hero-back {
-  top: 7rem;
-  z-index: 2;
+/* In the hero's copy block, so it lifts and fades with the rest and shares its left edge */
+.hero-back {
+  margin-bottom: 3rem;
 }
 
 .story-content {

@@ -1,5 +1,5 @@
 <template>
-  <section class="page-hero gradient-bg" :class="`page-hero--${align}`">
+  <section ref="hero" class="page-hero gradient-bg" :class="`page-hero--${align}`">
     <HeroBackdrop v-if="ribbon" :variant="variant" />
     <div class="container">
       <p v-if="label" class="hero-label text-xs text-tertiary">{{ label }}</p>
@@ -13,9 +13,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import HeroBackdrop, { type HeroBackdropVariant } from '@/components/hero/HeroBackdrop.vue'
+import { usePinnedHero } from '@/composables/usePinnedHero'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     title: string
     label?: string
@@ -23,13 +25,19 @@ withDefaults(
     ribbon?: boolean
     align?: 'center' | 'left'
     variant?: HeroBackdropVariant
+    /** Hold the hero at the top while the page slides over it (the default). */
+    pin?: boolean
   }>(),
-  { ribbon: true, align: 'center', variant: 'ribbon' },
+  { ribbon: true, align: 'center', variant: 'ribbon', pin: true },
 )
+
+const hero = ref<HTMLElement | null>(null)
+usePinnedHero(hero, () => props.pin)
 </script>
 
 <style scoped>
 .page-hero {
+  min-height: var(--hero-min);
   padding: 12rem var(--container-padding) 6rem;
   position: relative;
   overflow: hidden;

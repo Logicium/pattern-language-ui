@@ -18,6 +18,7 @@ export const LatticeCanvas = defineAsyncComponent(() => import('./hero/LatticeCa
 export const OrbitCanvas = defineAsyncComponent(() => import('./hero/OrbitCanvas.vue'))
 export { default as HeroBackdrop } from './hero/HeroBackdrop.vue'
 export { default as Pagination } from './Pagination.vue'
+export { default as SearchBar } from './SearchBar.vue'
 export { default as ConfirmModal } from './ConfirmModal.vue'
 export { default as ErrorModal } from './ErrorModal.vue'
 export { default as MessageModal } from './MessageModal.vue'

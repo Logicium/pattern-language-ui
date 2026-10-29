@@ -450,6 +450,35 @@ const closeMobileMenu = () => {
   pointer-events: all;
 }
 
+/* Medium widths (tablets, half-screen windows): the desktop row with the
+   mobile brand. The links close up and never wrap, and below 960px the
+   wordmark goes, since the mark and the beta chip carry the identity on
+   their own. The hamburger only takes over at phone width. */
+@media (max-width: 1120px) {
+  .navbar-container {
+    gap: 1.5rem;
+  }
+
+  .brand {
+    flex: none;
+  }
+
+  .nav-links {
+    flex: none;
+    gap: 1.75rem;
+  }
+
+  .nav-links a {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 960px) and (min-width: 769px) {
+  .logo :deep(.brand-word) {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .nav-links {
     display: none;

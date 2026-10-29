@@ -9,15 +9,7 @@
 
     <section class="search-section">
       <div class="container">
-        <div class="search-bar">
-          <input
-            v-model="search"
-            type="text"
-            placeholder="Search by city or state…"
-            class="search-input"
-          />
-          <button v-if="search" @click="search = ''" class="clear-btn text-xs">Clear</button>
-        </div>
+        <SearchBar v-model="search" placeholder="Search by city or state…" />
       </div>
     </section>
 
@@ -75,6 +67,7 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import Footer from '@/components/layout/Footer.vue'
 import PageHero from '@/components/layout/PageHero.vue'
+import SearchBar from '@/components/SearchBar.vue'
 import CityCard from '@/components/city/CityCard.vue'
 import { citiesApi, configApi } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
@@ -142,51 +135,10 @@ onMounted(async () => {
 
 <style scoped>
 .search-section {
+  padding: 0 0 4rem;
   background: var(--color-bg-primary);
   border-bottom: 1px solid rgba(42, 42, 42, 0.08);
-  padding: 2.5rem var(--container-padding);
 }
-
-.search-bar {
-  position: relative;
-  max-width: 720px;
-  margin: 0 auto;
-}
-
-.search-input {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  font-family: var(--font-family);
-  font-size: 0.9375rem;
-  color: var(--color-text-primary);
-  background: var(--color-bg-secondary);
-  border: 1px solid rgba(42, 42, 42, 0.08);
-  outline: none;
-  transition: border-color var(--transition-base), background var(--transition-base);
-}
-
-.search-input:focus {
-  border-color: var(--color-accent-1);
-  background: var(--color-bg-primary);
-}
-
-.search-input::placeholder { color: var(--color-text-tertiary); }
-
-.clear-btn {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.25rem 0.5rem;
-}
-
-.clear-btn:hover { color: var(--color-text-primary); }
 
 .section-header { align-items: center; }
 .btn-add-city { margin-left: auto; white-space: nowrap; }

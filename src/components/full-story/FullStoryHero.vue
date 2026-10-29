@@ -1,5 +1,5 @@
 <template>
-  <section class="story-hero" :style="{ backgroundColor: story.color }">
+  <section ref="hero" class="story-hero" :style="{ backgroundColor: story.color }">
     <img
       v-if="story.image"
       :src="story.image"
@@ -14,6 +14,7 @@
     />
     <div class="color-overlay" :style="{ backgroundColor: story.color }"></div>
     <div class="container">
+      <slot name="back" />
       <div class="hero-meta">
         <span class="story-location-tag text-xs">{{ story.location }}</span>
       </div>
@@ -35,14 +36,26 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  story: any
-  getPatternRoute: (title: string) => string
-}>()
+import { ref } from 'vue'
+import { usePinnedHero } from '@/composables/usePinnedHero'
+
+const props = withDefaults(
+  defineProps<{
+    story: any
+    getPatternRoute: (title: string) => string
+    /** Hold the hero while the story slides over it; off inside the modal, which scrolls on its own. */
+    pin?: boolean
+  }>(),
+  { pin: true },
+)
+
+const hero = ref<HTMLElement | null>(null)
+usePinnedHero(hero, () => props.pin)
 </script>
 
 <style scoped>
 .story-hero {
+  min-height: var(--hero-min);
   padding: 12rem var(--container-padding) 6rem;
   position: relative;
   overflow: hidden;

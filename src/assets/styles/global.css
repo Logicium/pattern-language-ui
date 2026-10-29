@@ -31,6 +31,10 @@
   
   --container-max: 1400px;
   --container-padding: 4rem;
+  /* one height for every page hero (the tallest natural one, About, sets it) */
+  --hero-min: 35rem;
+  /* the gap between a hero and the first block of the page below it (the Shop page set it) */
+  --sheet-top: 5rem;
 }
 
 /* Reset */
@@ -400,6 +404,11 @@ body.no-editor .apotome-editor-host {
 }
 
 @media (max-width: 768px) {
+  :root {
+    --hero-min: 30rem;
+    --sheet-top: 3.5rem;
+  }
+
   .section-title {
     font-size: 2rem;
   }
@@ -572,4 +581,30 @@ body.nav-quiet .navbar:not(.navbar--scrolled) .nav-links > a:not(.btn) {
   transition:
     opacity 0.6s ease calc(var(--i, 0) * 0.07s),
     transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 0.07s);
+}
+
+/* ---- pinned heroes (composables/usePinnedHero.ts): the hero holds at the top while
+   everything after it slides over as a sheet; the copy lifts away and fades with the scroll ---- */
+.hero-pin {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+}
+.hero-pin.is-covered {
+  visibility: hidden;
+}
+.hero-pin > .container {
+  transform: translate3d(0, var(--hero-shift, 0px), 0);
+  opacity: var(--hero-fade, 1);
+  will-change: transform, opacity;
+}
+.hero-pin ~ * {
+  position: relative;
+  z-index: 1;
+  background: var(--color-bg-primary);
+}
+/* the first block after the hero starts one measure below it on every page; `body` is
+   there so the rule outranks each page's own scoped padding */
+body .hero-pin + [class] {
+  padding-top: var(--sheet-top);
 }

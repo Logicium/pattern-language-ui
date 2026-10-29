@@ -1,7 +1,7 @@
 <template>
   <div class="login-page">
     
-    <section class="login-hero gradient-bg">
+    <section ref="hero" class="login-hero gradient-bg">
       <RibbonCanvas />
       <div class="container">
         <h1 class="hero-title">Welcome Back</h1>
@@ -98,9 +98,16 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { Footer, ErrorModal, RibbonCanvas } from '@/components'
 import LoginSidebar from '@/components/login/LoginSidebar.vue'
 import { useLoginPage } from '@/composables/useLoginPage'
+import { usePinnedHero } from '@/composables/usePinnedHero'
+
+// the hero holds while the form slides over it
+const hero = ref<HTMLElement | null>(null)
+usePinnedHero(hero)
+
 
 const {
   email, password, loading, isLoadingGoogle,
@@ -113,6 +120,7 @@ const {
 .login-page { min-height: 100vh; }
 
 .login-hero {
+  min-height: var(--hero-min);
   padding: 12rem var(--container-padding) 6rem;
   text-align: center;
   position: relative;

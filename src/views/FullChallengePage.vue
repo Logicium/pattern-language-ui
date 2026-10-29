@@ -1,13 +1,14 @@
 <template>
   <div class="full-challenge-page">
-    <section class="challenge-hero gradient-bg">
-      <ModalBackButton
-        v-if="!isModal"
-        overlay
-        label="All Patterns"
-        @back="$router.push('/patterns')"
-      />
+    <section ref="hero" class="challenge-hero gradient-bg">
+      <HeroBackdrop variant="orbit" />
       <div class="container">
+        <ModalBackButton
+          v-if="!isModal"
+          class="hero-back"
+          label="All Patterns"
+          @back="$router.push('/patterns')"
+        />
         <div class="hero-label text-xs text-tertiary">Wicked Problem {{ String(challenge?.id).padStart(2, '0') }}</div>
         <h1 class="hero-title">{{ challenge?.title }}</h1>
         <p class="hero-description text-lg text-secondary">{{ challenge?.description }}</p>
@@ -39,13 +40,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useChallenges } from '@/composables/useChallenges'
 import { usePatterns } from '@/composables/usePatterns'
 import { useSeo } from '@/composables/useSeo'
 import ChallengeContent from '@/components/full-challenge/ChallengeContent.vue'
-import { ModalBackButton } from '@/components'
+import { HeroBackdrop, ModalBackButton } from '@/components'
+import { usePinnedHero } from '@/composables/usePinnedHero'
 
 interface Props {
   challengeData?: any
@@ -55,6 +57,10 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   isModal: false
 })
+
+// The hero holds while the page slides over it; not in the modal, which scrolls on its own.
+const hero = ref<HTMLElement | null>(null)
+usePinnedHero(hero, () => !props.isModal)
 
 const { challenges: allChallenges } = useChallenges()
 const { patterns: allPatterns } = usePatterns()
@@ -92,15 +98,23 @@ const navigateToPattern = (title: string) => {
 }
 
 .challenge-hero {
-  padding: 6rem var(--container-padding) 4rem;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.08);
+  min-height: var(--hero-min);
+  padding: 12rem var(--container-padding) 6rem;
   position: relative;
+  overflow: hidden;
 }
 
 .challenge-hero .container {
+  position: relative;
+  z-index: 1;
   max-width: 900px;
   margin: 0 auto;
   padding: 0;
+}
+
+/* In the copy block, so it lifts and fades with the rest and shares its left edge */
+.hero-back {
+  margin-bottom: 3rem;
 }
 
 .hero-label {
@@ -198,7 +212,7 @@ const navigateToPattern = (title: string) => {
 }
 
 @media (max-width: 768px) {
-  .challenge-hero { padding: 4rem var(--container-padding) 3rem; }
+  .challenge-hero { padding: 10rem var(--container-padding) 4rem; }
   .hero-title { font-size: 2rem; }
   .cta-section { padding: 4rem var(--container-padding); }
   .cta-title { font-size: 1.5rem; }
