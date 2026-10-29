@@ -10,7 +10,7 @@
         :dim="dim"
         :blur="blur"
         :soft="theme !== 'hero' || props.b > 0.2"
-        :still="still"
+        :still="still && theme === 'hero'"
         :cards="cardsOn"
         :hold="pinned"
         :avoid="avoid"
@@ -19,7 +19,20 @@
       />
     </div>
     <PatternCard :pattern="cardsOn ? pinnedPattern : null" :variant="variant" :locate="locate" @close="pinned = null" />
-    <p class="stage__hint" :class="{ 'is-on': hintOn }">Rest on a pattern, or click it, to see where it has worked.</p>
+    <p class="stage__hint" :class="{ 'is-on': hintOn }">
+      {{ touch ? 'Tap a pattern to see where it has worked. Drag to turn the globe.' : 'Rest on a pattern, or click it, to see where it has worked.' }}
+    </p>
+    <p class="stage__about stage__about--top" :class="{ 'is-on': wholeOn && beat === 1 }">A pattern is one proven move for a small town.</p>
+    <p class="stage__about stage__about--mid" :class="{ 'is-on': wholeOn && beat === 2 }">
+      The problem it answers, what it takes, and the places where it has already worked. Fifty of them, one dot each.
+    </p>
+    <div class="stage__rail" :class="{ 'is-on': railOn, 'is-near': h > 0.8 }" aria-hidden="true">
+      <span class="stage__rail-track">
+        <span class="stage__rail-fill" :style="{ transform: `scale(var(--sx, 1), var(--sy, 1))`, '--sx': railX, '--sy': railY }" />
+        <span class="stage__rail-dot" :style="{ '--h': h.toFixed(3) }" />
+      </span>
+      <span class="stage__rail-word">{{ h > 0.8 ? 'Nearly' : 'Scroll' }}</span>
+    </div>
   </div>
 </template>
 
@@ -42,7 +55,12 @@ import { allPatterns } from '@/utils/data/patterns'
  */
 export type StageTheme = 'hero' | 'what' | 'how' | 'proof' | 'off'
 
-const props = withDefaults(defineProps<{ theme: StageTheme; p: number; b: number; still?: boolean }>(), { p: 0, b: 0, still: false })
+const props = withDefaults(defineProps<{ theme: StageTheme; p: number; b: number; h?: number; still?: boolean }>(), {
+  p: 0,
+  b: 0,
+  h: 0,
+  still: false
+})
 const emit = defineEmits<{ hover: [id: number | null] }>()
 
 // The horizon: the radius is a fraction of the viewport's short side and the
@@ -72,6 +90,7 @@ function restPlace() {
 }
 function measureNav() {
   navH = document.querySelector<HTMLElement>('.navbar')?.offsetHeight ?? 0
+  phone.value = window.innerWidth < 768
 }
 
 const place = ref<SpherePlace>({ cx: 0.5, cy: 3, r: R, pcx: 0.5, pcy: 3, pr: PR })
@@ -84,7 +103,7 @@ const avoid = computed(() =>
   props.theme !== 'hero'
     ? []
     : cur.p > 0.55
-      ? ['.navbar', '.beta-banner', '.pcard', '.stage__hint', '.what .panel__title', '.what .panel__lede', '.what .facets']
+      ? ['.navbar', '.beta-banner', '.pcard', '.stage__hint', '.stage__about', '.stage__rail', '.what .panel__title', '.what .panel__lede', '.what .facets']
       : ['.navbar', '.horizon__copy', '.horizon__foot', '.beta-banner', '.pcard']
 )
 
@@ -96,7 +115,24 @@ const pinnedPattern = computed(() => (pinned.value === null ? null : (allPattern
 // cards while the globe is the subject; the whole story once it is whole
 const cardsOn = computed(() => props.theme === 'hero' && props.b < 0.2)
 const variant = computed<'mini' | 'full'>(() => (props.p > 0.85 ? 'full' : 'mini'))
-const hintOn = computed(() => cardsOn.value && props.p > 0.9 && props.b < 0.1 && pinned.value === null)
+// while the globe is whole: a word about what a pattern is, and a rail that
+// fills as the hold runs out, so the blur that follows is never a surprise
+const wholeOn = computed(() => cardsOn.value && props.p > 0.9 && props.b < 0.1)
+// three beats down the left edge, once the globe is whole: a line under the
+// bar, a line halfway down, then the instruction at the foot, which stays.
+// Tied to the scroll, not a clock: each beat is a third of the hold (`h`), so
+// the lines come and go forwards and backwards with the page.
+const beat = computed(() => (props.h < 0.34 ? 1 : props.h < 0.67 ? 2 : 3))
+const hintOn = computed(() => wholeOn.value && beat.value === 3 && pinned.value === null)
+// without a pointer to rest, the word is about tapping and turning
+const touch = ref(false)
+const h = computed(() => props.h)
+// the rail stands on wide screens and lies down on phones, where the card is
+// a sheet over the foot and the rail steps aside with the hint
+const phone = ref(false)
+const railOn = computed(() => wholeOn.value && !(phone.value && pinned.value !== null))
+const railX = computed(() => (phone.value ? h.value : 1))
+const railY = computed(() => (phone.value ? 1 : h.value))
 const locate = (id: number) => sphere.value?.locate(id) ?? null
 const onSelect = (id: number | null) => {
   pinned.value = id
@@ -180,6 +216,7 @@ const onResize = () => {
 }
 onMounted(() => {
   reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  touch.value = window.matchMedia('(hover: none)').matches
   measureNav()
   window.addEventListener('resize', onResize, { passive: true })
   wake()
@@ -252,11 +289,130 @@ onBeforeUnmount(() => {
   transform: none;
   transition-delay: 0.6s;
 }
+/* what a pattern is, in the hint's voice, down the same left edge: under
+   the bar, then halfway, each fading out as the next comes in below it */
+.stage__about {
+  position: absolute;
+  left: var(--container-padding);
+  max-width: 17rem;
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.6;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  /* narrative, not helper: it carries the voice, so it carries the colour */
+  color: var(--color-accent-warm);
+  opacity: 0;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  pointer-events: none;
+}
+.stage__about--top {
+  top: 7rem;
+  transform: translateY(6px);
+}
+.stage__about--mid {
+  top: 50%;
+  transform: translateY(calc(-50% + 6px));
+}
+.stage__about.is-on {
+  opacity: 1;
+  transition: opacity 0.9s ease 0.6s, transform 0.9s ease 0.6s;
+}
+.stage__about--top.is-on {
+  transform: none;
+}
+.stage__about--mid.is-on {
+  transform: translateY(-50%);
+}
+/* the rail: a hairline that fills with the hold; full means the panel is about to come up */
+.stage__rail {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  pointer-events: none;
+}
+.stage__rail.is-on {
+  opacity: 1;
+  transition-delay: 0.6s;
+}
+.stage__rail-track {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 8rem;
+  background: var(--hairline-strong);
+}
+.stage__rail-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-text-primary);
+  transform-origin: top left;
+  transition: transform 0.25s ease-out, background 0.6s ease;
+}
+.stage__rail-dot {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--h, 0) * 100%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-text-primary);
+  transform: translate(-50%, -50%);
+  transition: top 0.25s ease-out, background 0.6s ease;
+}
+.is-near .stage__rail-fill,
+.is-near .stage__rail-dot {
+  background: var(--color-accent-warm);
+}
+.stage__rail-word {
+  font-size: 0.56rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  writing-mode: vertical-rl;
+}
+/* phones: the hint above the beta banner, the rail lying across above it, the word about patterns under the bar */
 @media (max-width: 767px) {
   .stage__hint {
-    bottom: 1.5rem;
-    padding: 0 var(--container-padding);
+    bottom: 6.5rem;
+    max-width: 14rem;
     font-size: 0.6rem;
+  }
+  .stage__about {
+    max-width: 16rem;
+    font-size: 0.6rem;
+  }
+  .stage__about--top {
+    top: 5.5rem;
+  }
+  .stage__rail {
+    right: var(--container-padding);
+    left: var(--container-padding);
+    top: auto;
+    bottom: 9.5rem;
+    transform: none;
+    flex-direction: row;
+    gap: 0.6rem;
+  }
+  .stage__rail-track {
+    width: 100%;
+    height: 1px;
+    flex: 1 1 auto;
+  }
+  .stage__rail-dot {
+    top: 50%;
+    left: calc(var(--h, 0) * 100%);
+    transition: left 0.25s ease-out, background 0.6s ease;
+  }
+  .stage__rail-word {
+    writing-mode: horizontal-tb;
   }
 }
 </style>

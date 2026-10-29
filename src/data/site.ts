@@ -55,21 +55,21 @@ export const content = reactive({
   },
 
   /**
-   * The shop's presale band. Split into single-run strings — the paragraph
-   * that used to wrap an inline <a> could not be bound by the editor kit,
-   * which matches whole elements.
+   * The shop's opening band: the book, now on sale. Single-run strings, so
+   * the editor kit can bind each one as a whole element. The presale (and its
+   * $5 to Emergent Campus) ended in autumn 2026; these keys replaced the
+   * `presale*` ones so no published edit of the old copy can come back.
    */
   shop: {
-    presaleEyebrow: 'About the Presale',
-    presaleHeadLead: '$5 from every presale purchase goes to',
-    presaleHeadLink: 'Emergent Campus',
-    presaleBody:
-      'Your purchase supports rural programs and community-led revitalization work — funding the ongoing development of rural community tools, workshops, internships, and resources.',
-    presaleThanks: 'Thank you for your support.',
-    presaleShipsLabel: 'Ships',
-    presaleShipsValue: 'End of August',
-    presaleGivesLabel: 'Gives Back',
-    presaleGivesValue: '$5 per order to Emergent Campus',
+    bookEyebrow: 'About the book',
+    bookHeadline: 'The book is in print, and shipping now.',
+    bookBody:
+      'Fifty patterns for rural places, each drawn from a town where it worked, with the method for putting them together. Your purchase funds the ongoing development of rural community tools, workshops, internships, and resources.',
+    bookThanks: 'Thank you for your support.',
+    bookShipsLabel: 'Ships',
+    bookShipsValue: 'Now, from our store',
+    bookCheckoutLabel: 'Checkout',
+    bookCheckoutValue: 'Secure, on our store',
   },
 
   /**

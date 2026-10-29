@@ -1,22 +1,22 @@
 <template>
   <section class="panel proof" aria-labelledby="proof-title">
-    <div class="panel__in">
+    <div class="panel__in" v-reveal>
       <div class="proof__head">
         <h2 id="proof-title" class="panel__title">It is already happening.</h2>
-        <p class="panel__lede">
+        <p class="panel__lede fade" style="--i: 0">
           Every pattern in the library comes from somewhere it worked. These are a few of the towns, and the first one
           to run the whole method in a day.
         </p>
       </div>
       <ol class="ledger">
-        <li v-for="s in stories" :key="s.id">
+        <li v-for="(s, i) in stories" :key="s.id" class="fade" :style="{ '--i': i + 1 }">
           <router-link :to="`/stories/${s.id}`" class="row">
             <span class="row__place">{{ s.location }}</span>
             <span class="row__title">{{ s.title }}</span>
             <span class="row__arrow" aria-hidden="true">→</span>
           </router-link>
         </li>
-        <li>
+        <li class="fade" :style="{ '--i': stories.length + 1 }">
           <router-link to="/hackathon" class="row row--next">
             <span class="row__place">Cañon City, Colorado</span>
             <span class="row__title">Community Solution Sprint <span class="row__when">Nov 7, 2026</span></span>
@@ -24,13 +24,14 @@
           </router-link>
         </li>
       </ol>
-      <router-link to="/stories" class="proof__all">All the stories</router-link>
+      <router-link to="/stories" class="proof__all fade" :style="{ '--i': stories.length + 2 }">All the stories</router-link>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { vReveal } from '@/directives/reveal'
 import { useStories } from '@/composables/useStories'
 import { allStories } from '@/utils/data/stories'
 

@@ -1596,16 +1596,19 @@ async function combine() {
   phase.value = 'combine'
   hovered.value = null
 
+  // each line stays long enough to be read, and the last one is reached
+  // before the pitch can arrive, so none is taken away mid-sentence
+  const LINE_MS = 2200
   const lines = [...ps.map((p) => `Reading ${p.title}`), 'Writing the pitch', 'Writing next year’s front page']
   let li = 0
   combineLine.value = lines[0]!
   const lineTimer = setInterval(() => {
     li = Math.min(li + 1, lines.length - 1)
     combineLine.value = lines[li]!
-  }, 1100)
+  }, LINE_MS)
 
   const fallback = localBrief(c, ps)
-  const minimum = wait(3500 + ps.length * 1100)
+  const minimum = wait(LINE_MS * lines.length)
   let result: Brief = fallback
   try {
     const timeout = wait(24000).then(() => {
@@ -2129,7 +2132,10 @@ onBeforeUnmount(() => {
           <section v-else-if="phase === 'combine'" key="combine" class="act act--combine">
             <div class="combine">
               <p class="eyebrow">PAL</p>
-              <p class="combine-line" role="status">{{ combineLine }}<span class="dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></p>
+              <p class="combine-line" role="status">
+                <Transition name="cline" mode="out-in"><span :key="combineLine" class="combine-line__text">{{ combineLine }}</span></Transition>
+                <span class="dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>
+              </p>
             </div>
           </section>
 
@@ -3232,6 +3238,24 @@ onBeforeUnmount(() => {
   font-size: clamp(1.4rem, 1rem + 1.6vw, 2.4rem);
   letter-spacing: -0.02em;
 }
+.combine-line__text {
+  display: inline-block;
+}
+.cline-enter-active {
+  transition: opacity 0.5s ease, filter 0.5s ease, transform 0.6s var(--ease-slow);
+}
+.cline-leave-active {
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+.cline-enter-from {
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(0.2em);
+}
+.cline-leave-to {
+  opacity: 0;
+  filter: blur(6px);
+}
 .dots i {
   display: inline-block;
   animation: dot 1.4s ease-in-out infinite;
@@ -3363,11 +3387,14 @@ onBeforeUnmount(() => {
     justify-content: flex-end;
     align-items: stretch;
   }
+  /* the panel may take most of the screen, so a problem or a pattern reads
+     whole; the constellation keeps the top */
   .panel {
     width: 100%;
     transform-origin: center bottom;
-    max-height: 50vh;
-    max-height: 50svh;
+    max-height: min(72vh, calc(100vh - var(--hk-chrome, 64px) - 6rem));
+    max-height: min(72svh, calc(100svh - var(--hk-chrome, 64px) - 6rem));
+    padding: 1.4rem 1.3rem 1.2rem;
   }
   .panel--ideas {
     overflow-y: auto;

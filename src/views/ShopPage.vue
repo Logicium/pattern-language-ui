@@ -4,40 +4,32 @@
     <PageHero
       label="Shop"
       title="The Collection"
-      subtitle="The methodology behind Pattern Language — a book and two decks,<br>in print, in your hands, on your table."
+      subtitle="The methodology behind Pattern Language: a book and two decks,<br>in print, in your hands, on your table."
     />
 
     <section class="shop-body">
       <div class="container">
-        <!-- ─────────────── Presale: editorial band ─────────────── -->
-        <div class="presale-band">
-          <div class="presale-statement">
-            <span class="presale-eyebrow">
+        <!-- ─────────────── The book, on sale: editorial band ─────────────── -->
+        <div class="about-band">
+          <div class="about-statement">
+            <span class="about-eyebrow">
               <span class="accent-mark" data-accent="1" aria-hidden="true"></span>
-              <span>{{ shop.presaleEyebrow }}</span>
+              <span>{{ shop.bookEyebrow }}</span>
             </span>
-            <p class="presale-headline">
-              <span>{{ shop.presaleHeadLead }}</span>
-              <a
-                href="https://emergentcampus.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="presale-link"
-              >{{ shop.presaleHeadLink }}</a>.
-            </p>
+            <p class="about-headline">{{ shop.bookHeadline }}</p>
           </div>
 
-          <div class="presale-details">
-            <p class="text-secondary">{{ shop.presaleBody }}</p>
-            <p class="text-secondary">{{ shop.presaleThanks }}</p>
-            <dl class="presale-facts">
+          <div class="about-details">
+            <p class="text-secondary">{{ shop.bookBody }}</p>
+            <p class="text-secondary">{{ shop.bookThanks }}</p>
+            <dl class="about-facts">
               <div class="fact-row">
-                <dt>{{ shop.presaleShipsLabel }}</dt>
-                <dd>{{ shop.presaleShipsValue }}</dd>
+                <dt>{{ shop.bookShipsLabel }}</dt>
+                <dd>{{ shop.bookShipsValue }}</dd>
               </div>
               <div class="fact-row">
-                <dt>{{ shop.presaleGivesLabel }}</dt>
-                <dd>{{ shop.presaleGivesValue }}</dd>
+                <dt>{{ shop.bookCheckoutLabel }}</dt>
+                <dd>{{ shop.bookCheckoutValue }}</dd>
               </div>
             </dl>
           </div>
@@ -166,11 +158,7 @@
             <dl class="preview-facts">
               <div class="fact-row">
                 <dt>Ships</dt>
-                <dd>End of August</dd>
-              </div>
-              <div class="fact-row">
-                <dt>Gives Back</dt>
-                <dd>$5 per order to Emergent Campus</dd>
+                <dd>Now, from our store</dd>
               </div>
               <div class="fact-row">
                 <dt>Checkout</dt>
@@ -184,7 +172,7 @@
               rel="noopener noreferrer"
               class="preview-buy"
             >
-              {{ previewItem.buyLabel }}<template v-if="products[previewItem.id]?.price"> — {{ products[previewItem.id]?.price }}</template>
+              {{ previewItem.buyLabel }}<template v-if="products[previewItem.id]?.price"> · {{ products[previewItem.id]?.price }}</template>
               <span class="buy-arrow">→</span>
             </a>
           </div>
@@ -260,14 +248,14 @@ const items = [
     id: PRODUCT_IDS.facilitationDeck,
     label: 'The Facilitation Deck',
     fallbackTitle: 'The Facilitation Deck',
-    blurb: 'Prompt cards that turn the patterns into conversation — made for the workshop table.',
+    blurb: 'Prompt cards that turn the patterns into conversation, made for the workshop table.',
     buyLabel: 'Buy the deck',
   },
   {
     id: PRODUCT_IDS.gameOfValues,
     label: 'Game of Values',
     fallbackTitle: 'The Game of Values Deck',
-    blurb: '64 original Arna Miller artworks meet the Game of Values — a self-reflection deck for surfacing what really drives your choices, solo or in a group.',
+    blurb: '64 original Arna Miller artworks meet the Game of Values, a self-reflection deck for surfacing what really drives your choices, solo or in a group.',
     buyLabel: 'Buy the deck',
   },
 ]
@@ -383,8 +371,8 @@ onMounted(async () => {
 [data-accent="2"] .accent-mark, .accent-mark[data-accent="2"] { background: var(--color-accent-2); }
 [data-accent="3"] .accent-mark, .accent-mark[data-accent="3"] { background: var(--color-accent-3); }
 
-/* ─────────────── Presale: editorial band ─────────────── */
-.presale-band {
+/* ─────────────── The book, on sale: editorial band ─────────────── */
+.about-band {
   display: grid;
   grid-template-columns: 6fr 5fr;
   gap: 5rem;
@@ -393,7 +381,7 @@ onMounted(async () => {
   border-bottom: 1px solid var(--hairline);
 }
 
-.presale-eyebrow {
+.about-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -404,7 +392,7 @@ onMounted(async () => {
   margin-bottom: 1.75rem;
 }
 
-.presale-headline {
+.about-headline {
   font-size: 2.25rem;
   font-weight: var(--font-weight-light);
   letter-spacing: -0.02em;
@@ -412,13 +400,13 @@ onMounted(async () => {
   margin: 0;
 }
 
-.presale-details p {
+.about-details p {
   font-size: 0.9375rem;
   line-height: 1.8;
   margin: 0 0 1.25rem;
 }
 
-.presale-facts {
+.about-facts {
   margin: 2rem 0 0;
   border-top: 1px solid var(--hairline);
 }
@@ -447,16 +435,6 @@ onMounted(async () => {
   text-align: right;
   color: var(--color-text-primary);
 }
-
-.presale-link {
-  color: var(--color-text-primary);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.3);
-  transition: border-color var(--transition-fast);
-  white-space: nowrap;
-}
-
-.presale-link:hover { border-bottom-color: var(--color-text-primary); }
 
 /* ─────────────── Card grid ─────────────── */
 .card-grid {
@@ -764,7 +742,7 @@ onMounted(async () => {
 
 /* ─────────────── Responsive ─────────────── */
 @media (max-width: 1024px) {
-  .presale-band {
+  .about-band {
     grid-template-columns: 1fr;
     gap: 2.5rem;
   }
@@ -780,7 +758,7 @@ onMounted(async () => {
 
   .shop-body { padding-top: 4rem; }
 
-  .presale-headline { font-size: 1.75rem; }
+  .about-headline { font-size: 1.75rem; }
 
   .preview-panel { padding: 1.5rem 1.75rem 4rem; }
   .preview-layout { grid-template-columns: 1fr; gap: 2.5rem; }

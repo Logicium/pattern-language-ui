@@ -508,7 +508,7 @@ function onPointerMove(e: PointerEvent) {
     const dy = e.clientY - pointer.lastY
     pointer.lastX = e.clientX
     pointer.lastY = e.clientY
-    if (Math.hypot(e.clientX - pointer.downX, e.clientY - pointer.downY) > 4) pointer.moved = true
+    if (Math.hypot(e.clientX - pointer.downX, e.clientY - pointer.downY) > (e.pointerType === 'touch' ? 7 : 4)) pointer.moved = true
     const k = 1 / metrics.r
     spin.vx = dy * k
     spin.vy = dx * k
@@ -518,13 +518,22 @@ function onPointerMove(e: PointerEvent) {
     globe.quaternion.premultiply(qTmp)
   }
 }
+// A finger turns the ball too: the host lets vertical pans through to the
+// page (touch-action), so a sideways drag spins and an up-and-down one scrolls;
+// when the browser takes a touch for scrolling it cancels the pointer, which
+// ends the drag without a tap.
 function onPointerDown(e: PointerEvent) {
-  if (e.button !== 0 || e.pointerType === 'touch') return
+  if (e.button !== 0 && e.pointerType !== 'touch') return
   drag.value.on = true
   pointer.moved = false
   pointer.downX = pointer.lastX = e.clientX
   pointer.downY = pointer.lastY = e.clientY
   spin.vx = spin.vy = 0
+  if (e.pointerType === 'touch' && host.value) {
+    const rect = host.value.getBoundingClientRect()
+    pointer.x = e.clientX - rect.left
+    pointer.y = e.clientY - rect.top
+  }
 }
 function onPointerUp(e: PointerEvent) {
   if (!drag.value.on) return
@@ -537,6 +546,13 @@ function onPointerUp(e: PointerEvent) {
     if (i !== null) open(nodes[i]!.id)
     else if (props.cards) emit('select', null) // a click on nothing lets the card go
   }
+  // a finger lifts clean away: nothing stays hovered, so no ring starts drawing
+  if (e.pointerType === 'touch') pointer.x = pointer.y = -1
+}
+function onPointerCancel() {
+  pointer.x = pointer.y = -1
+  pointer.moved = true
+  drag.value.on = false
 }
 function onPointerLeave() {
   pointer.x = pointer.y = -1
@@ -702,6 +718,7 @@ onMounted(() => {
   el.addEventListener('pointermove', onPointerMove)
   el.addEventListener('pointerdown', onPointerDown)
   el.addEventListener('pointerup', onPointerUp)
+  el.addEventListener('pointercancel', onPointerCancel)
   el.addEventListener('pointerleave', onPointerLeave)
   ready.value = true
   start()
@@ -719,6 +736,7 @@ onBeforeUnmount(() => {
     el.removeEventListener('pointermove', onPointerMove)
     el.removeEventListener('pointerdown', onPointerDown)
     el.removeEventListener('pointerup', onPointerUp)
+    el.removeEventListener('pointercancel', onPointerCancel)
     el.removeEventListener('pointerleave', onPointerLeave)
   }
   disposables.forEach((d) => d.dispose())

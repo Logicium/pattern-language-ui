@@ -1,15 +1,15 @@
 <template>
   <section class="panel how" aria-labelledby="how-title">
-    <div class="panel__in">
+    <div class="panel__in" v-reveal>
       <h2 id="how-title" class="panel__title">From a problem to a plan in one sitting.</h2>
       <ol class="steps">
-        <li v-for="s in steps" :key="s.num" class="step">
+        <li v-for="(s, i) in steps" :key="s.num" class="step fade" :style="{ '--i': i }">
           <span class="step__num">{{ s.num }}</span>
           <h3 class="step__name">{{ s.name }}</h3>
           <p class="step__text">{{ s.text }}</p>
         </li>
       </ol>
-      <router-link to="/demo" class="how__go">
+      <router-link to="/demo" class="how__go fade" style="--i: 3">
         Try it with your town
         <span class="how__arrow" aria-hidden="true">→</span>
       </router-link>
@@ -18,6 +18,8 @@
 </template>
 
 <script setup lang="ts">
+import { vReveal } from '@/directives/reveal'
+
 /** The home page's third panel: the method, in three moves. */
 const steps = [
   {

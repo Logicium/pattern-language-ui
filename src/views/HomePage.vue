@@ -1,7 +1,7 @@
 <template>
   <div class="home-page">
     <template v-if="variant === 'horizon'">
-      <HomeStage :theme="theme" :p="p" :b="b" :still="scrolling" @hover="onHover" />
+      <HomeStage :theme="theme" :p="p" :b="b" :h="h" :still="scrolling" @hover="onHover" />
       <div class="home-flow">
         <div data-theme="hero"><HeroHorizon :p="p" :hovered="hovered" /></div>
         <div data-theme="what"><WhatSection /></div>
@@ -64,6 +64,9 @@ const theme = ref<StageTheme>('hero')
 // the pinned hero. b: the first panel's arrival, which takes the globe out of focus.
 const p = ref(0)
 const b = ref(0)
+// h: how far through the hold, the stretch where the globe is whole, before
+// the first panel starts up and takes it out of focus
+const h = ref(0)
 // the globe holds its turning while the page scrolls, and for a beat after
 const scrolling = ref(false)
 let scrollTimer = 0
@@ -80,6 +83,9 @@ const onScroll = () => {
   if (!firstPanel) firstPanel = document.querySelector<HTMLElement>('.home-flow [data-theme="what"]')
   const top = firstPanel ? firstPanel.getBoundingClientRect().top : vh
   b.value = Math.min(1, Math.max(0, (vh - top) / (vh * 0.6)))
+  const holdStart = vh * 0.7
+  const holdEnd = top + window.scrollY - vh
+  h.value = holdEnd > holdStart ? Math.min(1, Math.max(0, (window.scrollY - holdStart) / (holdEnd - holdStart))) : 1
   scrolling.value = true
   window.clearTimeout(scrollTimer)
   scrollTimer = window.setTimeout(() => (scrolling.value = false), 600)
@@ -122,13 +128,14 @@ onBeforeUnmount(() => {
   position: relative;
   z-index: 1;
 }
-/* the hero holds for most of a screen's scrolling, so the globe has settled before the first panel comes up */
+/* the hero holds for a screen's scrolling: the globe is whole after 0.7 of a
+   screen, then stays whole for a while before the first panel comes up */
 .home-flow > [data-theme='hero'] {
-  height: 175vh;
+  height: 220vh;
 }
 @media (max-width: 767px) {
   .home-flow > [data-theme='hero'] {
-    height: 150svh;
+    height: 230svh;
   }
 }
 /* the flow lets the pointer through to the globe in the hero; the panels and the hero's links take it back */
