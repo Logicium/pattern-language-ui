@@ -31,7 +31,8 @@
       </div>
       <div class="footer-bottom">
         <span class="text-xs text-tertiary">© 2026 PatternLanguage.ai</span>
-        <span class="text-xs text-tertiary">Inspired by Christopher Alexander & Emergent Campus</span>
+        <span class="text-xs text-tertiary">Inspired by Christopher Alexander and Emergent Campus</span>
+        <span class="text-xs text-tertiary">Site by Apotome Labs, Trinidad, Colorado</span>
       </div>
     </div>
   </footer>

@@ -1,5 +1,5 @@
 <template>
-  <section class="cta-section" aria-labelledby="cta-title">
+  <section class="cta-section" data-nav="dark" aria-labelledby="cta-title">
     <div class="cta-divider top"></div>
 
     <div class="ribbon-bg" aria-hidden="true">

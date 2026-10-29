@@ -1,5 +1,9 @@
 <template>
-  <nav class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
+  <nav
+    ref="bar"
+    class="navbar"
+    :class="{ 'navbar--scrolled': isScrolled, 'navbar--on-dark': onDark && !isMobileMenuOpen }"
+  >
     <div class="container navbar-container">
       <span class="brand">
         <BrandLogo to="/" word="PATTERN LANGUAGE.AI" :size="40" word-size="0.85rem" class="logo" />
@@ -89,13 +93,53 @@ const onScroll = () => {
   isScrolled.value = window.scrollY > 10
 }
 
+/* ---- dark ground: when any block marked `data-nav="dark"` sits under the bar,
+   the bar's text goes light. An observer whose root is only the bar's own strip
+   of the viewport answers that; the DOM is re-read when the page changes, since
+   those blocks come and go with routes and `v-if`s. */
+const bar = ref<HTMLElement | null>(null)
+const onDark = ref(false)
+const under = new Set<Element>()
+let io: IntersectionObserver | null = null
+let mo: MutationObserver | null = null
+let rescan = 0
+
+const watchGround = () => {
+  io?.disconnect()
+  under.clear()
+  const h = bar.value?.offsetHeight || 68
+  io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) (e.isIntersecting ? under.add(e.target) : under.delete(e.target))
+      onDark.value = under.size > 0
+    },
+    { rootMargin: `0px 0px -${Math.max(0, window.innerHeight - h)}px 0px`, threshold: 0 }
+  )
+  const ground = document.querySelectorAll('[data-nav="dark"]')
+  ground.forEach((el) => io!.observe(el))
+  // the observer answers on the next frame; only a page with no dark ground is settled now
+  if (!ground.length) onDark.value = false
+}
+const scheduleScan = () => {
+  clearTimeout(rescan)
+  rescan = window.setTimeout(watchGround, 120)
+}
+
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', scheduleScan)
   onScroll()
+  watchGround()
+  mo = new MutationObserver(scheduleScan)
+  mo.observe(document.body, { childList: true, subtree: true })
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', scheduleScan)
+  clearTimeout(rescan)
+  io?.disconnect()
+  mo?.disconnect()
 })
 
 const menuItems = [
@@ -223,6 +267,50 @@ const closeMobileMenu = () => {
   background: color-mix(in srgb, var(--color-accent-2) 30%, transparent);
   border-color: transparent;
   color: var(--color-text-primary);
+}
+
+/* ---- over dark ground (a block marked data-nav="dark" is under the bar): the
+   text goes to paper, the scrolled tint goes to ink; the mark keeps its colour */
+.navbar--on-dark {
+  --nav-ink: var(--color-bg-primary);
+  --nav-ink-soft: rgba(253, 251, 247, 0.72);
+}
+
+.navbar--on-dark.navbar--scrolled {
+  background: rgba(27, 27, 27, 0.1);
+  border-bottom-color: rgba(253, 251, 247, 0.12);
+}
+
+.navbar--on-dark .nav-links a {
+  color: var(--nav-ink-soft);
+}
+
+.navbar--on-dark .nav-links a:hover,
+.navbar--on-dark .nav-links a.router-link-active {
+  color: var(--nav-ink);
+}
+
+.navbar--on-dark .nav-links a.btn {
+  color: var(--nav-ink);
+  border-color: var(--nav-ink);
+}
+
+.navbar--on-dark .nav-links a.btn:hover {
+  color: var(--color-bg-dark);
+}
+
+.navbar--on-dark .nav-links a.btn-try {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--color-accent-2) 22%, transparent);
+}
+
+.navbar--on-dark .hamburger span {
+  background: var(--nav-ink);
+}
+
+.navbar--on-dark .beta-chip {
+  color: var(--color-accent-1);
+  border-color: rgba(232, 180, 160, 0.5);
 }
 
 /* Hamburger Menu */

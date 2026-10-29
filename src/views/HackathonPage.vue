@@ -500,7 +500,7 @@ onBeforeUnmount(() => {
         </section>
 
         <!-- 01 why: ink -->
-        <section id="why" class="panel field-ink" data-index="1" style="z-index: 2">
+        <section id="why" class="panel field-ink" data-nav="dark" data-index="1" style="z-index: 2">
           <i class="panel__veil" aria-hidden="true" />
           <div class="panel__in" v-reveal>
             <p class="eyebrow fade" style="--i: 0"><span class="n">01</span><span class="sep">/</span>Why</p>
@@ -625,7 +625,7 @@ onBeforeUnmount(() => {
         </section>
 
         <!-- 06 register: ink -->
-        <section id="register" class="panel field-ink" data-index="6" style="z-index: 7">
+        <section id="register" class="panel field-ink" data-nav="dark" data-index="6" style="z-index: 7">
           <i class="panel__veil" aria-hidden="true" />
           <div class="panel__in two" v-reveal>
             <div class="two__label">
@@ -722,7 +722,7 @@ onBeforeUnmount(() => {
       </section>
 
       <!-- registration alone -->
-      <main v-if="view === 'register'" class="solo field-ink">
+      <main v-if="view === 'register'" class="solo field-ink" data-nav="dark">
         <div class="panel__in two" v-reveal>
           <div class="two__label">
             <p class="eyebrow fade" style="--i: 0">Register</p>
