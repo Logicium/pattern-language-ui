@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <ol class="cta-steps" aria-label="How it works">
+      <ol v-if="steps" class="cta-steps" aria-label="How it works">
         <li
           v-for="(step, i) in content.cta.steps"
           :key="step.num"
@@ -42,6 +42,9 @@
 <script setup lang="ts">
 import { content } from '@/data/site'
 import { defineAsyncComponent } from 'vue'
+
+/** The home page says how it works in its own panel, so it leaves the steps out here. */
+withDefaults(defineProps<{ steps?: boolean }>(), { steps: true })
 
 // Async so three.js stays out of the initial bundle and loads after first paint.
 const RibbonCanvas = defineAsyncComponent(() => import('@/components/RibbonCanvas.vue'))

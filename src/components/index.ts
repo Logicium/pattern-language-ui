@@ -17,7 +17,6 @@ export const RibbonCanvas = defineAsyncComponent(() => import('./RibbonCanvas.vu
 export const LatticeCanvas = defineAsyncComponent(() => import('./hero/LatticeCanvas.vue'))
 export const OrbitCanvas = defineAsyncComponent(() => import('./hero/OrbitCanvas.vue'))
 export { default as HeroBackdrop } from './hero/HeroBackdrop.vue'
-export { default as PatternConstellation } from './PatternConstellation.vue'
 export { default as Pagination } from './Pagination.vue'
 export { default as ConfirmModal } from './ConfirmModal.vue'
 export { default as ErrorModal } from './ErrorModal.vue'

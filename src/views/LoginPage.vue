@@ -73,7 +73,7 @@
                 </button>
                 <p class="text-xs text-tertiary auth-link">
                   Don't have an account? 
-                  <router-link to="/signup" class="link">Sign up</router-link>
+                  <router-link :to="{ path: '/signup', query: $route.query.redirect ? { redirect: $route.query.redirect } : {} }" class="link">Sign up</router-link>
                 </p>
               </div>
             </form>

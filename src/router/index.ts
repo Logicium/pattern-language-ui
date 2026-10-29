@@ -227,6 +227,12 @@ const router = createRouter({
       meta: { requiresAuth: true, noindex: true, seoTitle: 'Admin' }
     },
     {
+      path: '/admin/join',
+      name: 'admin-join',
+      component: () => import('@/views/OrganizerJoinPage.vue'),
+      meta: { noindex: true, seoTitle: 'Join the organizers' }
+    },
+    {
       path: '/dashboard',
       component: DashboardLayout,
       meta: { requiresAuth: true, noindex: true },
@@ -323,7 +329,7 @@ router.beforeEach((to, from, next) => {
 
   // Routes that require authentication
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' })
+    next({ name: 'login', query: { redirect: to.fullPath } })
     return
   }
 

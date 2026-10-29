@@ -2,7 +2,7 @@
   <nav class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
     <div class="container navbar-container">
       <span class="brand">
-        <BrandLogo to="/" word="PATTERN LANGUAGE.AI" :size="65" word-size="1rem" class="logo" />
+        <BrandLogo to="/" word="PATTERN LANGUAGE.AI" :size="40" word-size="0.85rem" class="logo" />
         <router-link to="/beta" class="beta-chip" title="Pattern Language is in beta">beta</router-link>
       </span>
 
@@ -130,19 +130,22 @@ const closeMobileMenu = () => {
   transition: background 0.4s ease, backdrop-filter 0.4s ease, border-bottom-color 0.4s ease;
 }
 
+/* once the page moves: only a blur of whatever is behind, and a hairline across */
 .navbar--scrolled {
-  background: rgba(253, 251, 247, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom-color: rgba(42, 42, 42, 0.08);
+  background: rgba(253, 251, 247, 0.06);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  border-bottom-color: var(--hairline);
 }
 
+/* a slim bar, so the page below has the room */
 .navbar-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
 }
 
 .brand {

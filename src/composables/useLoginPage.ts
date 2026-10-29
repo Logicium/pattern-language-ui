@@ -1,11 +1,15 @@
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { safeRedirect } from '@/utils/redirect'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 export function useLoginPage() {
   const router = useRouter()
+  const route = useRoute()
+  // set by the router guard, or by a page that sends people here to sign in
+  const destination = () => safeRedirect(route.query.redirect)
   const authStore = useAuthStore()
 
   const email = ref('')
@@ -31,7 +35,7 @@ export function useLoginPage() {
     try {
       await authStore.login(email.value, password.value)
       await new Promise(resolve => setTimeout(resolve, 100))
-      await router.push('/dashboard')
+      await router.push(destination())
     } catch (error: any) {
       console.error('Login error:', error)
       errorTitle.value = 'Login Failed'
@@ -60,7 +64,7 @@ export function useLoginPage() {
         if (response.credential) {
           try {
             await authStore.googleLogin(response.credential)
-            await router.push('/dashboard')
+            await router.push(destination())
           } catch (error: any) {
             console.error('Google login error:', error)
             const isNoAccount = error.message?.includes('No account found') || error.message?.includes('sign up')
@@ -92,7 +96,7 @@ export function useLoginPage() {
   }
 
   const handleGoToSignup = () => {
-    router.push('/signup')
+    router.push({ path: '/signup', query: route.query.redirect ? { redirect: destination() } : {} })
   }
 
   return {

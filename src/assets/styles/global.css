@@ -543,3 +543,20 @@ body.no-editor .apotome-editor-host {
 .reference-link {
   overflow-wrap: anywhere;
 }
+
+/* A hero that wants the stage to itself: the nav's links wait until the page scrolls. */
+.navbar .nav-links > a {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+body.nav-quiet .navbar:not(.navbar--scrolled) .nav-links > a:not(.btn) {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+/* the home globe's pattern card is a sheet at the foot on phones, where the hero's scroll cue would be */
+@media (max-width: 767px) {
+  body.orb-card .horizon__foot {
+    opacity: 0 !important;
+  }
+}

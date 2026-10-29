@@ -87,7 +87,7 @@
       </button>
       <p class="text-xs text-tertiary auth-link">
         Already have an account? 
-        <router-link to="/login" class="link">Sign in</router-link>
+        <router-link :to="{ path: '/login', query: $route.query.redirect ? { redirect: $route.query.redirect } : {} }" class="link">Sign in</router-link>
       </p>
     </div>
   </div>

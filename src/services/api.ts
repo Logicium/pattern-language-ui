@@ -571,7 +571,7 @@ export const configApi = {
 }
 
 
-// Admin — organizers only (the backend checks ORGANIZER_USER_IDS).
+// Admin — organizers only (owners in the service's ORGANIZER_IDS, plus anyone who accepted an organizer invite).
 export interface AdminEvent {
   slug: string
   name: string
@@ -619,6 +619,23 @@ export interface AdminSignup {
 }
 export type EventEmailKind = 'received' | 'invite' | 'reminder'
 type ReviewResult = { ok: boolean; error?: string; status?: AdminSignup['status'] }
+export interface AdminOrganizer {
+  /** Null for an owner, who lives in the service's code and can't be removed. */
+  id: number | null
+  status: 'owner' | 'active' | 'pending' | 'expired'
+  email: string
+  name: string | null
+  account: { id: number; name: string; email: string } | null
+  invitedBy: string | null
+  invitedAt: string | null
+  inviteSentAt: string | null
+  acceptedAt: string | null
+  expiresAt: string | null
+}
+export type OrganizerInvitePeek =
+  | { status: 'pending'; invitedBy: string | null; email: string; expiresAt: string | null }
+  | { status: 'expired' | 'used' | 'invalid' }
+type InviteResult = { id: number; emailed: boolean; error?: string }
 
 export const adminApi = {
   me: (): Promise<{ id: number; name: string; email: string }> => authFetch('/admin/me'),
@@ -639,4 +656,23 @@ export const adminApi = {
   decline: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/decline`, { method: 'POST' }),
   reopen: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/reopen`, { method: 'POST' }),
   resend: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/resend`, { method: 'POST' }),
+  organizers: (): Promise<AdminOrganizer[]> => authFetch('/admin/organizers'),
+  inviteOrganizer: (dto: { email: string; name?: string; note?: string }): Promise<InviteResult> =>
+    authFetch('/admin/organizers', { method: 'POST', body: JSON.stringify(dto) }),
+  previewOrganizerInvite: (dto: { name?: string; note?: string }): Promise<{ subject: string; html: string }> =>
+    authFetch('/admin/organizers/preview', { method: 'POST', body: JSON.stringify({ email: 'preview@example.com', ...dto }) }),
+  resendOrganizerInvite: (id: number): Promise<InviteResult> => authFetch(`/admin/organizers/${id}/resend`, { method: 'POST' }),
+  revokeOrganizer: (id: number): Promise<{ ok: boolean }> => authFetch(`/admin/organizers/${id}/revoke`, { method: 'POST' }),
+}
+
+// The invitee's side of an organizer invite (/admin/join).
+export const organizersApi = {
+  peek: async (token: string): Promise<OrganizerInvitePeek> => {
+    const response = await fetch(`${API_URL}/organizers/invite?token=${encodeURIComponent(token)}`)
+    if (response.status === 400) return { status: 'invalid' }
+    if (!response.ok) throw new Error(`Could not check the invite (${response.status})`)
+    return response.json()
+  },
+  accept: (token: string): Promise<{ ok: boolean }> =>
+    authFetch('/organizers/accept', { method: 'POST', body: JSON.stringify({ token }) }),
 }

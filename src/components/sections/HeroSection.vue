@@ -1,7 +1,7 @@
 <template>
   <section class="hero gradient-bg">
     <div class="hero-interactive">
-      <PatternConstellation />
+      <PatternSphere :avoid="['.hero-text', '.hero-description p', '.floating-cta', '.beta-banner']" />
     </div>
     
     <div class="container hero-container">
@@ -34,7 +34,7 @@
 import { onMounted } from 'vue'
 import { useTypingAnimation } from '@/composables/useTypingAnimation'
 import { content } from '@/data/site'
-import { PatternConstellation } from '@/components'
+import PatternSphere from '@/components/PatternSphere.vue'
 
 const { currentTypedText, isTyping, startTypingAnimation } = useTypingAnimation()
 
@@ -54,7 +54,9 @@ onMounted(() => {
   overflow: hidden;
 }
 
+/* the copy sits over the globe; only the copy itself takes the pointer, so the globe stays touchable around it */
 .hero-container {
+  pointer-events: none;
   padding-bottom: 3rem;
   position: relative;
   z-index: 1;
@@ -111,13 +113,16 @@ onMounted(() => {
   line-height: 1.8;
 }
 
+.hero-text,
+.hero-description p,
+.floating-cta {
+  pointer-events: auto;
+}
+
+/* the globe takes the whole hero; it places itself low and to the right */
 .hero-interactive {
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 45%;
+  inset: 0;
   z-index: 0;
 }
 
@@ -177,10 +182,6 @@ onMounted(() => {
 
   .hero-description p {
     line-height: 1.65;
-  }
-
-  .hero-interactive {
-    height: 100%;
   }
 
   .floating-cta {

@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useGuestChatStore } from '@/stores/guestChat'
+import { safeRedirect } from '@/utils/redirect'
 
 export interface SignupFormData {
   firstName: string
@@ -146,7 +147,7 @@ export function useSignupForm() {
       guestChatStore.clear()
 
       await new Promise(resolve => setTimeout(resolve, 100))
-      await router.push('/dashboard')
+      await router.push(safeRedirect(route.query.redirect))
     } catch (error: any) {
       console.error('Signup error:', error)
 
@@ -167,7 +168,7 @@ export function useSignupForm() {
   }
 
   const handleGoToLogin = () => {
-    router.push('/login')
+    router.push({ path: '/login', query: route.query.redirect ? { redirect: safeRedirect(route.query.redirect) } : {} })
   }
 
   return {

@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   adminApi,
   type AdminEvent,
+  type AdminOrganizer,
   type AdminOverview,
   type AdminSignup,
   type AdminUser,
@@ -14,18 +15,26 @@ import {
 /**
  * Pattern Language admin: the numbers and lists organizers need in one
  * place (accounts, event registrations, the ideas board) and the event email
- * controls (preview, test, reminder). Organizers only; the backend decides.
+ * controls (preview, test, reminder), and the organizers themselves, invited
+ * by email. Organizers only; the backend decides.
  */
 useHead({ title: 'Admin' })
 
-type Tab = 'overview' | 'events' | 'people'
+type Tab = 'overview' | 'events' | 'people' | 'organizers'
+// [tab, label, shorter label for phones]
+const TABS: Array<[Tab, string, string]> = [
+  ['overview', 'Overview', 'Overview'],
+  ['events', 'Events & email', 'Events'],
+  ['people', 'People', 'People'],
+  ['organizers', 'Organizers', 'Organizers']
+]
 const route = useRoute()
 const router = useRouter()
-const tab = ref<Tab>((['overview', 'events', 'people'] as Tab[]).includes(route.query.tab as Tab) ? (route.query.tab as Tab) : 'overview')
+const tab = ref<Tab>(TABS.some(([t]) => t === route.query.tab) ? (route.query.tab as Tab) : 'overview')
 watch(tab, (t) => router.replace({ query: { ...route.query, tab: t } }))
 
 const access = ref<'checking' | 'ok' | 'denied'>('checking')
-const me = ref<{ name: string; email: string } | null>(null)
+const me = ref<{ id: number; name: string; email: string } | null>(null)
 const overview = ref<AdminOverview | null>(null)
 const loadError = ref('')
 
@@ -262,6 +271,126 @@ watch(peoplePage, () => void loadPeople())
 watch(tab, (t) => {
   if (t === 'people' && !people.value.length) void loadPeople()
 }, { immediate: true })
+/* ---------------------------------------------------------------- organizers */
+
+const organizers = ref<AdminOrganizer[]>([])
+const orgLoading = ref(false)
+const orgError = ref('')
+const orgBusy = ref<number | null>(null)
+const orgRowNote = ref<Record<number, string>>({})
+const confirmRevoke = ref<number | null>(null)
+const organizerCount = computed(() => organizers.value.filter((o) => o.status === 'owner' || o.status === 'active').length)
+
+const inviteForm = ref({ email: '', name: '', note: '' })
+const inviting = ref(false)
+const inviteMsg = ref('')
+const invitePreview = ref<{ subject: string; html: string } | null>(null)
+const invitePreviewDoc = computed(() =>
+  invitePreview.value?.html.split('https://www.ruralpatternlanguage.com/brand/').join(`${window.location.origin}/brand/`) ?? ''
+)
+const inviteEmailOk = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteForm.value.email.trim()))
+
+const ORG_STATUS: Record<AdminOrganizer['status'], string> = {
+  owner: 'Owner',
+  active: 'Organizer',
+  pending: 'Invited',
+  expired: 'Link expired'
+}
+
+async function loadOrganizers() {
+  orgLoading.value = true
+  orgError.value = ''
+  try {
+    organizers.value = await adminApi.organizers()
+  } catch (e) {
+    orgError.value = e instanceof Error ? e.message : 'Could not load the organizers.'
+  } finally {
+    orgLoading.value = false
+  }
+}
+
+async function loadInvitePreview() {
+  try {
+    invitePreview.value = await adminApi.previewOrganizerInvite({
+      name: inviteForm.value.name.trim() || undefined,
+      note: inviteForm.value.note.trim() || undefined
+    })
+  } catch {
+    // the preview is a convenience; the form works without it
+  }
+}
+let inviteTimer = 0
+watch(
+  () => [inviteForm.value.name, inviteForm.value.note],
+  () => {
+    window.clearTimeout(inviteTimer)
+    inviteTimer = window.setTimeout(() => void loadInvitePreview(), 600)
+  }
+)
+
+async function sendInvite() {
+  if (!inviteEmailOk.value || inviting.value) return
+  inviting.value = true
+  inviteMsg.value = ''
+  const email = inviteForm.value.email.trim()
+  try {
+    const r = await adminApi.inviteOrganizer({
+      email,
+      name: inviteForm.value.name.trim() || undefined,
+      note: inviteForm.value.note.trim() || undefined
+    })
+    inviteMsg.value = r.emailed
+      ? `Invite sent to ${email}. The link works once, for 14 days.`
+      : `The invite is saved, but the email didn’t go out (${r.error ?? 'unknown error'}). Use “Send again” above.`
+    if (r.emailed) inviteForm.value = { email: '', name: '', note: '' }
+    await loadOrganizers()
+  } catch (e) {
+    inviteMsg.value = e instanceof Error ? e.message : 'The invite failed.'
+  } finally {
+    inviting.value = false
+  }
+}
+
+async function resendOrganizer(o: AdminOrganizer) {
+  if (o.id === null) return
+  const id = o.id
+  orgBusy.value = id
+  orgRowNote.value[id] = ''
+  try {
+    const r = await adminApi.resendOrganizerInvite(id)
+    orgRowNote.value[id] = r.emailed ? 'A fresh link is on its way; the old one no longer works.' : `Email failed: ${r.error ?? 'unknown error'}`
+    await loadOrganizers()
+  } catch (e) {
+    orgRowNote.value[id] = e instanceof Error ? e.message : 'Failed'
+  } finally {
+    orgBusy.value = null
+  }
+}
+
+async function revokeOrganizer(o: AdminOrganizer) {
+  if (o.id === null) return
+  const id = o.id
+  if (confirmRevoke.value !== id) {
+    confirmRevoke.value = id
+    return
+  }
+  orgBusy.value = id
+  try {
+    await adminApi.revokeOrganizer(id)
+    confirmRevoke.value = null
+    await loadOrganizers()
+  } catch (e) {
+    orgRowNote.value[id] = e instanceof Error ? e.message : 'Failed'
+  } finally {
+    orgBusy.value = null
+  }
+}
+
+watch(tab, (t) => {
+  if (t !== 'organizers') return
+  if (!organizers.value.length) void loadOrganizers()
+  if (!invitePreview.value) void loadInvitePreview()
+}, { immediate: true })
 </script>
 
 <template>
@@ -277,13 +406,13 @@ watch(tab, (t) => {
 
       <div v-else-if="access === 'denied'" class="denied">
         <p class="denied__line">This page is for Pattern Language organizers.</p>
-        <p class="muted">If you should have access, ask for your account to be added to the organizer list.</p>
+        <p class="muted">If you should have access, ask an organizer to invite you from the Organizers tab.</p>
       </div>
 
       <template v-else>
         <nav class="tabs" role="tablist">
           <button
-            v-for="t in (['overview', 'events', 'people'] as const)"
+            v-for="[t, label, short] in TABS"
             :key="t"
             class="tabs__tab"
             :class="{ 'is-on': tab === t }"
@@ -292,7 +421,7 @@ watch(tab, (t) => {
             type="button"
             @click="tab = t"
           >
-            {{ t === 'overview' ? 'Overview' : t === 'events' ? 'Events & email' : 'People' }}
+            <span class="tabs__long">{{ label }}</span><span class="tabs__short">{{ short }}</span>
           </button>
         </nav>
 
@@ -467,6 +596,89 @@ watch(tab, (t) => {
             </div>
             <p v-else class="muted small">No email is set up for this event.</p>
           </template>
+        </div>
+
+        <!-- organizers -->
+        <div v-else-if="tab === 'organizers'" class="admin-section">
+          <h2 class="h2">Organizers <span class="muted">{{ organizerCount }}</span></h2>
+          <p v-if="orgError" class="err">{{ orgError }}</p>
+          <p v-if="orgLoading && !organizers.length" class="muted">Loading…</p>
+          <ol v-else class="queue">
+            <li v-for="o in organizers" :key="o.id ?? `owner-${o.account?.id}`" class="req" :class="`org--${o.status}`">
+              <div class="req__who">
+                <span v-if="o.account?.name || o.name" class="req__name">{{ o.account?.name || o.name }}</span>
+                <a class="mail" :href="`mailto:${o.account?.email ?? o.email}`">{{ o.account?.email ?? o.email }}</a>
+                <span v-if="o.account && o.account.email.toLowerCase() !== o.email.toLowerCase()" class="muted small">Invited at {{ o.email }}</span>
+              </div>
+              <p class="org__when muted small">
+                <template v-if="o.status === 'owner'">Owner. Set in the service’s code, so it can’t be removed here.</template>
+                <template v-else-if="o.status === 'active'">
+                  Joined {{ fmtStamp(o.acceptedAt) }}<template v-if="o.invitedBy">, invited by {{ o.invitedBy }}</template>.
+                </template>
+                <template v-else>
+                  {{ o.inviteSentAt ? `Invite sent ${fmtStamp(o.inviteSentAt)}` : 'Invite not sent yet' }}<template v-if="o.invitedBy"> by {{ o.invitedBy }}</template>.
+                  {{ o.status === 'expired' ? 'The link has expired.' : `The link works until ${fmtDate(o.expiresAt)}.` }}
+                </template>
+              </p>
+              <div class="req__state">
+                <span class="status" :class="`status--${o.status}`">{{ ORG_STATUS[o.status] }}</span>
+                <span v-if="o.account && o.account.id === me?.id" class="muted small">You</span>
+                <div v-else-if="o.id !== null" class="req__actions">
+                  <button
+                    v-if="o.status === 'pending' || o.status === 'expired'"
+                    class="btn-text"
+                    type="button"
+                    :disabled="orgBusy === o.id"
+                    @click="resendOrganizer(o)"
+                  >
+                    {{ orgBusy === o.id ? 'Sending…' : 'Send again' }}
+                  </button>
+                  <button
+                    class="btn-text"
+                    :class="{ 'btn-text--warn': confirmRevoke === o.id }"
+                    type="button"
+                    :disabled="orgBusy === o.id"
+                    @click="revokeOrganizer(o)"
+                  >
+                    {{
+                      confirmRevoke === o.id
+                        ? o.status === 'active' ? 'Confirm: remove' : 'Confirm: cancel invite'
+                        : o.status === 'active' ? 'Remove' : 'Cancel invite'
+                    }}
+                  </button>
+                  <button v-if="confirmRevoke === o.id" class="btn-text" type="button" @click="confirmRevoke = null">Keep</button>
+                </div>
+                <span v-if="o.id !== null && orgRowNote[o.id]" class="small req__note">{{ orgRowNote[o.id] }}</span>
+              </div>
+            </li>
+          </ol>
+
+          <div class="email">
+            <form class="email__controls" @submit.prevent="sendInvite">
+              <h2 class="h2">Invite an organizer</h2>
+              <p class="muted small">
+                They get an email with a link that works once, for 14 days. When they open it they sign in or create an account, and that account joins the organizers with the same access you have.
+              </p>
+              <label class="lbl" for="org-email">Email</label>
+              <input id="org-email" v-model="inviteForm.email" class="form-input" type="email" autocomplete="off" required maxlength="255" placeholder="name@example.com" />
+              <label class="lbl" for="org-name">Name <span class="muted">(optional)</span></label>
+              <input id="org-name" v-model="inviteForm.name" class="form-input" type="text" autocomplete="off" maxlength="120" placeholder="For the greeting" />
+              <label class="lbl" for="org-note">A note <span class="muted">(optional)</span></label>
+              <textarea id="org-note" v-model="inviteForm.note" class="form-textarea" rows="4" maxlength="2000" placeholder="Why you’d like their help…" />
+              <div class="email__actions">
+                <button class="btn btn-sm" type="submit" :disabled="!inviteEmailOk || inviting">
+                  {{ inviting ? 'Sending…' : 'Send invite' }}
+                </button>
+              </div>
+              <p v-if="inviteMsg" class="email__msg" role="status">{{ inviteMsg }}</p>
+            </form>
+
+            <div class="email__preview">
+              <p class="email__subject"><span class="muted">Subject</span> {{ invitePreview?.subject ?? '…' }}</p>
+              <iframe v-if="invitePreview" class="email__frame" title="Invite preview" :srcdoc="invitePreviewDoc" sandbox="allow-same-origin" />
+              <div v-else class="email__frame email__frame--empty" />
+            </div>
+          </div>
         </div>
 
         <!-- people -->
@@ -942,6 +1154,27 @@ watch(tab, (t) => {
   color: var(--color-text-tertiary);
   font-size: 0.85rem;
 }
+/* organizers */
+.org__when {
+  margin: 0;
+  line-height: 1.55;
+}
+.org--expired .req__who {
+  opacity: 0.6;
+}
+.status--owner,
+.status--active {
+  color: var(--color-text-primary);
+}
+.status--expired {
+  color: var(--color-text-tertiary);
+}
+.btn-text--warn {
+  color: var(--color-accent-warm);
+}
+.email__controls .form-input {
+  width: 100%;
+}
 .pager {
   display: flex;
   align-items: center;
@@ -953,9 +1186,25 @@ watch(tab, (t) => {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.tabs__short {
+  display: none;
+}
 @media (max-width: 640px) {
   .admin {
     padding-top: 6.5rem;
+  }
+  .tabs {
+    gap: 1.1rem;
+  }
+  .tabs__tab {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+  }
+  .tabs__long {
+    display: none;
+  }
+  .tabs__short {
+    display: inline;
   }
   .tile__value {
     font-size: 2.1rem;
