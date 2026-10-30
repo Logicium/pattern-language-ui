@@ -1,13 +1,14 @@
 <template>
-  <div class="pcl" :class="[`pcl--${variant}`, `pcl--${side}`, { 'is-drawn': drawn && !phone }]">
+  <div class="pcl" :class="[`pcl--${variant}`, { 'is-drawn': drawn && !phone }]">
     <!-- the wire from the card to its pattern -->
     <svg class="pcl__wire" aria-hidden="true">
       <path :d="wire" pathLength="1" />
       <circle :cx="node.x" :cy="node.y" r="5.5" />
     </svg>
 
-    <Transition name="pcard" mode="out-in" @after-enter="onEntered">
-      <article v-if="pattern" :key="pattern.id" ref="card" class="pcard" role="dialog" :aria-label="pattern.title">
+    <!-- the side is on the card itself, so a card on its way out keeps its place -->
+    <Transition name="pcard" @after-enter="onEntered">
+      <article v-if="pattern" :key="pattern.id" ref="card" class="pcard" :class="`pcard--${side}`" role="dialog" :aria-label="pattern.title">
         <div class="pcard__in">
           <header class="pcard__head">
             <span class="pcard__num">{{ String(pattern.id).padStart(2, '0') }}</span>
@@ -95,6 +96,27 @@ function onImgError(e: Event) {
 /* ------------------------------------------------------------ the wire */
 
 let frame = 0
+// while one card gives way to the next the wire is cut and held where it was,
+// so it never swings to the new dot before there is a card to run from
+let held = false
+
+/** Where the wire runs now: from the card's near edge, a short run towards the globe, then straight to just short of the dot. */
+function measure(at: { x: number; y: number }) {
+  node.value = { x: at.x, y: at.y }
+  const el = card.value
+  if (!el || phone.value) return
+  const r = el.getBoundingClientRect()
+  const ax = side.value === 'right' ? r.left : r.right
+  const ay = r.top + Math.min(r.height / 2, 44)
+  const ex = side.value === 'right' ? ax - 28 : ax + 28
+  const dx = at.x - ex
+  const dy = at.y - ay
+  const len = Math.hypot(dx, dy) || 1
+  const stop = 9
+  const tx = at.x - (dx / len) * stop
+  const ty = at.y - (dy / len) * stop
+  wire.value = `M${ax.toFixed(1)} ${ay.toFixed(1)}H${ex.toFixed(1)}L${tx.toFixed(1)} ${ty.toFixed(1)}`
+}
 function follow() {
   frame = 0
   const p = props.pattern
@@ -105,26 +127,14 @@ function follow() {
     emit('close')
     return
   }
-  node.value = { x: at.x, y: at.y }
-  const el = card.value
-  if (el && !phone.value) {
-    const r = el.getBoundingClientRect()
-    // out of the card's near edge, a short run towards the globe, then straight
-    // to just short of the dot
-    const ax = side.value === 'right' ? r.left : r.right
-    const ay = r.top + Math.min(r.height / 2, 44)
-    const ex = side.value === 'right' ? ax - 28 : ax + 28
-    const dx = at.x - ex
-    const dy = at.y - ay
-    const len = Math.hypot(dx, dy) || 1
-    const stop = 9
-    const tx = at.x - (dx / len) * stop
-    const ty = at.y - (dy / len) * stop
-    wire.value = `M${ax.toFixed(1)} ${ay.toFixed(1)}H${ex.toFixed(1)}L${tx.toFixed(1)} ${ty.toFixed(1)}`
-  }
+  if (!held) measure(at)
   frame = requestAnimationFrame(follow)
 }
 function onEntered() {
+  held = false
+  const p = props.pattern
+  const at = p && props.locate(p.id)
+  if (at) measure(at)
   drawn.value = true
 }
 
@@ -132,10 +142,8 @@ watch(
   () => props.pattern?.id,
   (id) => {
     drawn.value = false
-    if (id === undefined) {
-      wire.value = ''
-      return
-    }
+    if (id === undefined) return
+    held = true
     // which side the dot is on decides where the card stands; settled once, so
     // it never flips while the globe turns under it
     const at = props.locate(id)
@@ -179,21 +187,27 @@ onBeforeUnmount(() => {
   stroke: var(--color-text-primary);
   stroke-width: 1;
 }
+/* the wire draws out from the card once it has arrived; when the card goes
+   it fades where it is, then resets unseen, ready to draw again */
 .pcl__wire path {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.75, 0.15, 1);
+  opacity: 0;
+  transition: opacity 0.18s ease, stroke-dashoffset 0s linear 0.18s;
 }
 .pcl__wire circle {
   stroke: var(--color-accent-warm);
   opacity: 0;
-  transition: opacity 0.5s ease 0.6s;
+  transition: opacity 0.12s ease;
 }
 .is-drawn .pcl__wire path {
   stroke-dashoffset: 0;
+  opacity: 1;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.75, 0.15, 1), opacity 0.15s ease;
 }
 .is-drawn .pcl__wire circle {
   opacity: 1;
+  transition: opacity 0.5s ease 0.6s;
 }
 
 /* where the card stands */
@@ -202,10 +216,10 @@ onBeforeUnmount(() => {
   width: 17rem;
   pointer-events: auto;
 }
-.pcl--right .pcard {
+.pcard--right {
   right: var(--container-padding);
 }
-.pcl--left .pcard {
+.pcard--left {
   left: var(--container-padding);
 }
 .pcl--mini .pcard {
@@ -225,23 +239,39 @@ onBeforeUnmount(() => {
 }
 
 /* the card arriving: out of a blur, the way PAL's replies do (the fade is on
-   the root, where Vue times the transition; the small rise on the inside) */
+   the root, where Vue times the transition; the small rise on the inside).
+   One card giving way to the next: the old one lets go where it stands, a
+   short settle up and out with no blur (a filter over the frosted panel is
+   what stuttered), and the new one arrives a beat later, so on the same side
+   it reads as one card becoming another and never a blink */
 .pcard-enter-active {
-  transition: opacity 0.55s ease, filter 0.55s ease;
+  transition: opacity 0.5s ease 0.16s, filter 0.5s ease 0.16s;
 }
 .pcard-leave-active {
-  transition: opacity 0.25s ease, filter 0.25s ease;
+  transition: opacity 0.28s cubic-bezier(0.4, 0, 0.7, 0.2);
+  pointer-events: none;
 }
-.pcard-enter-from,
+.pcard-enter-from {
+  opacity: 0;
+  filter: blur(5px);
+}
 .pcard-leave-to {
   opacity: 0;
-  filter: blur(7px);
 }
 .pcard__in {
   transition: transform 0.6s cubic-bezier(0.2, 0.75, 0.15, 1);
 }
+.pcard-enter-active .pcard__in {
+  transition-delay: 0.16s;
+}
 .pcard-enter-from .pcard__in {
-  transform: translateY(8px);
+  transform: translateY(10px);
+}
+.pcard-leave-active .pcard__in {
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.7, 0.2);
+}
+.pcard-leave-to .pcard__in {
+  transform: translateY(-6px);
 }
 
 .pcard__head {
@@ -415,8 +445,8 @@ a.story:hover .story__title {
   .pcl__wire {
     display: none;
   }
-  .pcl--right .pcard,
-  .pcl--left .pcard,
+  .pcard--right,
+  .pcard--left,
   .pcl--mini .pcard,
   .pcl--full .pcard {
     left: var(--container-padding);
@@ -436,7 +466,8 @@ a.story:hover .story__title {
 }
 @media (prefers-reduced-motion: reduce) {
   .pcl__wire path,
-  .pcard-enter-active .pcard__in {
+  .pcard-enter-active .pcard__in,
+  .pcard-leave-active .pcard__in {
     transition: none;
   }
 }

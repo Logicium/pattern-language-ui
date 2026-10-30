@@ -170,6 +170,11 @@ const recipientCount = computed(() => {
   const approved = signups.value.filter((s) => s.status === 'approved')
   return onlyUnreminded.value ? approved.filter((s) => !s.reminderSentAt).length : approved.length
 })
+// approved without an invite: registrations that were approved outside the panel
+// (the workshop's RSVPs, now under the sprint)
+const uninvitedCount = computed(() => signups.value.filter((s) => s.status === 'approved' && !s.inviteSentAt).length)
+const confirmInvites = ref(false)
+const invitingAll = ref(false)
 
 /** Images in the email point at the live site; show this build's copies in the preview. */
 const previewDoc = computed(() =>
@@ -192,6 +197,7 @@ async function loadPreview() {
 watch([emailKind, selectedSlug], () => {
   preview.value = null
   confirmSend.value = false
+  confirmInvites.value = false
   if (tab.value === 'events' && selectedEvent.value?.hasEmail) void loadPreview()
 })
 watch(tab, (t) => {
@@ -238,6 +244,28 @@ async function sendReminders() {
   } finally {
     sending.value = false
     confirmSend.value = false
+  }
+}
+
+async function sendInvites() {
+  if (!selectedSlug.value) return
+  if (!confirmInvites.value) {
+    confirmInvites.value = true
+    return
+  }
+  invitingAll.value = true
+  emailMsg.value = ''
+  try {
+    const r = await adminApi.sendInvites(selectedSlug.value)
+    const failed = r.failed.length ? ` ${r.failed.length} failed: ${r.failed.map((f) => f.email).join(', ')}.` : ''
+    emailMsg.value = `Invite sent to ${r.sent} ${r.sent === 1 ? 'person' : 'people'}.${r.skipped ? ` ${r.skipped} already had one.` : ''}${failed}`
+    await loadSignups()
+    await loadOverview()
+  } catch (e) {
+    emailMsg.value = e instanceof Error ? e.message : 'Sending failed'
+  } finally {
+    invitingAll.value = false
+    confirmInvites.value = false
   }
 }
 
@@ -541,6 +569,9 @@ watch(tab, (t) => {
                 <p class="muted small">
                   Everyone who registers gets the “received” note automatically. Approving someone sends their invite. Send the reminder yourself, a few days before; it goes to approved people only.
                 </p>
+                <p v-if="uninvitedCount" class="muted small">
+                  {{ uninvitedCount }} approved {{ uninvitedCount === 1 ? 'person has' : 'people have' }} not had the invite, such as the workshop RSVPs that moved here. The Invite tab can send it to all of them.
+                </p>
                 <div class="seg" role="tablist">
                   <button class="seg__b" :class="{ 'is-on': emailKind === 'received' }" type="button" @click="emailKind = 'received'">Received</button>
                   <button class="seg__b" :class="{ 'is-on': emailKind === 'invite' }" type="button" @click="emailKind = 'invite'">Invite</button>
@@ -584,6 +615,23 @@ watch(tab, (t) => {
                     }}
                   </button>
                   <button v-if="confirmSend" class="btn-text" type="button" @click="confirmSend = false">Cancel</button>
+                  <button
+                    v-if="emailKind === 'invite'"
+                    class="btn btn-sm"
+                    :class="{ 'btn-confirm': confirmInvites }"
+                    type="button"
+                    :disabled="invitingAll || uninvitedCount === 0"
+                    @click="sendInvites"
+                  >
+                    {{
+                      invitingAll
+                        ? 'Sending…'
+                        : confirmInvites
+                          ? `Confirm: send to ${uninvitedCount}`
+                          : `Send invite to ${uninvitedCount} ${uninvitedCount === 1 ? 'person' : 'people'} without one`
+                    }}
+                  </button>
+                  <button v-if="confirmInvites" class="btn-text" type="button" @click="confirmInvites = false">Cancel</button>
                 </div>
                 <p v-if="emailMsg" class="email__msg" role="status">{{ emailMsg }}</p>
               </div>

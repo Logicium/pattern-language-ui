@@ -134,7 +134,7 @@ const router = createRouter({
       meta: {
         seoTitle: 'Events',
         seoDescription:
-          'Upcoming Pattern Language gatherings — the Cañon City workshop on September 19, live PAL walkthroughs, and Hack Trinidad Forward 2026.'
+          'Upcoming Pattern Language gatherings: the Community Solution Sprint in Cañon City on November 7, live PAL walkthroughs, and Hack Trinidad Forward 2026.'
       }
     },
     {

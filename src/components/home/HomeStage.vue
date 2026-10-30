@@ -22,8 +22,8 @@
     <p class="stage__hint" :class="{ 'is-on': hintOn }">
       {{ touch ? 'Tap a pattern to see where it has worked. Drag to turn the globe.' : 'Rest on a pattern, or click it, to see where it has worked.' }}
     </p>
-    <p class="stage__about stage__about--top" :class="{ 'is-on': wholeOn && beat === 1 }">A pattern is one proven move for a small town.</p>
-    <p class="stage__about stage__about--mid" :class="{ 'is-on': wholeOn && beat === 2 }">
+    <p class="stage__about stage__about--top" :class="{ 'is-on': aboutOn && beat === 1 }">A pattern is one proven move for a small town.</p>
+    <p class="stage__about stage__about--mid" :class="{ 'is-on': aboutOn && beat === 2 }">
       The problem it answers, what it takes, and the places where it has already worked. Fifty of them, one dot each.
     </p>
     <div class="stage__rail" :class="{ 'is-on': railOn, 'is-near': h > 0.8 }" aria-hidden="true">
@@ -124,6 +124,8 @@ const wholeOn = computed(() => cardsOn.value && props.p > 0.9 && props.b < 0.1)
 // the lines come and go forwards and backwards with the page.
 const beat = computed(() => (props.h < 0.34 ? 1 : props.h < 0.67 ? 2 : 3))
 const hintOn = computed(() => wholeOn.value && beat.value === 3 && pinned.value === null)
+// the beats step aside for a card, as the hint does
+const aboutOn = computed(() => wholeOn.value && pinned.value === null)
 // without a pointer to rest, the word is about tapping and turning
 const touch = ref(false)
 const h = computed(() => props.h)
@@ -267,6 +269,15 @@ onBeforeUnmount(() => {
 .stage--off .stage__orb {
   opacity: 0;
 }
+/* the card above the words, always */
+.stage > :deep(.pcl) {
+  z-index: 2;
+}
+.stage__hint,
+.stage__about,
+.stage__rail {
+  z-index: 1;
+}
 /* a word about the globe, once it is whole and nothing is held */
 .stage__hint {
   position: absolute;
@@ -385,12 +396,20 @@ onBeforeUnmount(() => {
     max-width: 14rem;
     font-size: 0.6rem;
   }
+  /* both beats in the room above the globe, one after the other in the same spot */
   .stage__about {
-    max-width: 16rem;
+    right: var(--container-padding);
+    max-width: 20rem;
     font-size: 0.6rem;
   }
-  .stage__about--top {
+  .stage__about--top,
+  .stage__about--mid {
     top: 5.5rem;
+    transform: translateY(6px);
+  }
+  .stage__about--top.is-on,
+  .stage__about--mid.is-on {
+    transform: none;
   }
   .stage__rail {
     right: var(--container-padding);

@@ -618,6 +618,7 @@ export interface AdminSignup {
   reminderSentAt?: string | null
 }
 export type EventEmailKind = 'received' | 'invite' | 'reminder'
+type SendSummary = { sent: number; skipped: number; failed: Array<{ email: string; error: string }> }
 type ReviewResult = { ok: boolean; error?: string; status?: AdminSignup['status'] }
 export interface AdminOrganizer {
   /** Null for an owner, who lives in the service's code and can't be removed. */
@@ -650,8 +651,11 @@ export const adminApi = {
     authFetch(`/admin/events/${encodeURIComponent(slug)}/preview`, { method: 'POST', body: JSON.stringify({ kind, note }) }),
   sendTest: (slug: string, kind: EventEmailKind, note?: string): Promise<{ ok: boolean; error?: string; to: string }> =>
     authFetch(`/admin/events/${encodeURIComponent(slug)}/test`, { method: 'POST', body: JSON.stringify({ kind, note }) }),
-  sendReminders: (slug: string, note: string | undefined, onlyUnreminded: boolean): Promise<{ sent: number; skipped: number; failed: Array<{ email: string; error: string }> }> =>
+  sendReminders: (slug: string, note: string | undefined, onlyUnreminded: boolean): Promise<SendSummary> =>
     authFetch(`/admin/events/${encodeURIComponent(slug)}/reminders`, { method: 'POST', body: JSON.stringify({ note, onlyUnreminded }) }),
+  /** The invite to approved people who have not had one (needs a service that has the route). */
+  sendInvites: (slug: string): Promise<SendSummary> =>
+    authFetch(`/admin/events/${encodeURIComponent(slug)}/invites`, { method: 'POST' }),
   approve: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/approve`, { method: 'POST' }),
   decline: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/decline`, { method: 'POST' }),
   reopen: (signupId: number): Promise<ReviewResult> => authFetch(`/admin/signups/${signupId}/reopen`, { method: 'POST' }),

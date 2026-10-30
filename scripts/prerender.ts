@@ -247,7 +247,7 @@ ${linkList(cities.map((c) => ({ href: `/cities/${c.id}`, label: c.state ? `${c.n
     path: '/events',
     title: 'Events',
     description:
-      'Upcoming Pattern Language gatherings — the Cañon City workshop on September 19, live PAL walkthroughs, and Hack Trinidad Forward 2026.'
+      'Upcoming Pattern Language gatherings: the Community Solution Sprint in Cañon City on November 7, live PAL walkthroughs, and Hack Trinidad Forward 2026.'
   },
   {
     path: '/beta',

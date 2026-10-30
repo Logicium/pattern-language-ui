@@ -17,24 +17,17 @@ export interface CommunityEvent {
   url?: string
   /** Show the RSVP form for this event. */
   signupOpen?: boolean
+  /**
+   * Registrations are reviewed and the form asks why they are interested.
+   * Mirrors `requireReason` in the service's event catalog.
+   */
+  requireReason?: boolean
   featured?: boolean
 }
 
+// The Cañon City Workshop planned for September 19, 2026 became the Community
+// Solution Sprint below; its RSVPs live under the sprint's slug.
 export const events: CommunityEvent[] = [
-  {
-    slug: 'canon-city-workshop-2026',
-    title: 'The Cañon City Workshop',
-    date: '2026-09-19',
-    timeLabel: 'Time & venue announced to attendees',
-    location: 'Cañon City, Colorado',
-    description:
-      'We stop pretending. After exploring the fictional Cottonwood Springs, we put Cañon ' +
-      "City's real challenges, assets, and people on the table — a hands-on working session " +
-      'to find the patterns that fit, sketch a first 90-day experiment, and decide who owns ' +
-      'it. Bring your neighbors.',
-    signupOpen: true,
-    featured: true,
-  },
   {
     slug: 'soco-startup-week-2026',
     title: 'From a 48-Hour Hackathon to a Pattern Language',
@@ -67,6 +60,8 @@ export const events: CommunityEvent[] = [
       'One day, one town, fifty patterns. Name what must stay true, stack the patterns that protect it, ' +
       'and leave at five with a 90-day playbook. The winning project receives up to $250 to continue. Hosted by Emergent Campus, sponsored by the Boettcher Foundation. Free. Play the game first at /hackathon.',
     url: '/hackathon',
+    signupOpen: true,
+    requireReason: true,
     featured: true,
   },
   {

@@ -3,7 +3,7 @@
     <PageHero
       label="Gatherings"
       title="Events"
-      subtitle="Workshops, walkthroughs, and working sessions — online and across Southern Colorado."
+      subtitle="Workshops, walkthroughs, and working sessions, online and across Southern Colorado."
     />
 
     <!-- Featured: the next working session -->
@@ -31,7 +31,7 @@
             </div>
           </div>
 
-          <div class="signup">
+          <div v-if="featured.signupOpen" class="signup">
             <template v-if="!signupDone">
               <p class="signup-lede">Save me a seat</p>
               <form class="signup-form" @submit.prevent="submitSignup">
@@ -57,19 +57,31 @@
                   placeholder="Organization or community (optional)"
                   maxlength="160"
                 />
+                <textarea
+                  v-if="featured.requireReason"
+                  v-model="signupForm.note"
+                  class="form-textarea"
+                  placeholder="Why are you interested? The problem you care about, or what you hope to build"
+                  required
+                  rows="3"
+                  maxlength="1000"
+                />
                 <p v-if="signupError" class="signup-error text-sm">{{ signupError }}</p>
                 <button type="submit" class="btn" :disabled="signingUp">
-                  {{ signingUp ? 'Signing you up…' : 'Sign up' }}
+                  {{ signingUp ? 'Sending…' : featured.requireReason ? 'Register' : 'Sign up' }}
                 </button>
               </form>
               <p class="signup-note text-sm text-tertiary">
-                We'll email the venue and agenda as the date gets closer. No spam, ever.
+                <template v-if="featured.requireReason">Free. Seats are limited: we read every registration and send invites by email.</template>
+                <template v-else>We'll email the venue and agenda as the date gets closer. No spam, ever.</template>
               </p>
             </template>
             <template v-else>
-              <p class="signup-lede">You're on the list.</p>
+              <p class="signup-lede">{{ signupRepeat ? 'Already registered.' : featured.requireReason ? 'Request received.' : "You're on the list." }}</p>
               <p class="text-sm text-secondary">
-                See you in Cañon City on September 19 — details land in your inbox soon.
+                <template v-if="signupRepeat">We already have a registration for that email. We'll be in touch there.</template>
+                <template v-else-if="featured.requireReason">We read every registration. If there's a seat for you, your official invite follows by email.</template>
+                <template v-else>See you {{ longDate(featured.date) }}. Details land in your inbox soon.</template>
               </p>
             </template>
           </div>
@@ -137,7 +149,7 @@ import { useSeo } from '@/composables/useSeo'
 useSeo({
   title: 'Events',
   description:
-    'Upcoming Pattern Language gatherings — the Cañon City workshop on September 19, live PAL walkthroughs, and Hack Trinidad Forward 2026.',
+    'Upcoming Pattern Language gatherings: the Community Solution Sprint in Cañon City on November 7, live PAL walkthroughs, and Hack Trinidad Forward 2026.',
   path: '/events'
 })
 
@@ -175,26 +187,36 @@ function dayLabel(date: string) {
 function yearLabel(date: string) {
   return String(new Date(`${date}T12:00:00`).getFullYear())
 }
+function longDate(date: string) {
+  return new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+}
 
-const signupForm = reactive({ name: '', email: '', organization: '' })
+const signupForm = reactive({ name: '', email: '', organization: '', note: '' })
 const signingUp = ref(false)
 const signupDone = ref(false)
+const signupRepeat = ref(false)
 const signupError = ref('')
 
 async function submitSignup() {
   if (!featured.value || signingUp.value) return
+  if (featured.value.requireReason && !signupForm.note.trim()) {
+    signupError.value = 'Tell us why you’re interested.'
+    return
+  }
   signingUp.value = true
   signupError.value = ''
   try {
-    await eventsApi.signup({
+    const result = await eventsApi.signup({
       eventSlug: featured.value.slug,
       name: signupForm.name,
       email: signupForm.email,
-      organization: signupForm.organization || undefined
+      organization: signupForm.organization || undefined,
+      note: signupForm.note.trim() || undefined
     })
+    signupRepeat.value = !!result.already
     signupDone.value = true
   } catch (e) {
-    signupError.value = e instanceof Error ? e.message : 'Something went wrong — please try again.'
+    signupError.value = e instanceof Error ? e.message : 'Something went wrong. Please try again.'
   } finally {
     signingUp.value = false
   }
